@@ -26,6 +26,14 @@ export interface UpdatePhaseRequest {
   position?: number;
 }
 
+export interface DeliverableAttachmentDto {
+  id: number;
+  fileName: string;
+  contentType: string;
+  fileSize: number;
+  createdAt: string;
+}
+
 export interface DeliverableDto {
   id: number;
   name: string;
@@ -34,6 +42,7 @@ export interface DeliverableDto {
   phaseName: string;
   state: 'DRAFT' | 'DELIVERED' | 'VALIDATED';
   dueDate: string | null;
+  attachments: DeliverableAttachmentDto[];
   createdAt: string;
   updatedAt: string;
 }

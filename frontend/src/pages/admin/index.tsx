@@ -8,8 +8,9 @@ import {
 import UsersTab from './UsersTab';
 import CompaniesTab from './CompaniesTab';
 import IssueStatusesTab from './StatusesTab';
+import ActivityTab from './ActivityTab';
 
-type Tab = 'companies' | 'users' | 'settings';
+type Tab = 'companies' | 'users' | 'activity' | 'settings';
 
 function SpinnerWrapper() {
   return (
@@ -25,6 +26,7 @@ export default function AdminPage() {
   const tabs: { key: Tab; label: string }[] = [
     { key: 'companies', label: 'Companies' },
     { key: 'users', label: 'Users' },
+    { key: 'activity', label: 'Activity' },
     { key: 'settings', label: 'Settings' },
   ];
 
@@ -33,12 +35,12 @@ export default function AdminPage() {
       <h2 className="text-2xl font-bold text-gray-900">Administration</h2>
 
       <div className="border-b border-gray-200">
-        <nav className="flex gap-6">
+        <nav className="flex gap-6 overflow-x-auto whitespace-nowrap">
           {tabs.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`shrink-0 pb-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === tab.key
                   ? 'border-primary-600 text-primary-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -52,6 +54,7 @@ export default function AdminPage() {
 
       {activeTab === 'companies' && <CompaniesTab />}
       {activeTab === 'users' && <UsersTab />}
+      {activeTab === 'activity' && <ActivityTab />}
       {activeTab === 'settings' && <SettingsTab />}
     </div>
   );
@@ -125,7 +128,7 @@ function IssueTypesSection() {
       </div>
 
       {loading ? <SpinnerWrapper /> : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>

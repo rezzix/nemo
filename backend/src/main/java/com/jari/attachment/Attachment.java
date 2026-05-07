@@ -1,7 +1,7 @@
 package com.jari.attachment;
 
 import com.jari.issue.Issue;
-import com.jari.user.User;
+import com.jari.phase.Deliverable;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -28,8 +28,12 @@ public class Attachment {
     private long fileSize;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "issue_id", nullable = false)
+    @JoinColumn(name = "issue_id")
     private Issue issue;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "deliverable_id")
+    private Deliverable deliverable;
 
     @Column(name = "uploaded_by", nullable = false)
     private Long uploadedBy;
@@ -51,6 +55,8 @@ public class Attachment {
     public void setFileSize(long fileSize) { this.fileSize = fileSize; }
     public Issue getIssue() { return issue; }
     public void setIssue(Issue issue) { this.issue = issue; }
+    public Deliverable getDeliverable() { return deliverable; }
+    public void setDeliverable(Deliverable deliverable) { this.deliverable = deliverable; }
     public Long getUploadedBy() { return uploadedBy; }
     public void setUploadedBy(Long uploadedBy) { this.uploadedBy = uploadedBy; }
     public Instant getCreatedAt() { return createdAt; }

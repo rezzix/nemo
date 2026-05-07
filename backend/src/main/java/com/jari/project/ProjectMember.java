@@ -22,6 +22,9 @@ public class ProjectMember {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(name = "score")
+    private Integer score;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -36,5 +39,7 @@ public class ProjectMember {
     public Long getId() { return id; }
     public Project getProject() { return project; }
     public User getUser() { return user; }
+    public Integer getScore() { return score; }
+    public void setScore(Integer score) { this.score = score; }
     public Instant getCreatedAt() { return createdAt; }
 }

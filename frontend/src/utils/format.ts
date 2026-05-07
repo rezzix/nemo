@@ -122,3 +122,37 @@ export function formatCurrency(value: number | null | undefined): string {
   const formatted = value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/,/g, "'");
   return symbol + ' ' + formatted;
 }
+
+export function scoreLabel(score: number): string {
+  switch (score) {
+    case 0: return 'Marginal';
+    case 1: return 'Functional';
+    case 2: return 'Impactful';
+    case 4: return 'Strategic';
+    case 5: return 'Exceptional';
+    default: return '—';
+  }
+}
+
+export function scoreColor(score: number): string {
+  switch (score) {
+    case 5: return 'bg-emerald-100 text-emerald-700';
+    case 4: return 'bg-green-100 text-green-700';
+    case 2: return 'bg-blue-100 text-blue-700';
+    case 1: return 'bg-yellow-100 text-yellow-700';
+    case 0: return 'bg-red-100 text-red-700';
+    default: return 'bg-gray-100 text-gray-600';
+  }
+}
+
+export function roleBadgeColor(role: string): string {
+  switch (role) {
+    case 'ADMIN': return 'bg-red-100 text-red-700';
+    case 'MANAGER': return 'bg-blue-100 text-blue-700';
+    case 'EXECUTIVE': return 'bg-purple-100 text-purple-700';
+    case 'HR': return 'bg-pink-100 text-pink-700';
+    case 'CONTRIBUTOR': return 'bg-green-100 text-green-700';
+    case 'EXTERNAL': return 'bg-gray-100 text-gray-700';
+    default: return 'bg-gray-100 text-gray-600';
+  }
+}

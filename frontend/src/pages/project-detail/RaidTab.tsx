@@ -71,7 +71,7 @@ export default function RaidTab({ projectId, canEdit }: { projectId: number; can
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-y-2">
         <div className="flex gap-2">
           {['ALL', 'RISK', 'ASSUMPTION', 'ISSUE', 'DEPENDENCY'].map(f => (
             <button key={f} onClick={() => setFilter(f)}

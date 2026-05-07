@@ -108,7 +108,7 @@ function ProjectCard({ project, onClick }: { project: ProjectDto; onClick: () =>
 
       {/* Financials */}
       {(budgetVal !== null || pvVal !== null || spentVal !== null) && (
-        <div className="grid grid-cols-3 gap-2 pt-3 border-t border-gray-100">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-3 border-t border-gray-100">
           <div>
             <div className="text-[10px] text-gray-400 font-medium uppercase">Budget</div>
             <div className="text-sm font-medium text-gray-900">{formatCurrency(budgetVal)}</div>

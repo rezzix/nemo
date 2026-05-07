@@ -1,5 +1,6 @@
 package com.jari.phase;
 
+import com.jari.attachment.AttachmentService;
 import com.jari.common.exception.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,11 +13,14 @@ public class DeliverableService {
 
     private final DeliverableRepository deliverableRepository;
     private final PhaseRepository phaseRepository;
+    private final AttachmentService attachmentService;
 
     public DeliverableService(DeliverableRepository deliverableRepository,
-                              PhaseRepository phaseRepository) {
+                              PhaseRepository phaseRepository,
+                              AttachmentService attachmentService) {
         this.deliverableRepository = deliverableRepository;
         this.phaseRepository = phaseRepository;
+        this.attachmentService = attachmentService;
     }
 
     @Transactional(readOnly = true)
@@ -62,6 +66,7 @@ public class DeliverableService {
     @Transactional
     public void delete(Long id) {
         getById(id);
+        attachmentService.deleteByDeliverableId(id);
         deliverableRepository.deleteById(id);
     }
 }

@@ -3,6 +3,7 @@ import AdminDashboard from '@/pages/dashboard/AdminDashboard';
 import ManagerDashboard from '@/pages/dashboard/ManagerDashboard';
 import ExecutiveDashboard from '@/pages/dashboard/ExecutiveDashboard';
 import ContributorDashboard from '@/pages/dashboard/ContributorDashboard';
+import HrDashboard from '@/pages/dashboard/HrDashboard';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -14,6 +15,8 @@ export default function DashboardPage() {
       return <ManagerDashboard />;
     case 'EXECUTIVE':
       return <ExecutiveDashboard />;
+    case 'HR':
+      return <HrDashboard />;
     default:
       return <ContributorDashboard />;
   }

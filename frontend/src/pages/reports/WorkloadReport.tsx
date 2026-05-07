@@ -43,7 +43,7 @@ export default function WorkloadReport({ projectId }: { projectId: number | null
             <StatCard label="Unassigned Issues" value={byAssignee.find((a) => a.name === 'Unassigned')?.total ?? 0} color="border-orange-200 bg-orange-50" />
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>

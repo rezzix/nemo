@@ -66,7 +66,7 @@ export default function IssueStatusesTab() {
   return (
     <div className="space-y-4">
       <div className="bg-white rounded-xl border border-gray-200 p-4">
-        <div className="flex gap-3 items-end">
+        <div className="flex gap-3 items-end flex-wrap">
           <div className="flex-1">
             <label className="block text-xs font-medium text-gray-500 mb-1">Name</label>
             <input
@@ -96,7 +96,7 @@ export default function IssueStatusesTab() {
       </div>
 
       {loading ? <SpinnerWrapper /> : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>

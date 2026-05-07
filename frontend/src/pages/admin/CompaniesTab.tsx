@@ -240,7 +240,7 @@ function CreateCompanyModal({ onClose }: { onClose: () => void }) {
     <Modal title="Create Company" onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-3 py-2">{error}</div>}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Field label="Name" value={name} onChange={setName} required className="col-span-2" />
           <Field label="Key" value={key} onChange={setKey} required maxLength={10} />
         </div>

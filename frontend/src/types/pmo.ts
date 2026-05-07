@@ -87,6 +87,41 @@ export interface PortfolioSummary {
   stageDistribution: Record<string, number>;
 }
 
+export interface CompanyPortfolioSummary {
+  companyId: number | null;
+  companyName: string;
+  companyKey: string;
+  totalProjects: number;
+  totalIssues: number;
+  totalCompleted: number;
+  totalBudget: number;
+  totalBudgetSpent: number;
+  totalOpenRisks: number;
+  totalMitigatingRisks: number;
+  stageDistribution: Record<string, number>;
+}
+
+export interface PhaseTimelineEntry {
+  phaseId: number;
+  phaseName: string;
+  startDate: string | null;
+  endDate: string | null;
+  totalDeliverables: number;
+  completedDeliverables: number;
+}
+
+export interface ProjectTimelineEntry {
+  projectId: number;
+  projectKey: string;
+  projectName: string;
+  companyName: string | null;
+  stage: string | null;
+  targetStartDate: string | null;
+  targetEndDate: string | null;
+  completionPct: number;
+  phases: PhaseTimelineEntry[];
+}
+
 export interface UserRateDto {
   id: number;
   userId: number;

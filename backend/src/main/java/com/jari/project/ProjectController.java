@@ -51,6 +51,7 @@ public class ProjectController {
         Long companyId = authHelper.getCurrentCompanyId(currentUser);
         boolean isAdmin = authHelper.hasAnyRole(currentUser, "ADMIN");
         boolean isManagerOrExecutive = authHelper.hasAnyRole(currentUser, "MANAGER", "EXECUTIVE");
+        boolean isHr = authHelper.hasAnyRole(currentUser, "HR");
         boolean isExternal = authHelper.isExternal(currentUser);
 
         Page<Project> result;
@@ -63,7 +64,7 @@ public class ProjectController {
             }
         } else if (isAdmin) {
             result = projectService.search(search, programId, managerId, null, page, size, sort);
-        } else if (isManagerOrExecutive) {
+        } else if (isManagerOrExecutive || isHr) {
             result = projectService.search(search, programId, managerId, companyId, page, size, sort);
         } else {
             result = projectService.searchByMember(userId, companyId, page, size);
@@ -145,6 +146,14 @@ public class ProjectController {
         authHelper.requireProjectReadAccess(currentUser, id);
         List<ProjectDto.MemberDto> members = projectService.getMembers(id).stream()
                 .map(projectMapper::toMemberDto).toList();
+        // Contributors and external users cannot see evaluation scores
+        boolean canSeeScores = currentUser.getAuthorities().stream()
+                .anyMatch(a -> Set.of("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EXECUTIVE", "ROLE_HR").contains(a.getAuthority()));
+        if (!canSeeScores) {
+            members = members.stream()
+                    .map(m -> new ProjectDto.MemberDto(m.id(), m.userId(), m.username(), m.fullName(), null))
+                    .toList();
+        }
         return ResponseEntity.ok(ApiResponse.of(members));
     }
 
@@ -160,6 +169,15 @@ public class ProjectController {
     public ResponseEntity<Void> removeMember(@PathVariable Long id, @PathVariable Long userId) {
         projectService.removeMember(id, userId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/members/{userId}/score")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    public ResponseEntity<ApiResponse<ProjectDto.MemberDto>> updateMemberScore(
+            @PathVariable Long id, @PathVariable Long userId,
+            @RequestBody @Valid ProjectDto.ScoreRequest request) {
+        ProjectMember pm = projectService.updateMemberScore(id, userId, request.score());
+        return ResponseEntity.ok(ApiResponse.of(projectMapper.toMemberDto(pm)));
     }
 
     // Labels

@@ -1,4 +1,4 @@
-export type UserRole = 'ADMIN' | 'MANAGER' | 'CONTRIBUTOR' | 'EXECUTIVE' | 'EXTERNAL';
+export type UserRole = 'ADMIN' | 'MANAGER' | 'CONTRIBUTOR' | 'EXECUTIVE' | 'EXTERNAL' | 'HR';
 
 export interface UserDto {
   id: number;
@@ -11,6 +11,10 @@ export interface UserDto {
   companyName: string | null;
   assignedProjectId: number | null;
   assignedProjectName: string | null;
+  jobTitle: string | null;
+  department: string | null;
+  phone: string | null;
+  hireDate: string | null;
   avatarUrl: string | null;
   active: boolean;
   createdAt: string;

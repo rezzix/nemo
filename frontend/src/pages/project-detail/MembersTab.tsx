@@ -1,14 +1,26 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { MemberDto, UserDto } from '@/types';
-import { getMembers, addMembers, removeMember } from '@/api/projects';
+import { getMembers, addMembers, removeMember, updateMemberScore } from '@/api/projects';
 import { listAllUsers } from '@/api/users';
+import { scoreLabel, scoreColor } from '@/utils/format';
 import Spinner from '@/components/common/Spinner';
 import Modal from '@/components/common/Modal';
 
-export default function MembersTab({ projectId, managerId, canEdit }: { projectId: number; managerId: number; canEdit: boolean }) {
+const SCORE_OPTIONS = [
+  { value: 0, label: 'Marginal' },
+  { value: 1, label: 'Functional' },
+  { value: 2, label: 'Impactful' },
+  { value: 4, label: 'Strategic' },
+  { value: 5, label: 'Exceptional' },
+];
+
+export default function MembersTab({ projectId, managerId, canEdit, canSeeScores: canSeeScoresProp }: { projectId: number; managerId: number; canEdit: boolean; canSeeScores?: boolean }) {
   const [members, setMembers] = useState<MemberDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
+  const [scoringUserId, setScoringUserId] = useState<number | null>(null);
+  const [savingScore, setSavingScore] = useState(false);
+  const [scoreError, setScoreError] = useState<string | null>(null);
 
   const fetchMembers = useCallback(async () => {
     setLoading(true);
@@ -24,6 +36,23 @@ export default function MembersTab({ projectId, managerId, canEdit }: { projectI
     fetchMembers();
   };
 
+  const handleScore = async (userId: number, score: number) => {
+    setSavingScore(true);
+    setScoreError(null);
+    try {
+      await updateMemberScore(projectId, userId, score);
+      setScoringUserId(null);
+      fetchMembers();
+    } catch (err) {
+      setScoreError('Failed to save evaluation. Please try again.');
+      console.error('Failed to update score:', err);
+    } finally {
+      setSavingScore(false);
+    }
+  };
+
+  const canSeeScores = canSeeScoresProp ?? canEdit;
+
   return (
     <div className="space-y-4">
       {canEdit && (
@@ -34,13 +63,14 @@ export default function MembersTab({ projectId, managerId, canEdit }: { projectI
         </div>
       )}
       {loading ? <div className="flex items-center justify-center h-32"><Spinner className="h-6 w-6 text-primary-600" /></div> : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Username</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Full Name</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Role</th>
+                {canSeeScores && <th className="text-left px-4 py-3 font-medium text-gray-500">Evaluation</th>}
                 {canEdit && <th className="text-left px-4 py-3 font-medium text-gray-500">Actions</th>}
               </tr>
             </thead>
@@ -52,6 +82,50 @@ export default function MembersTab({ projectId, managerId, canEdit }: { projectI
                   <td className="px-4 py-3">
                     {m.userId === managerId && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">Manager</span>}
                   </td>
+                  {canSeeScores && (
+                    <td className="px-4 py-3">
+                      {scoreError && scoringUserId === m.userId && (
+                        <p className="text-xs text-red-600 mb-1">{scoreError}</p>
+                      )}
+                      {scoringUserId === m.userId ? (
+                        <div className="flex items-center gap-1 flex-wrap">
+                          {SCORE_OPTIONS.map((opt) => (
+                            <button
+                              key={opt.value}
+                              disabled={savingScore}
+                              onClick={() => handleScore(m.userId, opt.value)}
+                              className={`px-2 py-1 rounded text-xs font-medium ${scoreColor(opt.value)} hover:opacity-80 disabled:opacity-50`}
+                            >
+                              {opt.value} — {opt.label}
+                            </button>
+                          ))}
+                          <button
+                            onClick={() => setScoringUserId(null)}
+                            className="text-gray-400 hover:text-gray-600 text-xs ml-1"
+                            disabled={savingScore}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : m.score !== null && m.score !== undefined ? (
+                        <button
+                          onClick={() => { canEdit && setScoringUserId(m.userId); setScoreError(null); }}
+                          className={`px-2 py-0.5 rounded text-xs font-medium ${canEdit ? 'cursor-pointer hover:opacity-80' : ''} ${scoreColor(m.score)}`}
+                        >
+                          {m.score} — {scoreLabel(m.score)}
+                        </button>
+                      ) : canEdit ? (
+                        <button
+                          onClick={() => { setScoringUserId(m.userId); setScoreError(null); }}
+                          className="text-xs text-gray-400 hover:text-primary-600 hover:underline"
+                        >
+                          Evaluate
+                        </button>
+                      ) : (
+                        <span className="text-xs text-gray-400">—</span>
+                      )}
+                    </td>
+                  )}
                   {canEdit && (
                     <td className="px-4 py-3">
                       {m.userId !== managerId && (
@@ -62,7 +136,7 @@ export default function MembersTab({ projectId, managerId, canEdit }: { projectI
                 </tr>
               ))}
               {members.length === 0 && (
-                <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-500">No members.</td></tr>
+                <tr><td colSpan={canSeeScores ? (canEdit ? 5 : 4) : (canEdit ? 4 : 3)} className="px-4 py-8 text-center text-gray-500">No members.</td></tr>
               )}
             </tbody>
           </table>

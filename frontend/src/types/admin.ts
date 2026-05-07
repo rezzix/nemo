@@ -23,6 +23,17 @@ export interface AuditLogDto {
   createdAt: string;
 }
 
+export interface ActivityLogDto {
+  id: number;
+  username: string;
+  method: string;
+  path: string;
+  status: number;
+  ip: string;
+  duration: number;
+  createdAt: string;
+}
+
 export interface OrganizationUpdateRequest {
   name: string;
   address?: string;
@@ -39,6 +50,10 @@ export interface CreateUserRequest {
   role: string;
   companyId?: number | null;
   assignedProjectId?: number | null;
+  jobTitle?: string;
+  department?: string;
+  phone?: string;
+  hireDate?: string;
 }
 
 export interface AdminUpdateUserRequest {
@@ -49,6 +64,10 @@ export interface AdminUpdateUserRequest {
   active?: boolean;
   companyId?: number | null;
   assignedProjectId?: number | null;
+  jobTitle?: string;
+  department?: string;
+  phone?: string;
+  hireDate?: string;
 }
 
 export interface CreateIssueTypeRequest {

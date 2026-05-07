@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -38,4 +39,18 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u FROM User u WHERE (:companyId IS NULL OR u.company.id = :companyId OR u.company.id IS NULL)")
     Page<User> findByCompanyOrGlobal(Long companyId, Pageable pageable);
+
+    long countByActive(boolean active);
+
+    @Query("SELECT u.role, COUNT(u) FROM User u GROUP BY u.role")
+    List<Object[]> countByRole();
+
+    @Query("SELECT u.department, COUNT(u) FROM User u WHERE u.department IS NOT NULL GROUP BY u.department")
+    List<Object[]> countByDepartment();
+
+    @Query("SELECT u.company.name, COUNT(u) FROM User u WHERE u.role <> 'EXTERNAL' GROUP BY u.company.name")
+    List<Object[]> countByCompany();
+
+    @Query("SELECT u.active, COUNT(u) FROM User u WHERE u.role <> 'EXTERNAL' GROUP BY u.active")
+    List<Object[]> countByActiveStatus();
 }

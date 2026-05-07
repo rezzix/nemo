@@ -28,19 +28,23 @@ public class UserController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'HR')")
     public ResponseEntity<PaginatedResponse<UserDto>> list(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String role,
             @RequestParam(required = false) Boolean active,
+            @RequestParam(required = false) Long companyId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "createdAt,desc") String sort,
             @AuthenticationPrincipal UserDetails currentUser) {
 
-        Long companyId = authHelper.hasAnyRole(currentUser, "ADMIN") ? null : authHelper.getCurrentCompanyId(currentUser);
+        Long effectiveCompanyId = companyId;
+        if (effectiveCompanyId == null && !authHelper.hasAnyRole(currentUser, "ADMIN", "HR")) {
+            effectiveCompanyId = authHelper.getCurrentCompanyId(currentUser);
+        }
         User.Role roleEnum = role != null ? User.Role.valueOf(role) : null;
-        Page<User> result = userService.search(search, roleEnum, active, companyId, page, size, sort);
+        Page<User> result = userService.search(search, roleEnum, active, effectiveCompanyId, page, size, sort);
 
         return ResponseEntity.ok(PaginatedResponse.of(
                 userMapper.toDtoList(result.getContent()),

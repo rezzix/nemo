@@ -17,6 +17,10 @@ public record UserDto(
         String companyName,
         Long assignedProjectId,
         String assignedProjectName,
+        String jobTitle,
+        String department,
+        String phone,
+        String hireDate,
         String createdAt,
         String updatedAt
 ) {
@@ -29,7 +33,11 @@ public record UserDto(
             @NotBlank @Size(min = 1, max = 100) String lastName,
             @NotBlank String role,
             Long companyId,
-            Long assignedProjectId
+            Long assignedProjectId,
+            String jobTitle,
+            String department,
+            String phone,
+            String hireDate
     ) {}
 
     public record UpdateRequest(
@@ -39,7 +47,11 @@ public record UserDto(
             String role,
             Boolean active,
             Long companyId,
-            Long assignedProjectId
+            Long assignedProjectId,
+            String jobTitle,
+            String department,
+            String phone,
+            String hireDate
     ) {}
 
     public record PasswordChangeRequest(

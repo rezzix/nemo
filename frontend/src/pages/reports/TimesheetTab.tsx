@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getWeeklyTimesheet, getDailyTimesheet, deleteTimeLog } from '@/api/timeLogs';
 import { listAllUsers } from '@/api/users';
+import { useHolidays } from '@/hooks/useHolidays';
 import type { UserDto, TimeLogDto } from '@/types';
 import Spinner from '@/components/common/Spinner';
 
@@ -29,6 +30,7 @@ export default function TimesheetTab() {
   const [users, setUsers] = useState<UserDto[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [weekStart, setWeekStart] = useState(getWeekStart(new Date()));
+  const { holidayMap } = useHolidays(weekStart);
   const [weekData, setWeekData] = useState<Record<string, TimeLogDto[]>>({});
   const [loading, setLoading] = useState(false);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
@@ -125,17 +127,20 @@ export default function TimesheetTab() {
             const logs = weekData[day] ?? [];
             const dayTotal = logs.reduce((s, l) => s + l.hours, 0);
             const isToday = day === new Date().toISOString().slice(0, 10);
+            const isHoliday = !!holidayMap[day];
+            const holidayName = holidayMap[day]?.name;
             const isExpanded = expandedDay === day;
             return (
-              <div key={day} className={`bg-white rounded-xl border ${isToday ? 'border-primary-300' : 'border-gray-200'} overflow-hidden`}>
+              <div key={day} className={`bg-white rounded-xl border ${isHoliday ? 'border-pink-300 bg-pink-50' : isToday ? 'border-primary-300' : 'border-gray-200'} overflow-hidden`}>
                 <button
                   onClick={() => handleDayClick(day)}
                   className="w-full flex items-center gap-4 px-4 py-3 hover:bg-gray-50 transition-colors"
                 >
                   <div className="w-20">
-                    <span className={`text-sm font-medium ${isToday ? 'text-primary-700' : 'text-gray-700'}`}>{dayNames[i]}</span>
+                    <span className={`text-sm font-medium ${isHoliday ? 'text-pink-700' : isToday ? 'text-primary-700' : 'text-gray-700'}`}>{dayNames[i]}</span>
                     <span className="text-xs text-gray-400 ml-2">{new Date(day + 'T00:00:00').toLocaleDateString()}</span>
                   </div>
+                  {isHoliday && <span className="text-xs text-pink-600 font-medium">{holidayName}</span>}
                   <div className="flex-1 flex flex-wrap gap-2">
                     {logs.map((l) => (
                       <span key={l.id} className="text-xs bg-gray-100 rounded-full px-2 py-0.5 text-gray-700">

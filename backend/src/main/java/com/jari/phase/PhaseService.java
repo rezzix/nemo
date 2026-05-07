@@ -1,5 +1,6 @@
 package com.jari.phase;
 
+import com.jari.attachment.AttachmentService;
 import com.jari.common.exception.EntityNotFoundException;
 import com.jari.project.Project;
 import com.jari.project.ProjectRepository;
@@ -14,13 +15,16 @@ public class PhaseService {
     private final PhaseRepository phaseRepository;
     private final ProjectRepository projectRepository;
     private final DeliverableRepository deliverableRepository;
+    private final AttachmentService attachmentService;
 
     public PhaseService(PhaseRepository phaseRepository,
                         ProjectRepository projectRepository,
-                        DeliverableRepository deliverableRepository) {
+                        DeliverableRepository deliverableRepository,
+                        AttachmentService attachmentService) {
         this.phaseRepository = phaseRepository;
         this.projectRepository = projectRepository;
         this.deliverableRepository = deliverableRepository;
+        this.attachmentService = attachmentService;
     }
 
     @Transactional(readOnly = true)
@@ -67,6 +71,11 @@ public class PhaseService {
     @Transactional
     public void delete(Long id) {
         getById(id);
+        List<Long> deliverableIds = deliverableRepository.findByPhaseId(id).stream()
+                .map(Deliverable::getId).toList();
+        if (!deliverableIds.isEmpty()) {
+            attachmentService.deleteByDeliverableIds(deliverableIds);
+        }
         deliverableRepository.deleteByPhaseId(id);
         phaseRepository.deleteById(id);
     }

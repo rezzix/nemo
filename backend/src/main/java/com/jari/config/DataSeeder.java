@@ -59,6 +59,7 @@ public class DataSeeder implements CommandLineRunner {
     private final TimeLogRepository timeLogRepository;
     private final UserRateRepository userRateRepository;
     private final ProjectFavoriteRepository projectFavoriteRepository;
+    private final PublicHolidayRepository publicHolidayRepository;
 
     public DataSeeder(UserRepository userRepository,
                       PasswordEncoder passwordEncoder,
@@ -76,7 +77,8 @@ public class DataSeeder implements CommandLineRunner {
                       RaidItemRepository raidItemRepository,
                       TimeLogRepository timeLogRepository,
                       UserRateRepository userRateRepository,
-                      ProjectFavoriteRepository projectFavoriteRepository) {
+                      ProjectFavoriteRepository projectFavoriteRepository,
+                      PublicHolidayRepository publicHolidayRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.companyRepository = companyRepository;
@@ -94,6 +96,7 @@ public class DataSeeder implements CommandLineRunner {
         this.timeLogRepository = timeLogRepository;
         this.userRateRepository = userRateRepository;
         this.projectFavoriteRepository = projectFavoriteRepository;
+        this.publicHolidayRepository = publicHolidayRepository;
     }
 
     @Override
@@ -102,29 +105,45 @@ public class DataSeeder implements CommandLineRunner {
 
         // Companies
         Company netopia = createCompany("Netopia", "NTO", "Digital innovation and technology solutions",
-                "123 Innovation Drive, San Francisco, CA 94105", "https://netopia.io", "https://mederp.net/downloads/nemo/netopia.jpg", 1);
+                "Imb hightech, av Ennakhil, Hay Riad, Rabat", "http://www.netopia.ma", "https://mederp.net/downloads/nemo/netopia.jpg", 1);
         Company harmony = createCompany("Harmony", "HRM", "Consulting and organizational development",
-                "456 Strategy Blvd, New York, NY 10001", "https://harmony.consulting", "https://mederp.net/downloads/nemo/harmony.jpg", 2);
+                "14 Rue Annasim, Hay Riad, Rabat", "http://www.harmony.ma", "https://mederp.net/downloads/nemo/harmony.jpg", 2);
         Company myteam = createCompany("MyTeam", "MTM", "Team collaboration and productivity tools",
-                "789 Collaboration Ave, Austin, TX 73301", "https://myteam.dev", "https://mederp.net/downloads/nemo/myteam.jpg", 3);
+                "Imb 5, Bouskoura, Casablanca", "http://www.myteam.ma", "https://mederp.net/downloads/nemo/myteam.jpg", 3);
         Company mederp = createCompany("medERP", "MER", "Healthcare ERP solutions and medical information systems",
-                "Av Moulay Rachid, Casablanca", "www.mederp.net", "https://mederp.net/downloads/nemo/mederp.jpg", 4);
+                "601, technopark, Rabat", "http://www.mederp.ma", "https://mederp.net/downloads/nemo/mederp.jpg", 4);
 
         // Organization config (global only — companies use their own address/website/logo fields)
         createOrgConfig("Netopia Group", null,
-                "Av Annakhil, Rabat", "www.netopia.ma", "https://mederp.net/downloads/nemo/group.jpg");
+                "Imb hightech, av Ennakhil, Hay Riad, Rabat", "http://www.netopia.ma", "https://mederp.net/downloads/nemo/group.jpg");
 
         // Users
-        User admin = createUser("admin", "admin@netopia.ma", "Admin", "User", User.Role.ADMIN, null);
-        User majid = createUser("majid", "majid@netopia.ma", "Majid", "Hassan", User.Role.MANAGER, netopia);
-        User dev1 = createUser("ismail", "ismail@netopia.ma", "Ismail", "Baraka", User.Role.CONTRIBUTOR, netopia);
-        User dev2 = createUser("hanane", "hanane@netopia.ma", "Hanane", "Machkour", User.Role.CONTRIBUTOR, netopia);
-        User dev3 = createUser("wadii", "wadii@netopia.ma", "Wadii", "Mokhtari", User.Role.CONTRIBUTOR, harmony);
-        User dev4 = createUser("ahmed", "ahmed@netopia.ma", "Ahmed", "Azouzi", User.Role.CONTRIBUTOR, harmony);
-        User pmHarmony = createUser("karima", "karima@netopia.ma", "Karima", "Chari", User.Role.MANAGER, harmony);
-        User salim = createUser("salim", "salim@netopia.ma", "Salim", "Rachidi", User.Role.EXECUTIVE, null);
-        User bassamat = createUser("bassamat", "bassamat@netopia.ma", "Bassamat", "Tayeb", User.Role.EXTERNAL, null);
-        User younes = createUser("younes", "younes@mederp.net", "Younes", "Alami", User.Role.CONTRIBUTOR, mederp);
+        User admin = createUser("admin", "admin@netopia.ma", "Admin", "User", User.Role.ADMIN, null,
+                "System Administrator", "IT", "+212 600 000 001", LocalDate.of(2023, 1, 15));
+        User majid = createUser("majid", "majid@netopia.ma", "Majid", "Hassan", User.Role.MANAGER, netopia,
+                "Project Manager", "Engineering", "+212 600 000 002", LocalDate.of(2023, 3, 1));
+        User dev1 = createUser("ismail", "ismail@netopia.ma", "Ismail", "Baraka", User.Role.CONTRIBUTOR, netopia,
+                "Senior Developer", "Engineering", "+212 600 000 003", LocalDate.of(2023, 5, 15));
+        User dev2 = createUser("hanane", "hanane@netopia.ma", "Hanane", "Machkour", User.Role.CONTRIBUTOR, netopia,
+                "Frontend Developer", "Engineering", "+212 600 000 004", LocalDate.of(2024, 1, 10));
+        User dev3 = createUser("wadii", "wadii@netopia.ma", "Wadii", "Mokhtari", User.Role.CONTRIBUTOR, harmony,
+                "Backend Developer", "Engineering", "+212 600 000 005", LocalDate.of(2024, 2, 1));
+        User dev4 = createUser("ahmed", "ahmed@netopia.ma", "Ahmed", "Azouzi", User.Role.CONTRIBUTOR, harmony,
+                "Full-Stack Developer", "Engineering", "+212 600 000 006", LocalDate.of(2024, 3, 15));
+        User pmHarmony = createUser("karima", "karima@netopia.ma", "Karima", "Chari", User.Role.MANAGER, harmony,
+                "Delivery Manager", "Operations", "+212 600 000 007", LocalDate.of(2023, 6, 1));
+        User salim = createUser("salim", "salim@netopia.ma", "Salim", "Rachidi", User.Role.EXECUTIVE, null,
+                "CEO", "Executive", "+212 600 000 008", LocalDate.of(2022, 1, 1));
+        User bassamat = createUser("bassamat", "bassamat@netopia.ma", "Bassamat", "Tayeb", User.Role.EXTERNAL, null,
+                "Consultant", null, null, LocalDate.of(2025, 1, 10));
+        User younes = createUser("younes", "younes@mederp.net", "Younes", "Alami", User.Role.CONTRIBUTOR, mederp,
+                "DevOps Engineer", "Infrastructure", "+212 600 000 010", LocalDate.of(2024, 7, 1));
+        User youssef = createUser("youssef", "youssef@myteam.ma", "Youssef", "Bennani", User.Role.MANAGER, myteam,
+                "Team Lead", "Engineering", "+212 600 000 011", LocalDate.of(2023, 9, 1));
+        User walid = createUser("walid", "walid@myteam.ma", "Walid", "El Idrissi", User.Role.CONTRIBUTOR, myteam,
+                "QA Engineer", "Quality", "+212 600 000 012", LocalDate.of(2024, 4, 15));
+        User mehdi = createUser("mehdi", "mehdi@netopia.ma", "Mehdi", "El Amrani", User.Role.HR, null,
+                "HR Director", "Human Resources", "+212 600 000 013", LocalDate.of(2022, 6, 1));
 
         // User rates for EVM
         createUserRate(admin, new BigDecimal("75.00"), LocalDate.of(2025, 1, 1));
@@ -135,6 +154,9 @@ public class DataSeeder implements CommandLineRunner {
         createUserRate(dev4, new BigDecimal("55.00"), LocalDate.of(2025, 1, 1));
         createUserRate(pmHarmony, new BigDecimal("85.00"), LocalDate.of(2025, 1, 1));
         createUserRate(younes, new BigDecimal("70.00"), LocalDate.of(2025, 1, 1));
+        createUserRate(youssef, new BigDecimal("80.00"), LocalDate.of(2025, 1, 1));
+        createUserRate(walid, new BigDecimal("60.00"), LocalDate.of(2025, 1, 1));
+        createUserRate(mehdi, new BigDecimal("80.00"), LocalDate.of(2025, 1, 1));
 
         // Programs
         Program ehealth = createProgram("eHealth", "EH", "Digital health transformation initiative", majid, netopia);
@@ -184,6 +206,11 @@ public class DataSeeder implements CommandLineRunner {
                 new BigDecimal("250000"), new BigDecimal("250000"), new BigDecimal("30000"),
                 LocalDate.of(2025, 1, 1), LocalDate.of(2025, 12, 31), mederp);
 
+        Project footballTeam = createProject("Football Team Manager", "FTM", "Football team management and player tracking platform",
+                null, youssef, Project.Stage.EXECUTION, 7,
+                new BigDecimal("120000"), new BigDecimal("120000"), new BigDecimal("18000"),
+                LocalDate.of(2025, 3, 1), LocalDate.of(2025, 11, 30), myteam);
+
         // Add members
         addMember(fse, admin);
         addMember(fse, dev1);
@@ -208,6 +235,10 @@ public class DataSeeder implements CommandLineRunner {
         addMember(dataWarehouse, admin);
         addMember(medErpProject, younes);
         addMember(medErpProject, admin);
+        addMember(footballTeam, youssef);
+        addMember(footballTeam, walid);
+        addMember(footballTeam, dev1);
+        addMember(footballTeam, admin);
 
         // External user assigned to FSE
         bassamat.setAssignedProject(fse);
@@ -228,6 +259,7 @@ public class DataSeeder implements CommandLineRunner {
         createBoardColumns(mobilePay, allStatuses);
         createBoardColumns(dataWarehouse, allStatuses);
         createBoardColumns(medErpProject, allStatuses);
+        createBoardColumns(footballTeam, allStatuses);
 
         // Sprints
         Sprint sprint1 = createSprint("Sprint 1", "FSE MVP features", fse,
@@ -273,6 +305,14 @@ public class DataSeeder implements CommandLineRunner {
         // Issues for medERP
         createIssue("MER-1", "Amelioration design", medErpProject, inProgress, Issue.Priority.HIGH, dev, younes, younes, null, 0);
         createIssue("MER-2", "Homologation FSE", medErpProject, todo, Issue.Priority.HIGH, dev, younes, younes, null, 1);
+
+        // Issues for Football Team Manager
+        createIssue("FTM-1", "Player registration module", footballTeam, done, Issue.Priority.HIGH, dev, walid, youssef, null, 0);
+        createIssue("FTM-2", "Match scheduling system", footballTeam, inProgress, Issue.Priority.HIGH, dev, walid, youssef, null, 1);
+        createIssue("FTM-3", "Training session planner", footballTeam, inProgress, Issue.Priority.MEDIUM, dev, dev1, youssef, null, 2);
+        createIssue("FTM-4", "Player statistics dashboard", footballTeam, todo, Issue.Priority.HIGH, dev, null, youssef, null, 3);
+        createIssue("FTM-5", "Team lineup builder", footballTeam, todo, Issue.Priority.MEDIUM, dev, null, youssef, null, 4);
+        createIssue("FTM-6", "Injury tracking", footballTeam, todo, Issue.Priority.MEDIUM, dev, null, youssef, null, 5);
 
         // Labels
         createLabel(fse, "Frontend", "#3B82F6");
@@ -334,9 +374,25 @@ public class DataSeeder implements CommandLineRunner {
         createRaidItem(infraUpgrade, RaidItem.RaidType.DEPENDENCY, "Cloud vendor contract renewal",
                 "Infrastructure upgrade depends on cloud contract renewal",
                 RaidItem.RaidStatus.OPEN, null, null, null, majid, today.plusMonths(2));
+
+        // Public holidays (Morocco 2025)
+        createHoliday(LocalDate.of(2025, 1, 1), "New Year's Day", null);
+        createHoliday(LocalDate.of(2025, 1, 11), "Independence Manifesto Day", null);
+        createHoliday(LocalDate.of(2025, 5, 1), "Labour Day", null);
+        createHoliday(LocalDate.of(2025, 7, 30), "Throne Day", null);
+        createHoliday(LocalDate.of(2025, 8, 14), "Oued Ed-Dahab Day", null);
+        createHoliday(LocalDate.of(2025, 8, 20), "Revolution Day", null);
+        createHoliday(LocalDate.of(2025, 8, 21), "Youth Day", null);
+        createHoliday(LocalDate.of(2025, 11, 6), "Green March Day", null);
+        createHoliday(LocalDate.of(2025, 11, 18), "Independence Day", null);
     }
 
     private User createUser(String username, String email, String firstName, String lastName, User.Role role, Company company) {
+        return createUser(username, email, firstName, lastName, role, company, null, null, null, null);
+    }
+
+    private User createUser(String username, String email, String firstName, String lastName, User.Role role, Company company,
+                            String jobTitle, String department, String phone, LocalDate hireDate) {
         User user = new User();
         user.setUsername(username);
         user.setEmail(email);
@@ -346,6 +402,10 @@ public class DataSeeder implements CommandLineRunner {
         user.setRole(role);
         user.setActive(true);
         user.setCompany(company);
+        user.setJobTitle(jobTitle);
+        user.setDepartment(department);
+        user.setPhone(phone);
+        user.setHireDate(hireDate);
         return userRepository.save(user);
     }
 
@@ -495,5 +555,13 @@ public class DataSeeder implements CommandLineRunner {
         item.setOwner(owner);
         item.setDueDate(dueDate);
         return raidItemRepository.save(item);
+    }
+
+    private void createHoliday(LocalDate date, String name, Company company) {
+        PublicHoliday holiday = new PublicHoliday();
+        holiday.setDate(date);
+        holiday.setName(name);
+        holiday.setCompany(company);
+        publicHolidayRepository.save(holiday);
     }
 }

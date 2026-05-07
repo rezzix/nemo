@@ -53,7 +53,7 @@ public class TimeLogController {
             @AuthenticationPrincipal UserDetails currentUser) {
 
         if (userId != null && !userId.equals(authHelper.getCurrentUserId(currentUser))
-                && !authHelper.hasAnyRole(currentUser, "ADMIN", "MANAGER", "EXECUTIVE")) {
+                && !authHelper.hasAnyRole(currentUser, "ADMIN", "MANAGER", "EXECUTIVE", "HR")) {
             throw new com.jari.common.exception.ForbiddenException("You can only view your own time logs");
         }
         Page<TimeLog> result = timeLogService.search(userId, issueId, projectId, startDate, endDate, page, size, sort);
@@ -69,7 +69,7 @@ public class TimeLogController {
         TimeLog timeLog = timeLogService.getById(id);
         Long currentUserId = authHelper.getCurrentUserId(currentUser);
         if (!timeLog.getUser().getId().equals(currentUserId)
-                && !authHelper.hasAnyRole(currentUser, "ADMIN", "MANAGER")) {
+                && !authHelper.hasAnyRole(currentUser, "ADMIN", "MANAGER", "HR")) {
             throw new com.jari.common.exception.ForbiddenException("You can only view your own time logs");
         }
         return ResponseEntity.ok(ApiResponse.of(timeLogMapper.toDto(timeLog)));

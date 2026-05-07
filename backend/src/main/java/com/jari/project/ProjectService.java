@@ -1,5 +1,6 @@
 package com.jari.project;
 
+import com.jari.common.exception.BadRequestException;
 import com.jari.common.exception.DuplicateKeyException;
 import com.jari.common.exception.EntityNotFoundException;
 import com.jari.common.exception.ForbiddenException;
@@ -209,6 +210,22 @@ public class ProjectService {
             throw new ForbiddenException("Cannot remove project manager from project");
         }
         memberRepository.deleteByProjectIdAndUserId(projectId, userId);
+    }
+
+    private static final List<Integer> VALID_SCORES = List.of(0, 1, 2, 4, 5);
+
+    @Transactional
+    public ProjectMember updateMemberScore(Long projectId, Long userId, Integer score) {
+        if (score != null && !VALID_SCORES.contains(score)) {
+            throw new BadRequestException("Invalid score. Allowed values: 0, 1, 2, 4, 5");
+        }
+        List<ProjectMember> members = memberRepository.findByProjectId(projectId);
+        ProjectMember pm = members.stream()
+                .filter(m -> m.getUser().getId().equals(userId))
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException("ProjectMember", userId));
+        pm.setScore(score);
+        return memberRepository.save(pm);
     }
 
     @Transactional(readOnly = true)

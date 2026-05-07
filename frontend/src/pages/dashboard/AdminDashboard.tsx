@@ -111,7 +111,7 @@ export default function AdminDashboard() {
       {auditLogs.length > 0 && (
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
@@ -177,7 +177,7 @@ export default function AdminDashboard() {
       {/* All Projects */}
       <div>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">All Projects</h3>
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>

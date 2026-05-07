@@ -7,12 +7,13 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "app_user")
 public class User {
 
-    public enum Role { ADMIN, MANAGER, CONTRIBUTOR, EXECUTIVE, EXTERNAL }
+    public enum Role { ADMIN, MANAGER, CONTRIBUTOR, EXECUTIVE, EXTERNAL, HR }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -51,6 +52,18 @@ public class User {
     @JoinColumn(name = "assigned_project_id")
     private Project assignedProject;
 
+    @Column(name = "job_title")
+    private String jobTitle;
+
+    @Column(name = "department")
+    private String department;
+
+    @Column(name = "phone")
+    private String phone;
+
+    @Column(name = "hire_date")
+    private LocalDate hireDate;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -82,6 +95,14 @@ public class User {
     public void setCompany(Company company) { this.company = company; }
     public Project getAssignedProject() { return assignedProject; }
     public void setAssignedProject(Project assignedProject) { this.assignedProject = assignedProject; }
+    public String getJobTitle() { return jobTitle; }
+    public void setJobTitle(String jobTitle) { this.jobTitle = jobTitle; }
+    public String getDepartment() { return department; }
+    public void setDepartment(String department) { this.department = department; }
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+    public LocalDate getHireDate() { return hireDate; }
+    public void setHireDate(LocalDate hireDate) { this.hireDate = hireDate; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 }

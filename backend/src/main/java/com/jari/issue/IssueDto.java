@@ -7,7 +7,7 @@ import java.util.List;
 
 public record IssueDto(
         Long id, String title, String description, String issueKey,
-        Long statusId, String statusName, String priority,
+        Long statusId, String statusName, String statusCategory, String priority,
         Long typeId, String typeName,
         Long projectId, String projectKey,
         Long assigneeId, String assigneeName,

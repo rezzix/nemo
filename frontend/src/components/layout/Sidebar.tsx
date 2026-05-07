@@ -1,7 +1,8 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { useUIStore } from '@/stores/uiStore';
 import { getInitials } from '@/utils/format';
+import { useEffect } from 'react';
 
 type NavItem = { to: string; label: string; icon: React.FC<{ className?: string }> };
 type NavSection = { header?: string; items: NavItem[] };
@@ -9,12 +10,22 @@ type NavSection = { header?: string; items: NavItem[] };
 export default function Sidebar() {
   const { user, logout } = useAuthStore();
   const collapsed = useUIStore((s) => s.sidebarCollapsed);
+  const isMobile = useUIStore((s) => s.isMobile);
+  const sidebarOpen = useUIStore((s) => s.sidebarOpen);
+  const closeMobileSidebar = useUIStore((s) => s.closeMobileSidebar);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (isMobile) closeMobileSidebar();
+  }, [location.pathname, isMobile, closeMobileSidebar]);
 
   const handleLogout = async () => {
     await logout();
     navigate('/login');
   };
+
+  if (isMobile && !sidebarOpen) return null;
 
   const role = user?.role;
   const isExternal = role === 'EXTERNAL';
@@ -25,27 +36,42 @@ export default function Sidebar() {
         { to: '/', label: 'Dashboard', icon: DashboardIcon },
         ...(role === 'ADMIN' ? [{ to: '/admin', label: 'Admin', icon: AdminIcon }] : []),
         ...(role !== 'ADMIN' ? [{ to: '/projects', label: 'Projects', icon: ProjectsIcon }] : []),
-        ...(!isExternal && (role === 'ADMIN' || role === 'MANAGER' || role === 'EXECUTIVE')
+        ...(!isExternal && (role === 'ADMIN' || role === 'MANAGER' || role === 'EXECUTIVE' || role === 'HR')
           ? [{ to: '/programs', label: 'Programs', icon: ProgramsIcon }]
+          : []),
+        ...(role === 'ADMIN' || role === 'HR' || role === 'MANAGER'
+          ? [{ to: '/people', label: 'People', icon: PeopleIcon }]
           : []),
       ],
     },
-    ...(!isExternal ? [{
+    ...(!isExternal && role !== 'EXECUTIVE' ? [{
       header: 'Time' as string | undefined,
       items: [
-        { to: '/my-time', label: 'My Time', icon: TimeIcon },
-        ...(role === 'ADMIN' || role === 'MANAGER'
+        ...(role !== 'HR' ? [{ to: '/my-time', label: 'My Time', icon: TimeIcon }] : []),
+        ...(role === 'ADMIN' || role === 'MANAGER' || role === 'HR'
           ? [{ to: '/timesheets', label: 'Timesheets', icon: TimesheetIcon }]
           : []),
       ],
     }] : []),
     ...(!isExternal ? [{
+      header: undefined as string | undefined,
+      items: [
+        { to: '/leave', label: 'Leave', icon: LeaveIcon },
+      ],
+    }] : []),
+    ...(role === 'HR' ? [{
+      header: 'HR' as string | undefined,
+      items: [
+        { to: '/holidays', label: 'Holidays', icon: HolidayIcon },
+      ],
+    }] : []),
+    ...(!isExternal ? [{
       header: 'Insights' as string | undefined,
       items: [
-        ...(role === 'ADMIN' || role === 'MANAGER' || role === 'EXECUTIVE'
+        ...(role === 'ADMIN' || role === 'MANAGER' || role === 'EXECUTIVE' || role === 'HR'
           ? [
               { to: '/reports', label: 'Reports', icon: ReportsIcon },
-              { to: '/pmo', label: 'PMO', icon: PmoIcon },
+              ...(role !== 'HR' ? [{ to: '/pmo', label: 'PMO', icon: PmoIcon }] : []),
             ]
           : []),
       ],
@@ -55,14 +81,14 @@ export default function Sidebar() {
   return (
     <aside
       className={`bg-sidebar text-white flex flex-col transition-all duration-200 ${
-        collapsed ? 'w-16' : 'w-60'
+        isMobile ? 'w-60' : collapsed ? 'w-16' : 'w-60'
       }`}
     >
       <div className="flex items-center gap-3 px-4 h-16 border-b border-white/10">
         <div className="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center font-bold text-sm">
           N
         </div>
-        {!collapsed && (
+        {(!collapsed || isMobile) && (
           <span className="font-semibold text-lg">Nemo</span>
         )}
       </div>
@@ -70,7 +96,7 @@ export default function Sidebar() {
       <nav className="flex-1 py-4 px-2 space-y-4">
         {sections.map((section, si) => (
           <div key={si}>
-            {section.header && !collapsed && (
+            {section.header && (!collapsed || isMobile) && (
               <div className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-wider text-gray-500">
                 {section.header}
               </div>
@@ -90,7 +116,7 @@ export default function Sidebar() {
                   }
                 >
                   <Icon className="w-5 h-5 shrink-0" />
-                  {!collapsed && <span>{label}</span>}
+                  {(!collapsed || isMobile) && <span>{label}</span>}
                 </NavLink>
               ))}
             </div>
@@ -109,14 +135,14 @@ export default function Sidebar() {
               <div className="w-8 h-8 rounded-full bg-primary-700 flex items-center justify-center text-xs font-medium shrink-0 group-hover:bg-primary-600 transition-colors">
                 {getInitials(user.firstName, user.lastName)}
               </div>
-              {!collapsed && (
+              {(!collapsed || isMobile) && (
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate group-hover:text-white transition-colors">{user.firstName} {user.lastName}</p>
                   <p className="text-xs text-gray-400 truncate">{user.role}</p>
                 </div>
               )}
             </NavLink>
-            {!collapsed && (
+            {(!collapsed || isMobile) && (
               <button
                 onClick={handleLogout}
                 className="text-gray-400 hover:text-white transition-colors"
@@ -201,6 +227,30 @@ function LogoutIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+    </svg>
+  );
+}
+
+function HolidayIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+    </svg>
+  );
+}
+
+function PeopleIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.785-3.072M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+    </svg>
+  );
+}
+
+function LeaveIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.181a48.413 48.413 0 00-8.048 0 2.25 2.25 0 00-1.976 2.181V15.75M9 18.75H6a2.25 2.25 0 01-2.25-2.25V6.108c0-1.135.845-2.098 1.976-2.181a48.413 48.413 0 018.048 0 2.25 2.25 0 011.976 2.181V15.75" />
     </svg>
   );
 }

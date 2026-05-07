@@ -62,7 +62,7 @@ export default function CreateIssueModal({ projectId, projectKey, onClose, isExt
         {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-3 py-2">{error}</div>}
         <Field label="Title" value={title} onChange={setTitle} required />
         <Field label="Description" value={description} onChange={setDescription} textarea />
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
             <select value={priority} onChange={(e) => setPriority(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">

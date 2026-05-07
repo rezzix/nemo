@@ -1,9 +1,13 @@
 package com.jari.pmo;
 
 import com.jari.common.exception.EntityNotFoundException;
+import com.jari.company.Company;
 import com.jari.config.IssueStatus;
 import com.jari.config.IssueStatusRepository;
 import com.jari.issue.IssueRepository;
+import com.jari.phase.DeliverableRepository;
+import com.jari.phase.Phase;
+import com.jari.phase.PhaseRepository;
 import com.jari.project.Project;
 import com.jari.project.ProjectRepository;
 import com.jari.timetracking.TimeLog;
@@ -29,19 +33,25 @@ public class PmoService {
     private final TimeLogRepository timeLogRepository;
     private final UserRateRepository userRateRepository;
     private final RaidItemRepository raidItemRepository;
+    private final PhaseRepository phaseRepository;
+    private final DeliverableRepository deliverableRepository;
 
     public PmoService(ProjectRepository projectRepository,
                       IssueRepository issueRepository,
                       IssueStatusRepository issueStatusRepository,
                       TimeLogRepository timeLogRepository,
                       UserRateRepository userRateRepository,
-                      RaidItemRepository raidItemRepository) {
+                      RaidItemRepository raidItemRepository,
+                      PhaseRepository phaseRepository,
+                      DeliverableRepository deliverableRepository) {
         this.projectRepository = projectRepository;
         this.issueRepository = issueRepository;
         this.issueStatusRepository = issueStatusRepository;
         this.timeLogRepository = timeLogRepository;
         this.userRateRepository = userRateRepository;
         this.raidItemRepository = raidItemRepository;
+        this.phaseRepository = phaseRepository;
+        this.deliverableRepository = deliverableRepository;
     }
 
     @Transactional(readOnly = true)
@@ -237,4 +247,156 @@ public class PmoService {
             long totalOpenRisks, long totalMitigatingRisks,
             Map<String, Long> stageDistribution
     ) {}
+
+    public record CompanyPortfolioSummary(
+            Long companyId, String companyName, String companyKey,
+            int totalProjects, long totalIssues, long totalCompleted,
+            BigDecimal totalBudget, BigDecimal totalBudgetSpent,
+            long totalOpenRisks, long totalMitigatingRisks,
+            Map<String, Long> stageDistribution
+    ) {}
+
+    @Transactional(readOnly = true)
+    public List<CompanyPortfolioSummary> getPortfolioByCompany() {
+        List<Project> projects = projectRepository.findAll();
+
+        List<IssueStatus> completedStatuses = new java.util.ArrayList<>();
+        completedStatuses.addAll(issueStatusRepository.findByCategory(IssueStatus.Category.DONE));
+        completedStatuses.addAll(issueStatusRepository.findByCategory(IssueStatus.Category.CLOSED));
+
+        // Group projects by company
+        Map<Long, List<Project>> byCompany = new java.util.LinkedHashMap<>();
+        for (Project p : projects) {
+            Long cid = p.getCompany() != null ? p.getCompany().getId() : 0L;
+            byCompany.computeIfAbsent(cid, k -> new java.util.ArrayList<>()).add(p);
+        }
+
+        List<CompanyPortfolioSummary> result = new java.util.ArrayList<>();
+        for (Map.Entry<Long, List<Project>> entry : byCompany.entrySet()) {
+            Long cid = entry.getKey();
+            List<Project> companyProjects = entry.getValue();
+
+            String companyName;
+            String companyKey;
+            if (cid == 0L) {
+                companyName = "Unassigned";
+                companyKey = "N/A";
+            } else {
+                Company c = companyProjects.get(0).getCompany();
+                companyName = c.getName();
+                companyKey = c.getKey();
+            }
+
+            int totalProjects = companyProjects.size();
+            long totalIssues = 0;
+            long totalCompleted = 0;
+            BigDecimal totalBudget = BigDecimal.ZERO;
+            BigDecimal totalBudgetSpent = BigDecimal.ZERO;
+            long totalOpenRisks = 0;
+            long totalMitigatingRisks = 0;
+
+            for (Project p : companyProjects) {
+                long projTotal = issueRepository.countByProjectId(p.getId());
+                long projCompleted = 0;
+                for (IssueStatus status : completedStatuses) {
+                    projCompleted += issueRepository.countByProjectIdAndStatusId(p.getId(), status.getId());
+                }
+                totalIssues += projTotal;
+                totalCompleted += projCompleted;
+
+                if (p.getBudget() != null) totalBudget = totalBudget.add(p.getBudget());
+                if (p.getBudgetSpent() != null) totalBudgetSpent = totalBudgetSpent.add(p.getBudgetSpent());
+
+                totalOpenRisks += raidItemRepository.countByProjectIdAndStatus(p.getId(), RaidItem.RaidStatus.OPEN);
+                totalMitigatingRisks += raidItemRepository.countByProjectIdAndStatus(p.getId(), RaidItem.RaidStatus.MITIGATING);
+            }
+
+            Map<String, Long> stageDistribution = companyProjects.stream()
+                    .collect(java.util.stream.Collectors.groupingBy(
+                            p -> p.getStage() != null ? p.getStage().name() : "INITIATION",
+                            java.util.stream.Collectors.counting()));
+
+            result.add(new CompanyPortfolioSummary(
+                    cid == 0L ? null : cid, companyName, companyKey,
+                    totalProjects, totalIssues, totalCompleted,
+                    totalBudget, totalBudgetSpent,
+                    totalOpenRisks, totalMitigatingRisks,
+                    stageDistribution
+            ));
+        }
+
+        return result;
+    }
+
+    @Transactional(readOnly = true)
+    public List<RaidItem> getPortfolioRaidItems(RaidItem.RaidType type) {
+        if (type != null) {
+            return raidItemRepository.findByType(type);
+        }
+        return raidItemRepository.findAll();
+    }
+
+    public record PhaseTimelineEntry(
+            Long phaseId, String phaseName,
+            LocalDate startDate, LocalDate endDate,
+            long totalDeliverables, long completedDeliverables
+    ) {}
+
+    public record ProjectTimelineEntry(
+            Long projectId, String projectKey, String projectName,
+            String companyName, String stage,
+            LocalDate targetStartDate, LocalDate targetEndDate,
+            BigDecimal completionPct,
+            List<PhaseTimelineEntry> phases
+    ) {}
+
+    @Transactional(readOnly = true)
+    public List<ProjectTimelineEntry> getPortfolioTimeline() {
+        List<Project> projects = projectRepository.findAll();
+        List<Long> projectIds = projects.stream().map(Project::getId).toList();
+        List<Phase> allPhases = projectIds.isEmpty() ? List.of() : phaseRepository.findByProjectIdInOrderByProjectIdAscPositionAsc(projectIds);
+
+        List<IssueStatus> completedStatuses = new java.util.ArrayList<>();
+        completedStatuses.addAll(issueStatusRepository.findByCategory(IssueStatus.Category.DONE));
+        completedStatuses.addAll(issueStatusRepository.findByCategory(IssueStatus.Category.CLOSED));
+
+        Map<Long, List<Phase>> phasesByProject = allPhases.stream()
+                .collect(java.util.stream.Collectors.groupingBy(p -> p.getProject().getId()));
+
+        List<ProjectTimelineEntry> result = new java.util.ArrayList<>();
+        for (Project project : projects) {
+            List<Phase> phases = phasesByProject.getOrDefault(project.getId(), List.of());
+
+            long totalIssues = issueRepository.countByProjectId(project.getId());
+            long completedIssues = 0;
+            for (IssueStatus status : completedStatuses) {
+                completedIssues += issueRepository.countByProjectIdAndStatusId(project.getId(), status.getId());
+            }
+            BigDecimal completionPct = totalIssues > 0
+                    ? BigDecimal.valueOf(completedIssues).divide(BigDecimal.valueOf(totalIssues), 4, RoundingMode.HALF_UP)
+                    : BigDecimal.ZERO;
+
+            List<PhaseTimelineEntry> phaseEntries = new java.util.ArrayList<>();
+            for (Phase phase : phases) {
+                long totalDel = deliverableRepository.countByPhaseId(phase.getId());
+                // Approximate completion: count deliverables whose status matches completed statuses
+                long completedDel = 0; // simplified — could be enhanced later
+                phaseEntries.add(new PhaseTimelineEntry(
+                        phase.getId(), phase.getName(),
+                        phase.getStartDate(), phase.getEndDate(),
+                        totalDel, completedDel
+                ));
+            }
+
+            result.add(new ProjectTimelineEntry(
+                    project.getId(), project.getKey(), project.getName(),
+                    project.getCompany() != null ? project.getCompany().getName() : null,
+                    project.getStage() != null ? project.getStage().name() : null,
+                    project.getTargetStartDate(), project.getTargetEndDate(),
+                    completionPct,
+                    phaseEntries
+            ));
+        }
+        return result;
+    }
 }

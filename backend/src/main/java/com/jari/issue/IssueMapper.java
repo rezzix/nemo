@@ -10,6 +10,7 @@ public interface IssueMapper {
 
     @Mapping(target = "statusId", source = "status.id")
     @Mapping(target = "statusName", source = "status.name")
+    @Mapping(target = "statusCategory", source = "status.category")
     @Mapping(target = "typeId", source = "type.id")
     @Mapping(target = "typeName", source = "type.name")
     @Mapping(target = "projectId", source = "project.id")

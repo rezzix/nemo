@@ -1,5 +1,7 @@
 import { apiGet, apiPost, apiPut, apiDelete } from './client';
-import type { PhaseDto, CreatePhaseRequest, UpdatePhaseRequest, DeliverableDto, CreateDeliverableRequest, UpdateDeliverableRequest } from '@/types';
+import client from './client';
+import type { PhaseDto, CreatePhaseRequest, UpdatePhaseRequest, DeliverableDto, DeliverableAttachmentDto, CreateDeliverableRequest, UpdateDeliverableRequest } from '@/types';
+import type { ApiResponse } from '@/types';
 
 // Phases
 
@@ -36,4 +38,31 @@ export function updateDeliverable(projectId: number, id: number, data: UpdateDel
 
 export function deleteDeliverable(projectId: number, id: number): Promise<void> {
   return apiDelete(`/projects/${projectId}/deliverables/${id}`);
+}
+
+// Deliverable Attachments
+
+export async function uploadDeliverableAttachment(
+  projectId: number, deliverableId: number, file: File
+): Promise<DeliverableAttachmentDto> {
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await client.post<ApiResponse<DeliverableAttachmentDto>>(
+    `/projects/${projectId}/deliverables/${deliverableId}/attachments`,
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } }
+  );
+  return res.data.data;
+}
+
+export function deleteDeliverableAttachment(
+  projectId: number, deliverableId: number, attachmentId: number
+): Promise<void> {
+  return apiDelete(`/projects/${projectId}/deliverables/${deliverableId}/attachments/${attachmentId}`);
+}
+
+export function getDeliverableAttachmentDownloadUrl(
+  projectId: number, deliverableId: number, attachmentId: number
+): string {
+  return `/api/projects/${projectId}/deliverables/${deliverableId}/attachments/download/${attachmentId}`;
 }

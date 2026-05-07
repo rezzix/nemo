@@ -131,7 +131,7 @@ export default function UsersTab() {
     });
   }, []);
 
-  const rolePriority: Record<string, number> = { ADMIN: 0, EXECUTIVE: 1, MANAGER: 2, CONTRIBUTOR: 3, EXTERNAL: 4 };
+  const rolePriority: Record<string, number> = { ADMIN: 0, EXECUTIVE: 1, MANAGER: 2, HR: 3, CONTRIBUTOR: 4, EXTERNAL: 5 };
   const sortByRole = (a: UserDto, b: UserDto) => (rolePriority[a.role] ?? 5) - (rolePriority[b.role] ?? 5);
 
   const externalUsers = users.filter((u) => u.role === 'EXTERNAL');
@@ -184,12 +184,12 @@ export default function UsersTab() {
 
       {tabs.length > 1 && (
         <div className="border-b border-gray-200">
-          <nav className="flex gap-6">
+          <nav className="flex gap-6 overflow-x-auto whitespace-nowrap">
             {tabs.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
+                className={`shrink-0 pb-3 text-sm font-medium border-b-2 transition-colors ${
                   currentTab === tab.key ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700'
                 }`}
               >
@@ -201,7 +201,7 @@ export default function UsersTab() {
       )}
 
       {loading ? <SpinnerWrapper /> : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
           {visibleUsers.length === 0 ? (
             <div className="text-center text-gray-500 py-8">No {showActive ? 'active' : 'inactive'} users in this group.</div>
           ) : (
@@ -212,6 +212,8 @@ export default function UsersTab() {
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Username</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Email</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Name</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500">Title</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500">Dept</th>
                   {currentTab === 'Externals' && <th className="text-left px-4 py-3 font-medium text-gray-500">Project</th>}
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Role</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Rate</th>
@@ -248,7 +250,7 @@ export default function UsersTab() {
                       isExternalGroup={isExternalGroup}
                     >
                       {isExpanded && (
-                        <td colSpan={isExternalGroup ? 8 : 7} className="px-8 py-4 bg-gray-50 border-t border-gray-100">
+                        <td colSpan={isExternalGroup ? 10 : 9} className="px-8 py-4 bg-gray-50 border-t border-gray-100">
                           <div className="flex items-center justify-between mb-3">
                             <h4 className="text-sm font-semibold text-gray-700">Hourly Rates</h4>
                             <button onClick={() => { setShowAddRate(true); setEditRateId(null); }} className="text-primary-600 hover:text-primary-800 text-xs font-medium">+ Add Rate</button>
@@ -261,7 +263,7 @@ export default function UsersTab() {
                           ) : (
                             <>
                               {showAddRate && (
-                                <form onSubmit={handleCreateRate} className="flex items-end gap-3 mb-3 bg-white rounded-lg border border-gray-200 p-3">
+                                <form onSubmit={handleCreateRate} className="flex items-end gap-3 flex-wrap mb-3 bg-white rounded-lg border border-gray-200 p-3">
                                   <div>
                                     <label className="block text-xs font-medium text-gray-500 mb-1">Hourly Rate ($)</label>
                                     <input type="number" step="0.01" min="0" value={newRate} onChange={(e) => setNewRate(e.target.value)} required placeholder="e.g. 75.00" className="px-3 py-2 border border-gray-300 rounded-lg text-sm w-32" />
@@ -377,6 +379,8 @@ function UserRowFragment({
         <td className="px-4 py-3 font-mono text-xs">{user.username}</td>
         <td className="px-4 py-3">{user.email}</td>
         <td className="px-4 py-3">{user.firstName} {user.lastName}</td>
+        <td className="px-4 py-3 text-gray-600 text-xs">{user.jobTitle || '—'}</td>
+        <td className="px-4 py-3 text-gray-600 text-xs">{user.department || '—'}</td>
         {isExternalGroup && (
           <td className="px-4 py-3">
             {user.assignedProjectName ? (
@@ -391,6 +395,7 @@ function UserRowFragment({
             user.role === 'ADMIN' ? 'bg-red-100 text-red-700' :
             user.role === 'MANAGER' ? 'bg-blue-100 text-blue-700' :
             user.role === 'EXECUTIVE' ? 'bg-amber-100 text-amber-700' :
+            user.role === 'HR' ? 'bg-pink-100 text-pink-700' :
             user.role === 'EXTERNAL' ? 'bg-teal-100 text-teal-700' :
             'bg-gray-100 text-gray-700'
           }`}>{user.role}</span>
@@ -437,6 +442,10 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
   const [role, setRole] = useState('CONTRIBUTOR');
   const [companyId, setCompanyId] = useState<string>('');
   const [assignedProjectId, setAssignedProjectId] = useState<string>('');
+  const [jobTitle, setJobTitle] = useState('');
+  const [department, setDepartment] = useState('');
+  const [phone, setPhone] = useState('');
+  const [hireDate, setHireDate] = useState('');
   const [companies, setCompanies] = useState<CompanyDto[]>([]);
   const [projects, setProjects] = useState<ProjectDto[]>([]);
   const [saving, setSaving] = useState(false);
@@ -456,6 +465,10 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
         username, email, password, firstName, lastName, role,
         companyId: companyId ? Number(companyId) : null,
         assignedProjectId: assignedProjectId ? Number(assignedProjectId) : null,
+        jobTitle: jobTitle || undefined,
+        department: department || undefined,
+        phone: phone || undefined,
+        hireDate: hireDate || undefined,
       });
       onClose();
     } catch {
@@ -469,12 +482,12 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
     <Modal title="Create User" onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-3 py-2">{error}</div>}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Username" value={username} onChange={setUsername} required />
           <Field label="Email" type="email" value={email} onChange={setEmail} required />
         </div>
         <Field label="Password" type="password" value={password} onChange={setPassword} required minLength={6} />
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="First name" value={firstName} onChange={setFirstName} required />
           <Field label="Last name" value={lastName} onChange={setLastName} required />
         </div>
@@ -485,8 +498,17 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
             <option value="MANAGER">Manager</option>
             <option value="EXECUTIVE">Executive</option>
             <option value="ADMIN">Admin</option>
+            <option value="HR">HR</option>
             <option value="EXTERNAL">External</option>
           </select>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field label="Job Title" value={jobTitle} onChange={setJobTitle} />
+          <Field label="Department" value={department} onChange={setDepartment} />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field label="Phone" value={phone} onChange={setPhone} />
+          <Field label="Hire Date" type="date" value={hireDate} onChange={setHireDate} />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
@@ -523,6 +545,10 @@ function EditUserModal({ user, onClose }: { user: UserDto; onClose: () => void }
   const [active, setActive] = useState(user.active);
   const [companyId, setCompanyId] = useState<string>(user.companyId ? String(user.companyId) : '');
   const [assignedProjectId, setAssignedProjectId] = useState<string>(user.assignedProjectId ? String(user.assignedProjectId) : '');
+  const [jobTitle, setJobTitle] = useState(user.jobTitle || '');
+  const [department, setDepartment] = useState(user.department || '');
+  const [phone, setPhone] = useState(user.phone || '');
+  const [hireDate, setHireDate] = useState(user.hireDate || '');
   const [companies, setCompanies] = useState<CompanyDto[]>([]);
   const [projects, setProjects] = useState<ProjectDto[]>([]);
   const [saving, setSaving] = useState(false);
@@ -542,6 +568,10 @@ function EditUserModal({ user, onClose }: { user: UserDto; onClose: () => void }
         email, firstName, lastName, role, active,
         companyId: companyId ? Number(companyId) : null,
         assignedProjectId: assignedProjectId ? Number(assignedProjectId) : null,
+        jobTitle: jobTitle || undefined,
+        department: department || undefined,
+        phone: phone || undefined,
+        hireDate: hireDate || undefined,
       };
       await adminUpdateUser(user.id, req);
       onClose();
@@ -557,7 +587,7 @@ function EditUserModal({ user, onClose }: { user: UserDto; onClose: () => void }
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-3 py-2">{error}</div>}
         <Field label="Email" type="email" value={email} onChange={setEmail} />
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="First name" value={firstName} onChange={setFirstName} />
           <Field label="Last name" value={lastName} onChange={setLastName} />
         </div>
@@ -569,7 +599,16 @@ function EditUserModal({ user, onClose }: { user: UserDto; onClose: () => void }
             <option value="EXECUTIVE">Executive</option>
             <option value="ADMIN">Admin</option>
             <option value="EXTERNAL">External</option>
+            <option value="HR">HR</option>
           </select>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field label="Job Title" value={jobTitle} onChange={setJobTitle} />
+          <Field label="Department" value={department} onChange={setDepartment} />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field label="Phone" value={phone} onChange={setPhone} />
+          <Field label="Hire Date" type="date" value={hireDate} onChange={setHireDate} />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>

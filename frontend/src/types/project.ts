@@ -55,6 +55,7 @@ export interface MemberDto {
   userId: number;
   username: string;
   fullName: string;
+  score: number | null;
 }
 
 export interface LabelDto {

@@ -27,4 +27,10 @@ public interface TimeLogRepository extends JpaRepository<TimeLog, Long> {
 
     @Query("SELECT tl FROM TimeLog tl WHERE tl.user.id = :userId AND tl.logDate BETWEEN :startDate AND :endDate")
     List<TimeLog> findByUserIdAndDateRange(Long userId, LocalDate startDate, LocalDate endDate);
+
+    @Query("SELECT tl FROM TimeLog tl WHERE tl.logDate BETWEEN :startDate AND :endDate")
+    List<TimeLog> findByDateRange(LocalDate startDate, LocalDate endDate);
+
+    @Query("SELECT DISTINCT tl.user.id FROM TimeLog tl WHERE tl.logDate BETWEEN :startDate AND :endDate")
+    List<Long> findDistinctUserIdsByDateRange(LocalDate startDate, LocalDate endDate);
 }

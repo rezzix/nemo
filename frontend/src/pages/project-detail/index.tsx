@@ -28,6 +28,7 @@ export default function ProjectDetailPage() {
   const role = user?.role;
   const canEdit = role === 'ADMIN' || role === 'MANAGER';
   const isExternal = role === 'EXTERNAL';
+  const canSeeScores = canEdit || role === 'EXECUTIVE' || role === 'HR';
 
   useEffect(() => {
     if (!id) return;
@@ -41,6 +42,7 @@ export default function ProjectDetailPage() {
   // Role-based tab visibility:
   // EXECUTIVE: summary, board, raid, docs
   // MANAGER:   summary, board, raid, issues, docs, phases, members, settings
+  // HR:        summary, members, docs
   // CONTRIBUTOR: issues, board, docs
   // EXTERNAL: issues, board (existing behavior)
   const tabs: { key: Tab; label: string }[] = role === 'EXECUTIVE' ? [
@@ -57,6 +59,10 @@ export default function ProjectDetailPage() {
     { key: 'phases', label: 'Phases' },
     { key: 'members', label: 'Members' },
     { key: 'settings', label: 'Settings' },
+  ] : role === 'HR' ? [
+    { key: 'summary', label: 'Summary' },
+    { key: 'members', label: 'Members' },
+    { key: 'docs', label: 'Docs' },
   ] : role === 'CONTRIBUTOR' ? [
     { key: 'issues', label: 'Issues' },
     { key: 'board', label: 'Board' },
@@ -84,12 +90,12 @@ export default function ProjectDetailPage() {
       </div>
 
       <div className="border-b border-gray-200">
-        <nav className="flex gap-6">
+        <nav className="flex gap-6 overflow-x-auto whitespace-nowrap">
           {tabs.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`shrink-0 pb-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === tab.key ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -106,7 +112,7 @@ export default function ProjectDetailPage() {
       {activeTab === 'raid' && <RaidTab projectId={project.id} canEdit={canEdit} />}
       {activeTab === 'phases' && <PhasesTab projectId={project.id} canEdit={canEdit} />}
       {activeTab === 'settings' && <SettingsTab project={project} onUpdate={(p) => setProject(p)} canEdit={canEdit} />}
-      {activeTab === 'members' && <MembersTab projectId={project.id} managerId={project.managerId} canEdit={canEdit} />}
+      {activeTab === 'members' && <MembersTab projectId={project.id} managerId={project.managerId} canEdit={canEdit} canSeeScores={canSeeScores} />}
     </div>
   );
 }
@@ -194,9 +200,9 @@ function DocsTab({ projectId }: { projectId: number }) {
   };
 
   return (
-    <div className="flex gap-4" style={{ minHeight: 'calc(100vh - 300px)' }}>
+    <div className="flex flex-col md:flex-row gap-4" style={{ minHeight: 'calc(100vh - 300px)' }}>
       {/* Left panel — page tree */}
-      <div className="w-64 shrink-0 bg-white rounded-xl border border-gray-200 flex flex-col">
+      <div className="w-full md:w-64 shrink-0 bg-white rounded-xl border border-gray-200 flex flex-col">
         <div className="p-3 border-b border-gray-200">
           <div className="relative">
             <input

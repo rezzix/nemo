@@ -35,6 +35,10 @@ export async function removeMember(projectId: number, userId: number): Promise<v
   await apiDelete(`/projects/${projectId}/members/${userId}`);
 }
 
+export async function updateMemberScore(projectId: number, userId: number, score: number): Promise<MemberDto> {
+  return apiPut<MemberDto>(`/projects/${projectId}/members/${userId}/score`, { score });
+}
+
 // Labels
 export async function getLabels(projectId: number): Promise<LabelDto[]> {
   return apiGet<LabelDto[]>(`/projects/${projectId}/labels`);

@@ -17,6 +17,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+
 @Service
 public class UserService {
 
@@ -87,6 +89,12 @@ public class UserService {
                     .orElseThrow(() -> new EntityNotFoundException("Project", request.assignedProjectId()));
             user.setAssignedProject(project);
         }
+        user.setJobTitle(request.jobTitle());
+        user.setDepartment(request.department());
+        user.setPhone(request.phone());
+        if (request.hireDate() != null && !request.hireDate().isBlank()) {
+            user.setHireDate(LocalDate.parse(request.hireDate()));
+        }
         user = userRepository.save(user);
 
         if (user.getAssignedProject() != null && !projectMemberRepository.existsByProjectIdAndUserId(user.getAssignedProject().getId(), user.getId())) {
@@ -134,6 +142,12 @@ public class UserService {
                     projectMemberRepository.save(new ProjectMember(project, user));
                 }
             }
+        }
+        if (request.jobTitle() != null) user.setJobTitle(request.jobTitle());
+        if (request.department() != null) user.setDepartment(request.department());
+        if (request.phone() != null) user.setPhone(request.phone());
+        if (request.hireDate() != null) {
+            user.setHireDate(request.hireDate().isBlank() ? null : LocalDate.parse(request.hireDate()));
         }
 
         User.Role effectiveRole = request.role() != null ? User.Role.valueOf(request.role()) : user.getRole();

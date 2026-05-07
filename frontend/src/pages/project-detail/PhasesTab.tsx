@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { PhaseDto, DeliverableDto } from '@/types';
-import { listPhases, createPhase, updatePhase, deletePhase, listDeliverables, createDeliverable, updateDeliverable, deleteDeliverable } from '@/api/phases';
+import { listPhases, createPhase, updatePhase, deletePhase, listDeliverables, createDeliverable, updateDeliverable, deleteDeliverable, uploadDeliverableAttachment, deleteDeliverableAttachment, getDeliverableAttachmentDownloadUrl } from '@/api/phases';
 import axios from 'axios';
 import { formatDate, deliverableStateBadge, deliverableStateLabel } from '@/utils/format';
 import Spinner from '@/components/common/Spinner';
@@ -25,6 +25,11 @@ export default function PhasesTab({ projectId, canEdit }: { projectId: number; c
   const [deliverableForm, setDeliverableForm] = useState({ name: '', description: '', phaseId: 0, dueDate: '', state: 'DRAFT' as DeliverableDto['state'] });
   const [deliverableSaving, setDeliverableSaving] = useState(false);
   const [deliverableError, setDeliverableError] = useState<string | null>(null);
+
+  // Attachment state
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingForDeliverableId, setUploadingForDeliverableId] = useState<number | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -138,6 +143,46 @@ export default function PhasesTab({ projectId, canEdit }: { projectId: number; c
     return null;
   };
 
+  const handleAttachmentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || uploadingForDeliverableId == null) return;
+    setUploading(true);
+    try {
+      const att = await uploadDeliverableAttachment(projectId, uploadingForDeliverableId, file);
+      setDeliverables(prev => prev.map(d =>
+        d.id === uploadingForDeliverableId
+          ? { ...d, attachments: [...d.attachments, att] }
+          : d
+      ));
+    } catch (err) {
+      console.error('Failed to upload attachment:', err);
+    } finally {
+      setUploading(false);
+      setUploadingForDeliverableId(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleAttachmentDelete = async (deliverableId: number, attachmentId: number) => {
+    if (!confirm('Delete this attachment?')) return;
+    try {
+      await deleteDeliverableAttachment(projectId, deliverableId, attachmentId);
+      setDeliverables(prev => prev.map(d =>
+        d.id === deliverableId
+          ? { ...d, attachments: d.attachments.filter(a => a.id !== attachmentId) }
+          : d
+      ));
+    } catch (err) {
+      console.error('Failed to delete attachment:', err);
+    }
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
   if (loading) return <div className="flex items-center justify-center h-32"><Spinner className="h-6 w-6 text-primary-600" /></div>;
 
   return (
@@ -204,26 +249,73 @@ export default function PhasesTab({ projectId, canEdit }: { projectId: number; c
                     ) : (
                       <div className="space-y-2">
                         {phaseDeliverables.map(d => (
-                          <div key={d.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50">
-                            <div className="flex items-center gap-3 min-w-0">
-                              <button
-                                onClick={() => {
-                                  const next = nextDeliverableState(d.state);
-                                  if (next && canEdit) handleStateChange(d, next);
-                                }}
-                                disabled={!canEdit || !nextDeliverableState(d.state)}
-                                className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${deliverableStateBadge(d.state)} ${canEdit && nextDeliverableState(d.state) ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
-                                title={nextDeliverableState(d.state) ? `Change to ${deliverableStateLabel(nextDeliverableState(d.state)!)}` : undefined}
-                              >
-                                {deliverableStateLabel(d.state)}
-                              </button>
-                              <span className="text-sm text-gray-900 truncate">{d.name}</span>
-                              {d.dueDate && <span className="text-xs text-gray-400">Due: {formatDate(d.dueDate)}</span>}
-                            </div>
-                            {canEdit && (
+                          <div key={d.id} className="py-2 px-3 rounded-lg bg-gray-50">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <button
+                                  onClick={() => {
+                                    const next = nextDeliverableState(d.state);
+                                    if (next && canEdit) handleStateChange(d, next);
+                                  }}
+                                  disabled={!canEdit || !nextDeliverableState(d.state)}
+                                  className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${deliverableStateBadge(d.state)} ${canEdit && nextDeliverableState(d.state) ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
+                                  title={nextDeliverableState(d.state) ? `Change to ${deliverableStateLabel(nextDeliverableState(d.state)!)}` : undefined}
+                                >
+                                  {deliverableStateLabel(d.state)}
+                                </button>
+                                <span className="text-sm text-gray-900 truncate">{d.name}</span>
+                                {d.dueDate && <span className="text-xs text-gray-400">Due: {formatDate(d.dueDate)}</span>}
+                              </div>
                               <div className="flex items-center gap-2">
-                                <button onClick={() => openDeliverableForm(phase.id, d)} className="text-primary-600 hover:text-primary-800 text-xs font-medium">Edit</button>
-                                <button onClick={() => handleDeliverableDelete(d.id)} className="text-red-600 hover:text-red-800 text-xs font-medium">Delete</button>
+                                {canEdit && (
+                                  <button
+                                    onClick={() => { setUploadingForDeliverableId(d.id); fileInputRef.current?.click(); }}
+                                    disabled={uploading}
+                                    className="text-gray-400 hover:text-primary-600 text-xs"
+                                    title="Attach file"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                    </svg>
+                                  </button>
+                                )}
+                                {canEdit && (
+                                  <>
+                                    <button onClick={() => openDeliverableForm(phase.id, d)} className="text-primary-600 hover:text-primary-800 text-xs font-medium">Edit</button>
+                                    <button onClick={() => handleDeliverableDelete(d.id)} className="text-red-600 hover:text-red-800 text-xs font-medium">Delete</button>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            {d.attachments.length > 0 && (
+                              <div className="mt-1.5 space-y-1">
+                                {d.attachments.map(att => (
+                                  <div key={att.id} className="flex items-center gap-2 text-xs text-gray-500 ml-[4.5rem]">
+                                    <a
+                                      href={getDeliverableAttachmentDownloadUrl(projectId, d.id, att.id)}
+                                      className="hover:text-primary-600 hover:underline flex items-center gap-1"
+                                      target="_blank" rel="noopener noreferrer"
+                                    >
+                                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                                      </svg>
+                                      {att.fileName}
+                                    </a>
+                                    <span className="text-gray-300">({formatFileSize(att.fileSize)})</span>
+                                    {canEdit && (
+                                      <button onClick={() => handleAttachmentDelete(d.id, att.id)} className="text-red-400 hover:text-red-600 ml-1" title="Delete attachment">
+                                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                      </button>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            {uploading && uploadingForDeliverableId === d.id && (
+                              <div className="mt-1 ml-[4.5rem] text-xs text-primary-600 flex items-center gap-1">
+                                <Spinner className="h-3 w-3" /> Uploading...
                               </div>
                             )}
                           </div>
@@ -251,7 +343,7 @@ export default function PhasesTab({ projectId, canEdit }: { projectId: number; c
               <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
               <textarea value={phaseForm.description} onChange={e => setPhaseForm(f => ({ ...f, description: e.target.value }))} rows={2} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
                 <input type="date" value={phaseForm.startDate} onChange={e => setPhaseForm(f => ({ ...f, startDate: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
@@ -315,6 +407,8 @@ export default function PhasesTab({ projectId, canEdit }: { projectId: number; c
           </form>
         </Modal>
       )}
+
+      <input ref={fileInputRef} type="file" className="hidden" onChange={handleAttachmentUpload} />
     </div>
   );
 }

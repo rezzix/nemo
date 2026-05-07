@@ -18,8 +18,8 @@ client.interceptors.response.use(
   },
 );
 
-export async function apiGet<T>(url: string): Promise<T> {
-  const res = await client.get<ApiResponse<T>>(url);
+export async function apiGet<T>(url: string, params?: Record<string, string | number>): Promise<T> {
+  const res = await client.get<ApiResponse<T>>(url, { params });
   return res.data.data;
 }
 

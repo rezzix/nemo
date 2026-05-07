@@ -1,3 +1,5 @@
+import type { IssueStatusCategory } from './admin';
+
 export type IssuePriority = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
 
 export interface IssueDto {
@@ -7,6 +9,7 @@ export interface IssueDto {
   issueKey: string;
   statusId: number;
   statusName: string;
+  statusCategory: IssueStatusCategory;
   priority: IssuePriority;
   typeId: number;
   typeName: string;

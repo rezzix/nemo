@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { listTimeLogs, createTimeLog, updateTimeLog, deleteTimeLog, getWeeklyTimesheet } from '@/api/timeLogs';
-import { listProjectIssues } from '@/api/issues';
+import { useMyIssues } from '@/hooks/useMyIssues';
+import { useHolidays } from '@/hooks/useHolidays';
 import type { TimeLogDto, IssueDto } from '@/types';
 import { formatDate } from '@/utils/format';
 import Spinner from '@/components/common/Spinner';
@@ -30,6 +31,7 @@ const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 export default function MyTimePage() {
   const user = useAuthStore((s) => s.user);
   const [weekStart, setWeekStart] = useState(getWeekStart(new Date()));
+  const { holidayMap } = useHolidays(weekStart);
   const [weekData, setWeekData] = useState<Record<string, TimeLogDto[]>>({});
   const [loading, setLoading] = useState(true);
   const [allLogs, setAllLogs] = useState<TimeLogDto[]>([]);
@@ -47,10 +49,24 @@ export default function MyTimePage() {
   const [editDate, setEditDate] = useState('');
   const [editDesc, setEditDesc] = useState('');
 
-  // Issue search for form
-  const [issueSearch, setIssueSearch] = useState('');
-  const [issueResults, setIssueResults] = useState<IssueDto[]>([]);
-  const [issueSearchLoading, setIssueSearchLoading] = useState(false);
+  const { myIssues, projects, isLoading: issuesLoading } = useMyIssues();
+
+  const openIssues = useMemo(() => {
+    return myIssues.filter(
+      (i) => i.statusCategory === 'TODO' || i.statusCategory === 'IN_PROGRESS',
+    );
+  }, [myIssues]);
+
+  // Group open issues by project for the dropdown
+  const issuesByProject = useMemo(() => {
+    const groups: Record<string, IssueDto[]> = {};
+    for (const issue of openIssues) {
+      const key = issue.projectKey || `Project ${issue.projectId}`;
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(issue);
+    }
+    return groups;
+  }, [openIssues]);
 
   const fetchWeek = useCallback(async () => {
     if (!user) return;
@@ -79,24 +95,6 @@ export default function MyTimePage() {
     fetchWeek();
     fetchLogs();
   }, [fetchWeek, fetchLogs]);
-
-  // Debounced issue search
-  useEffect(() => {
-    if (!issueSearch.trim()) { setIssueResults([]); return; }
-    setIssueSearchLoading(true);
-    const timer = setTimeout(async () => {
-      try {
-        // Search across recent projects — use a simple approach
-        const res = await listProjectIssues(0, { search: issueSearch.trim(), size: 20 });
-        setIssueResults(res);
-      } catch {
-        setIssueResults([]);
-      } finally {
-        setIssueSearchLoading(false);
-      }
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [issueSearch]);
 
   const weekDays = getWeekDays(weekStart);
   const weekTotal = weekDays.reduce((sum, day) => {
@@ -135,7 +133,6 @@ export default function MyTimePage() {
       setFormIssueId('');
       setFormHours('');
       setFormDesc('');
-      setIssueSearch('');
       setShowForm(false);
       fetchWeek();
       fetchLogs();
@@ -179,11 +176,6 @@ export default function MyTimePage() {
     fetchLogs();
   };
 
-  const selectIssue = (issue: IssueDto) => {
-    setFormIssueId(String(issue.id));
-    setIssueSearch(`${issue.issueKey}: ${issue.title}`);
-  };
-
   if (!user) return null;
 
   return (
@@ -203,38 +195,33 @@ export default function MyTimePage() {
       {showForm && (
         <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="relative">
-              <label className="block text-xs font-medium text-gray-500 mb-1">Issue</label>
-              <input
-                type="text"
-                value={issueSearch}
-                onChange={(e) => { setIssueSearch(e.target.value); if (formIssueId) setFormIssueId(''); }}
-                placeholder="Search issues..."
-                required={!formIssueId}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
-              {formIssueId && (
-                <div className="absolute right-2 top-8 text-xs text-green-600 font-medium">Selected</div>
-              )}
-              {issueSearchLoading && (
-                <div className="absolute right-2 top-8"><Spinner className="h-4 w-4 text-gray-400" /></div>
-              )}
-              {issueResults.length > 0 && !formIssueId && (
-                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-40 overflow-y-auto">
-                  {issueResults.map((issue) => (
-                    <button
-                      key={issue.id}
-                      type="button"
-                      onClick={() => selectIssue(issue)}
-                      className="w-full text-left px-3 py-2 hover:bg-gray-50 text-sm border-b border-gray-100 last:border-0"
-                    >
-                      <span className="font-mono text-xs text-primary-600">{issue.issueKey}</span>
-                      <span className="ml-2 text-gray-700">{issue.title}</span>
-                    </button>
-                  ))}
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Task</label>
+              {issuesLoading ? (
+                <div className="flex items-center justify-center py-2">
+                  <Spinner className="h-4 w-4 text-gray-400" />
                 </div>
+              ) : openIssues.length === 0 ? (
+                <p className="text-sm text-gray-400 py-2">No open tasks assigned to you.</p>
+              ) : (
+                <select
+                  value={formIssueId}
+                  onChange={(e) => setFormIssueId(e.target.value)}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  <option value="">Select a task...</option>
+                  {Object.entries(issuesByProject).map(([projectKey, issues]) => (
+                    <optgroup key={projectKey} label={projectKey}>
+                      {issues.map((issue) => (
+                        <option key={issue.id} value={issue.id}>
+                          {issue.issueKey}: {issue.title}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
               )}
-              <input type="hidden" value={formIssueId} />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Hours</label>
@@ -283,7 +270,7 @@ export default function MyTimePage() {
       )}
 
       {/* Week navigation */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-wrap gap-y-2">
         <button onClick={handlePrevWeek} className="text-gray-400 hover:text-gray-600">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
         </button>
@@ -307,12 +294,15 @@ export default function MyTimePage() {
             const dayTotal = logs.reduce((s, l) => s + l.hours, 0);
             const dateObj = new Date(day + 'T00:00:00');
             const isToday = day === new Date().toISOString().slice(0, 10);
+            const isHoliday = !!holidayMap[day];
+            const holidayName = holidayMap[day]?.name;
             return (
-              <div key={day} className={`bg-white rounded-xl border p-3 space-y-2 ${isToday ? 'border-primary-300 ring-1 ring-primary-200' : 'border-gray-200'}`}>
+              <div key={day} className={`bg-white rounded-xl border p-3 space-y-2 ${isHoliday ? 'border-pink-300 bg-pink-50' : isToday ? 'border-primary-300 ring-1 ring-primary-200' : 'border-gray-200'}`}>
                 <div className="flex items-center justify-between">
-                  <span className={`text-xs font-medium ${isToday ? 'text-primary-700' : 'text-gray-500'}`}>{dayNames[i]}</span>
+                  <span className={`text-xs font-medium ${isHoliday ? 'text-pink-700' : isToday ? 'text-primary-700' : 'text-gray-500'}`}>{dayNames[i]}</span>
                   <span className="text-xs text-gray-400">{dateObj.getDate()}/{dateObj.getMonth() + 1}</span>
                 </div>
+                {isHoliday && <span className="text-xs text-pink-600 font-medium truncate" title={holidayName}>{holidayName}</span>}
                 <div className="text-lg font-bold text-gray-900">{dayTotal > 0 ? `${dayTotal.toFixed(1)}h` : '-'}</div>
                 <div className="space-y-1 max-h-32 overflow-y-auto">
                   {logs.map((l) => (

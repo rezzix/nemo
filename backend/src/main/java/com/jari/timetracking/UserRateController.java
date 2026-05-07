@@ -22,13 +22,13 @@ public class UserRateController {
     }
 
     @GetMapping("/user/{userId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'HR')")
     public ResponseEntity<ApiResponse<List<UserRateDto>>> getByUser(@PathVariable Long userId) {
         return ResponseEntity.ok(ApiResponse.of(userRateMapper.toDtoList(userRateService.getByUserId(userId))));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'HR')")
     public ResponseEntity<ApiResponse<UserRateDto>> get(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.of(userRateMapper.toDto(userRateService.getById(id))));
     }

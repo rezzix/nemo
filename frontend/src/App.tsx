@@ -18,8 +18,11 @@ import ProjectDetailPage from '@/pages/project-detail';
 import IssueDetailPage from '@/pages/IssueDetailPage';
 import MyTimePage from '@/pages/MyTimePage';
 import TimesheetsPage from '@/pages/TimesheetsPage';
+import PeoplePage from '@/pages/PeoplePage';
 import TimeReportsPage from '@/pages/reports';
 import PmoDashboardPage from '@/pages/PmoDashboardPage';
+import HolidaysPage from '@/pages/HolidaysPage';
+import LeavePage from '@/pages/LeavePage';
 
 export default function App() {
   const checkSession = useAuthStore((s) => s.checkSession);
@@ -60,14 +63,17 @@ export default function App() {
           }
         >
           <Route path="/" element={<DashboardPage />} />
-          <Route path="/programs" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE']}><ProgramsPage /></RoleGuard>} />
-          <Route path="/programs/:id" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE']}><ProgramDetailPage /></RoleGuard>} />
+          <Route path="/programs" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR']}><ProgramsPage /></RoleGuard>} />
+          <Route path="/programs/:id" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR']}><ProgramDetailPage /></RoleGuard>} />
           <Route path="/projects" element={<ProjectsPage />} />
           <Route path="/projects/:id" element={<ProjectDetailPage />} />
           <Route path="/projects/:projectId/issues/:issueId" element={<IssueDetailPage />} />
-          <Route path="/my-time" element={<MyTimePage />} />
-          <Route path="/timesheets" element={<RoleGuard roles={['ADMIN', 'MANAGER']}><TimesheetsPage /></RoleGuard>} />
-          <Route path="/reports" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE']}><TimeReportsPage /></RoleGuard>} />
+          <Route path="/my-time" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'CONTRIBUTOR']}><MyTimePage /></RoleGuard>} />
+          <Route path="/timesheets" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'HR']}><TimesheetsPage /></RoleGuard>} />
+          <Route path="/people" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'HR']}><PeoplePage /></RoleGuard>} />
+          <Route path="/holidays" element={<RoleGuard roles={['HR', 'ADMIN']}><HolidaysPage /></RoleGuard>} />
+          <Route path="/leave" element={<LeavePage />} />
+          <Route path="/reports" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR']}><TimeReportsPage /></RoleGuard>} />
           <Route path="/pmo" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE']}><PmoDashboardPage /></RoleGuard>} />
           <Route path="/admin" element={<AdminGuard><AdminPage /></AdminGuard>} />
           <Route path="/profile" element={<ProfilePage />} />

@@ -51,5 +51,7 @@ public record ProjectDto(
 
     public record LabelCreateRequest(@NotBlank String name, @NotBlank String color) {}
 
-    public record MemberDto(Long id, Long userId, String username, String fullName) {}
+    public record MemberDto(Long id, Long userId, String username, String fullName, Integer score) {}
+
+    public record ScoreRequest(@NotNull Integer score) {}
 }

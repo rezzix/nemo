@@ -52,13 +52,13 @@ export default function AgingReport({ projectId }: { projectId: number | null })
         <div className="flex items-center justify-center h-32"><Spinner className="h-6 w-6 text-primary-600" /></div>
       ) : (
         <>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <StatCard label="Open Issues" value={openIssues.length} color="border-gray-200 bg-white" />
             <StatCard label="Stale (>7d no update)" value={staleCount} color="border-orange-200 bg-orange-50" />
             <StatCard label="Old (>30d)" value={oldCount} color="border-red-200 bg-red-50" />
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>

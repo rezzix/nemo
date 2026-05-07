@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
-import { getPortfolioSummary, getEvmMetrics, listRaidItems } from '@/api/pmo';
+import { getPortfolioSummary, getEvmMetrics, listPortfolioRaidItems } from '@/api/pmo';
 import { listProjects } from '@/api/projects';
 import type { PortfolioSummary, EvmMetrics, RaidItemDto, ProjectDto } from '@/types';
 import Spinner from '@/components/common/Spinner';
@@ -37,12 +37,8 @@ export default function PmoDashboardPage() {
       });
       setEvmData(evmMap);
 
-      // Fetch all RAID items across projects
-      const raidPromises = projectList.map((p: ProjectDto) =>
-        listRaidItems(p.id).catch(() => [] as RaidItemDto[])
-      );
-      const raidResults = await Promise.all(raidPromises);
-      const allRaid: RaidItemDto[] = raidResults.flat();
+      // Fetch all RAID items across portfolio
+      const allRaid = await listPortfolioRaidItems().catch(() => [] as RaidItemDto[]);
       setRaidItems(allRaid);
     } catch {
       // ignore
@@ -88,7 +84,7 @@ export default function PmoDashboardPage() {
       {portfolio && (
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">Projects by Stage</h3>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-4">
             {(['INITIATION', 'PLANNING', 'EXECUTION', 'CLOSING'] as const).map(stage => (
               <div key={stage} className="flex-1 text-center">
                 <div className="text-2xl font-bold text-gray-900">{portfolio.stageDistribution[stage] || 0}</div>
@@ -153,7 +149,7 @@ export default function PmoDashboardPage() {
       </div>
 
       {/* Top Risks */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
         <h3 className="text-sm font-semibold text-gray-700 px-5 py-3 border-b border-gray-200">Top Risks</h3>
         {topRisks.length === 0 ? (
           <div className="p-6 text-center text-gray-400">No risks registered</div>

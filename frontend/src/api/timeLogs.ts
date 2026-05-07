@@ -56,3 +56,38 @@ export async function getTimeByIssue(startDate: string, endDate: string, project
   if (assigneeId) params.assigneeId = assigneeId;
   return apiGet('/reports/time-by-issue', params);
 }
+
+export interface AttendanceData {
+  totalWorkDays: number;
+  totalInternalUsers: number;
+  userAttendance: {
+    userId: number;
+    daysWorked: number;
+    absentDays: number;
+    totalHours: number;
+    avgDailyHours: number;
+    attendanceRate: number;
+  }[];
+  dailySummary: {
+    date: string;
+    usersPresent: number;
+  }[];
+}
+
+export async function getAttendanceReport(startDate: string, endDate: string): Promise<AttendanceData> {
+  return apiGet('/reports/attendance', { startDate, endDate });
+}
+
+export interface HeadcountData {
+  totalUsers: number;
+  activeUsers: number;
+  inactiveUsers: number;
+  byRole: { role: string; count: number }[];
+  byDepartment: { department: string; count: number }[];
+  byCompany: { company: string; count: number }[];
+  byActiveStatus: { active: boolean; count: number }[];
+}
+
+export async function getHeadcountReport(): Promise<HeadcountData> {
+  return apiGet('/reports/headcount');
+}

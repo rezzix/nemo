@@ -43,9 +43,9 @@ export default function TimeReport() {
       </div>
 
       <div className="border-b border-gray-200">
-        <nav className="flex gap-6">
-          <button onClick={() => setTab('project')} className={`pb-3 text-sm font-medium border-b-2 transition-colors ${tab === 'project' ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500'}`}>By Project</button>
-          <button onClick={() => setTab('user')} className={`pb-3 text-sm font-medium border-b-2 transition-colors ${tab === 'user' ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500'}`}>By User</button>
+        <nav className="flex gap-6 overflow-x-auto whitespace-nowrap">
+          <button onClick={() => setTab('project')} className={`shrink-0 pb-3 text-sm font-medium border-b-2 transition-colors ${tab === 'project' ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500'}`}>By Project</button>
+          <button onClick={() => setTab('user')} className={`shrink-0 pb-3 text-sm font-medium border-b-2 transition-colors ${tab === 'user' ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500'}`}>By User</button>
         </nav>
       </div>
 
