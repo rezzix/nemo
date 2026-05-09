@@ -38,13 +38,14 @@ export async function getDailyTimesheet(userId: number, date: string): Promise<{
   return res.data.data;
 }
 
-export async function getTimeByProject(startDate: string, endDate: string, projectId?: number): Promise<{ projectId: number; totalHours: number }[]> {
+export async function getTimeByProject(startDate: string, endDate: string, projectId?: number, userId?: number): Promise<{ projectId: number; projectName: string; totalHours: number }[]> {
   const params: Record<string, string | number> = { startDate, endDate };
   if (projectId) params.projectId = projectId;
+  if (userId) params.userId = userId;
   return apiGet('/reports/time-by-project', params);
 }
 
-export async function getTimeByUser(startDate: string, endDate: string, projectId?: number, userId?: number): Promise<{ userId: number; totalHours: number }[]> {
+export async function getTimeByUser(startDate: string, endDate: string, projectId?: number, userId?: number): Promise<{ userId: number; userName: string; totalHours: number }[]> {
   const params: Record<string, string | number> = { startDate, endDate };
   if (projectId) params.projectId = projectId;
   if (userId) params.userId = userId;
@@ -62,6 +63,8 @@ export interface AttendanceData {
   totalInternalUsers: number;
   userAttendance: {
     userId: number;
+    userName: string;
+    companyName: string;
     daysWorked: number;
     absentDays: number;
     totalHours: number;

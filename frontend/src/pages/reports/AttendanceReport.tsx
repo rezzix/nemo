@@ -1,12 +1,9 @@
 import { useState, useEffect } from 'react';
 import { getAttendanceReport, type AttendanceData } from '@/api/timeLogs';
-import { listAllUsers } from '@/api/users';
-import type { UserDto } from '@/types';
 import Spinner from '@/components/common/Spinner';
 
 export default function AttendanceReport() {
   const [data, setData] = useState<AttendanceData | null>(null);
-  const [users, setUsers] = useState<Record<number, UserDto>>({});
   const [loading, setLoading] = useState(true);
   const [startDate, setStartDate] = useState(() => {
     const d = new Date();
@@ -18,14 +15,8 @@ export default function AttendanceReport() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [attendance, userList] = await Promise.all([
-        getAttendanceReport(startDate, endDate),
-        listAllUsers({ size: 500 }).catch(() => []),
-      ]);
+      const attendance = await getAttendanceReport(startDate, endDate);
       setData(attendance);
-      const map: Record<number, UserDto> = {};
-      for (const u of userList) map[u.id] = u;
-      setUsers(map);
     } catch {
       setData(null);
     } finally {
@@ -34,13 +25,6 @@ export default function AttendanceReport() {
   };
 
   useEffect(() => { fetchData(); }, []);
-
-  const userName = (id: number) => {
-    const u = users[id];
-    return u ? `${u.firstName} ${u.lastName}` : `User ${id}`;
-  };
-
-  const userCompany = (id: number) => users[id]?.companyName || 'Global';
 
   return (
     <div className="space-y-6">
@@ -121,8 +105,8 @@ export default function AttendanceReport() {
               <tbody className="divide-y divide-gray-100">
                 {data.userAttendance.map((u) => (
                   <tr key={u.userId} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium">{userName(u.userId)}</td>
-                    <td className="px-4 py-3 text-gray-600">{userCompany(u.userId)}</td>
+                    <td className="px-4 py-3 font-medium">{u.userName}</td>
+                    <td className="px-4 py-3 text-gray-600">{u.companyName}</td>
                     <td className="px-4 py-3 text-right">{u.daysWorked}</td>
                     <td className="px-4 py-3 text-right">
                       <span className={u.absentDays > 5 ? 'text-red-600 font-medium' : ''}>{u.absentDays}</span>

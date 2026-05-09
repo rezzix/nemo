@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { getPortfolioSummary, getEvmMetrics, listPortfolioRaidItems, getPortfolioByCompany, getPortfolioTimeline } from '@/api/pmo';
 import { listProjects } from '@/api/projects';
+import { listCompanies } from '@/api/companies';
 import { formatCurrency, stageBadge, stageLabel, riskColor, riskLabel } from '@/utils/format';
-import type { PortfolioSummary, EvmMetrics, RaidItemDto, ProjectDto, CompanyPortfolioSummary, ProjectTimelineEntry } from '@/types';
+import type { PortfolioSummary, EvmMetrics, RaidItemDto, ProjectDto, CompanyPortfolioSummary, ProjectTimelineEntry, CompanyDto } from '@/types';
 import BarChart from '@/pages/reports/BarChart';
 import Spinner from '@/components/common/Spinner';
 
@@ -83,7 +84,10 @@ export default function ExecutiveDashboard() {
   const [allRisks, setAllRisks] = useState<RaidItemDto[]>([]);
   const [companyData, setCompanyData] = useState<CompanyPortfolioSummary[]>([]);
   const [timeline, setTimeline] = useState<ProjectTimelineEntry[]>([]);
+  const [companies, setCompanies] = useState<CompanyDto[]>([]);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<number | null>(null); // null = Group (all)
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -91,11 +95,13 @@ export default function ExecutiveDashboard() {
       listProjects(),
       getPortfolioByCompany().catch(() => []),
       getPortfolioTimeline().catch(() => []),
-    ]).then(async ([portfolioData, projectList, companyList, timelineData]) => {
+      listCompanies().then((res) => res.data).catch(() => []),
+    ]).then(async ([portfolioData, projectList, companyList, timelineData, companyDtos]) => {
       setPortfolio(portfolioData);
       setProjects(projectList);
       setCompanyData(companyList);
       setTimeline(timelineData);
+      setCompanies(Array.isArray(companyDtos) ? companyDtos : []);
 
       const ids = projectList.map((p) => p.id);
       const [evmResults, risks] = await Promise.all([
@@ -106,14 +112,63 @@ export default function ExecutiveDashboard() {
         }),
         listPortfolioRaidItems('RISK').then((items) =>
           items.filter((r) => r.status === 'OPEN' || r.status === 'MITIGATING'),
-        ),
+        ).catch(() => []),
       ]);
 
       setEvmMap(evmResults);
       setAllRisks(risks);
       setLoading(false);
-    }).catch(() => setLoading(false));
+    }).catch((err) => {
+      console.error('ExecutiveDashboard data loading error:', err);
+      setError(err?.message || 'Failed to load dashboard data');
+      setLoading(false);
+    });
   }, []);
+
+  // Filter data by selected company — hooks must be called before any early returns
+  const filteredProjects = useMemo(() => {
+    if (selectedCompanyId === null) return projects;
+    return projects.filter((p) => p.companyId === selectedCompanyId);
+  }, [projects, selectedCompanyId]);
+
+  const filteredRisks = useMemo(() => {
+    if (selectedCompanyId === null) return allRisks;
+    const projectIds = new Set(filteredProjects.map((p) => p.id));
+    return allRisks.filter((r) => projectIds.has(r.projectId));
+  }, [allRisks, filteredProjects, selectedCompanyId]);
+
+  const filteredEvmMap = useMemo(() => {
+    if (selectedCompanyId === null) return evmMap;
+    const map: Record<number, EvmMetrics> = {};
+    for (const p of filteredProjects) {
+      if (evmMap[p.id]) map[p.id] = evmMap[p.id];
+    }
+    return map;
+  }, [evmMap, filteredProjects, selectedCompanyId]);
+
+  const selectedCompanySummary = useMemo(() => {
+    if (selectedCompanyId === null) return null;
+    return companyData.find((c) => c.companyId === selectedCompanyId) ?? null;
+  }, [companyData, selectedCompanyId]);
+
+  // Build ordered company cards: Global projects (companyId=null) then companies by order
+  const companyCards = useMemo(() => {
+    const sorted = [...companies].sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+    // Include companies that have projects
+    const projectCompanyIds = new Set(projects.map((p) => p.companyId).filter(Boolean));
+    const cards: { id: number | null; name: string; projectCount: number; logo: string | null }[] = [];
+    // Global (projects with no company)
+    const globalCount = projects.filter((p) => p.companyId === null).length;
+    if (globalCount > 0) cards.push({ id: null, name: 'Global', projectCount: globalCount, logo: null });
+    // Companies
+    for (const c of sorted) {
+      if (projectCompanyIds.has(c.id)) {
+        const count = projects.filter((p) => p.companyId === c.id).length;
+        cards.push({ id: c.id, name: c.name, projectCount: count, logo: c.logo ?? null });
+      }
+    }
+    return cards;
+  }, [companies, projects]);
 
   if (loading) {
     return (
@@ -123,7 +178,38 @@ export default function ExecutiveDashboard() {
     );
   }
 
-  const kpiCards = portfolio ? [
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="text-red-600 font-medium">Something went wrong</p>
+          <p className="text-sm text-gray-500 mt-1">{error}</p>
+          <button onClick={() => window.location.reload()} className="mt-3 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm">Retry</button>
+        </div>
+      </div>
+    );
+  }
+
+  const kpiCards = (() => {
+    // If a specific company is selected, use CompanyPortfolioSummary
+    if (selectedCompanySummary) {
+      const cs = selectedCompanySummary;
+      const totalEarnedValue = Object.values(filteredEvmMap).reduce((s, e) => s + e.earnedValue, 0);
+      const totalActualCost = Object.values(filteredEvmMap).reduce((s, e) => s + e.actualCost, 0);
+      const totalPlannedValue = Object.values(filteredEvmMap).reduce((s, e) => s + e.plannedValue, 0);
+      const cv = totalEarnedValue - totalActualCost;
+      const sv = totalEarnedValue - totalPlannedValue;
+      return [
+        { label: 'Total Projects', value: cs.totalProjects, color: 'bg-primary-50 text-primary-700' },
+        { label: 'Total Budget', value: formatCurrency(cs.totalBudget), color: 'bg-blue-50 text-blue-700' },
+        { label: 'Portfolio CPI', value: totalActualCost > 0 ? (totalEarnedValue / totalActualCost).toFixed(2) : '—', color: cv >= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' },
+        { label: 'Portfolio SPI', value: totalPlannedValue > 0 ? (totalEarnedValue / totalPlannedValue).toFixed(2) : '—', color: sv >= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' },
+        { label: 'Open Risks', value: cs.totalOpenRisks + cs.totalMitigatingRisks, color: 'bg-amber-50 text-amber-700' },
+        { label: 'Completion', value: cs.totalIssues > 0 ? ((cs.totalCompleted / cs.totalIssues) * 100).toFixed(0) + '%' : '—', color: 'bg-emerald-50 text-emerald-700' },
+      ];
+    }
+    // Group (all companies) — use full portfolio
+    return portfolio ? [
     { label: 'Total Projects', value: portfolio.totalProjects, color: 'bg-primary-50 text-primary-700' },
     { label: 'Total Budget', value: formatCurrency(portfolio.totalBudget), color: 'bg-blue-50 text-blue-700' },
     { label: 'Portfolio CPI', value: portfolio.portfolioCv !== 0 ? (portfolio.totalActualCost > 0 ? (portfolio.totalEarnedValue / portfolio.totalActualCost).toFixed(2) : '—') : '—', color: portfolio.portfolioCv >= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' },
@@ -133,6 +219,7 @@ export default function ExecutiveDashboard() {
   ] : [
     { label: 'Total Projects', value: projects.length, color: 'bg-primary-50 text-primary-700' },
   ];
+  })();
 
   const stageLabels: Record<string, string> = {
     INITIATION: 'Initiation',
@@ -148,7 +235,7 @@ export default function ExecutiveDashboard() {
     CLOSING: 'bg-green-500',
   };
 
-  const budgetItems = projects
+  const budgetItems = filteredProjects
     .filter((p) => p.budget)
     .map((p) => ({
       label: p.key,
@@ -157,10 +244,10 @@ export default function ExecutiveDashboard() {
       color: 'bg-blue-500',
     }));
 
-  const spentItems = projects
+  const spentItems = filteredProjects
     .filter((p) => p.budget)
     .map((p) => {
-      const evm = evmMap[p.id];
+      const evm = filteredEvmMap[p.id];
       const spent = Number(p.budgetSpent || 0) + (evm?.actualCost || 0);
       const over = spent > Number(p.budget);
       return {
@@ -173,7 +260,7 @@ export default function ExecutiveDashboard() {
 
   const maxBudget = Math.max(...budgetItems.map((i) => i.value), 1);
 
-  const alerts = computeAlerts(projects, evmMap, allRisks);
+  const alerts = computeAlerts(filteredProjects, filteredEvmMap, filteredRisks);
 
   return (
     <div className="space-y-8">
@@ -183,6 +270,53 @@ export default function ExecutiveDashboard() {
         </h2>
         <p className="text-gray-500 mt-1">Portfolio overview and strategic insights.</p>
       </div>
+
+      {/* Company Selector */}
+      {companyCards.length > 1 && (
+        <div className="flex gap-3 overflow-x-auto pb-1">
+          <button
+            onClick={() => setSelectedCompanyId(null)}
+            className={`flex-shrink-0 px-4 py-2 rounded-xl border-2 transition-all text-left ${
+              selectedCompanyId === null
+                ? 'border-primary-600 bg-primary-50 shadow-sm'
+                : 'border-gray-200 bg-white hover:border-gray-300'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-primary-600">Group</span>
+              <span className="text-xs text-gray-400">All</span>
+            </div>
+            <p className="text-sm font-bold text-gray-900">{projects.length} projects</p>
+          </button>
+          {companyCards.filter((c) => c.id !== null).map((card) => {
+            const cs = companyData.find((c) => c.companyId === card.id);
+            const isSelected = selectedCompanyId === card.id;
+            return (
+              <button
+                key={card.id}
+                onClick={() => setSelectedCompanyId(isSelected ? null : card.id!)}
+                className={`flex-shrink-0 px-4 py-2 rounded-xl border-2 transition-all text-left min-w-[140px] ${
+                  isSelected
+                    ? 'border-primary-600 bg-primary-50 shadow-sm'
+                    : 'border-gray-200 bg-white hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  {card.logo ? (
+                    <img src={card.logo} alt={card.name} className="h-6 w-6 rounded object-contain" />
+                  ) : (
+                    <span className="h-6 w-6 rounded bg-primary-100 text-primary-600 flex items-center justify-center text-xs font-bold">
+                      {card.name.charAt(0)}
+                    </span>
+                  )}
+                  <span className="text-sm font-semibold text-gray-900 truncate">{card.name}</span>
+                </div>
+                <p className="text-sm font-bold text-gray-900 mt-0.5">{card.projectCount} projects{cs ? ` · ${cs.totalOpenRisks + cs.totalMitigatingRisks} risks` : ''}</p>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Portfolio KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -195,11 +329,13 @@ export default function ExecutiveDashboard() {
       </div>
 
       {/* Stage Distribution */}
-      {portfolio?.stageDistribution && Object.keys(portfolio.stageDistribution).length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Stage Distribution</h3>
-          <div className="flex flex-wrap gap-4">
-            {Object.entries(portfolio.stageDistribution).map(([stage, count]) => (
+      {(() => {
+        const stageDistribution = selectedCompanySummary?.stageDistribution ?? portfolio?.stageDistribution;
+        return stageDistribution && Object.keys(stageDistribution).length > 0 ? (
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Stage Distribution</h3>
+            <div className="flex flex-wrap gap-4">
+              {Object.entries(stageDistribution).map(([stage, count]) => (
               <div key={stage} className="flex items-center gap-2">
                 <span className={`w-3 h-3 rounded-full ${stageColors[stage] || 'bg-gray-400'}`} />
                 <span className="text-sm text-gray-700">{stageLabels[stage] || stage}: <strong>{count}</strong></span>
@@ -207,7 +343,8 @@ export default function ExecutiveDashboard() {
             ))}
           </div>
         </div>
-      )}
+      ) : null;
+    })()}
 
       {/* Attention Needed */}
       {alerts.length > 0 && (
@@ -238,7 +375,7 @@ export default function ExecutiveDashboard() {
       )}
 
       {/* Company Performance */}
-      {companyData.length > 1 && (
+      {selectedCompanyId === null && companyData.length > 1 && (
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Company Performance</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -300,7 +437,7 @@ export default function ExecutiveDashboard() {
       )}
 
       {/* Strategic Investment */}
-      {projects.some((p) => p.strategicScore != null) && (
+      {filteredProjects.some((p) => p.strategicScore != null) && (
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Strategic Investment</h3>
           <div className="overflow-x-auto">
@@ -318,11 +455,11 @@ export default function ExecutiveDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {[...projects]
+                {[...filteredProjects]
                   .filter((p) => p.strategicScore != null)
                   .sort((a, b) => (b.strategicScore ?? 0) - (a.strategicScore ?? 0))
                   .map((project) => {
-                    const evm = evmMap[project.id];
+                    const evm = filteredEvmMap[project.id];
                     const budget = Number(project.budget || 0);
                     const spent = Number(project.budgetSpent || 0) + (evm?.actualCost || 0);
                     const completionPct = evm ? (evm.completionPct * 100).toFixed(0) + '%' : '—';
@@ -373,12 +510,12 @@ export default function ExecutiveDashboard() {
           </div>
           {/* Budget allocation by strategic tier */}
           {(() => {
-            const tiers = projects.reduce((acc, p) => {
+            const tiers = filteredProjects.reduce((acc, p) => {
               const score = p.strategicScore ?? 5;
               const tier = score >= 7 ? 'High (7-10)' : score >= 4 ? 'Medium (4-6)' : 'Low (1-3)';
               if (!acc[tier]) acc[tier] = { budget: 0, spent: 0, count: 0 };
               acc[tier].budget += Number(p.budget || 0);
-              acc[tier].spent += Number(p.budgetSpent || 0) + (evmMap[p.id]?.actualCost || 0);
+              acc[tier].spent += Number(p.budgetSpent || 0) + (filteredEvmMap[p.id]?.actualCost || 0);
               acc[tier].count += 1;
               return acc;
             }, {} as Record<string, { budget: number; spent: number; count: number }>);
@@ -422,9 +559,9 @@ export default function ExecutiveDashboard() {
       <div>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Project Health</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {projects.map((project) => {
-            const evm = evmMap[project.id];
-            const projectRisks = allRisks.filter((r) => r.projectId === project.id);
+          {filteredProjects.map((project) => {
+            const evm = filteredEvmMap[project.id];
+            const projectRisks = filteredRisks.filter((r) => r.projectId === project.id);
             return (
               <Link
                 key={project.id}
@@ -478,7 +615,10 @@ export default function ExecutiveDashboard() {
 
       {/* Portfolio Timeline */}
       {timeline.length > 0 && (() => {
-        const projectsWithDates = timeline.filter((t) => t.targetStartDate && t.targetEndDate);
+        const filteredTimeline = selectedCompanyId === null
+          ? timeline
+          : timeline.filter((t) => filteredProjects.some((p) => p.id === t.projectId));
+        const projectsWithDates = filteredTimeline.filter((t) => t.targetStartDate && t.targetEndDate);
         if (projectsWithDates.length === 0) return null;
         const allDates = projectsWithDates.flatMap((t) => [new Date(t.targetStartDate!).getTime(), new Date(t.targetEndDate!).getTime()]);
         const minDate = Math.min(...allDates);
@@ -534,7 +674,7 @@ export default function ExecutiveDashboard() {
       })()}
 
       {/* Top Risks */}
-      {allRisks.length > 0 && (
+      {filteredRisks.length > 0 && (
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Risks</h3>
           <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
@@ -549,7 +689,7 @@ export default function ExecutiveDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {allRisks.slice(0, 10).map((r) => (
+                {filteredRisks.slice(0, 10).map((r) => (
                   <tr key={r.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-gray-500">{r.projectName}</td>
                     <td className="px-4 py-3 font-medium text-gray-900">{r.title}</td>

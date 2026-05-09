@@ -16,7 +16,7 @@ export default function ManagerDashboard() {
   const [evmData, setEvmData] = useState<Record<number, EvmMetrics>>({});
   const [topRisks, setTopRisks] = useState<RaidItemDto[]>([]);
   const [activeSprints, setActiveSprints] = useState<(SprintDto & { projectId: number; projectName: string })[]>([]);
-  const [teamTime, setTeamTime] = useState<{ userId: number; totalHours: number }[]>([]);
+  const [teamTime, setTeamTime] = useState<{ userId: number; userName: string; totalHours: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -245,7 +245,7 @@ export default function ManagerDashboard() {
               <tbody className="divide-y divide-gray-100">
                 {teamTime.map((t) => (
                   <tr key={t.userId} className={t.totalHours === 0 ? 'bg-red-50' : ''}>
-                    <td className="px-4 py-3 text-gray-900">User #{t.userId}</td>
+                    <td className="px-4 py-3 text-gray-900">{t.userName}</td>
                     <td className="px-4 py-3">
                       <span className={t.totalHours === 0 ? 'text-red-600 font-medium' : 'text-gray-900'}>
                         {t.totalHours.toFixed(1)}

@@ -1,6 +1,8 @@
 package com.jari.timetracking;
 
 import com.jari.common.dto.ApiResponse;
+import com.jari.project.Project;
+import com.jari.project.ProjectRepository;
 import com.jari.user.User;
 import com.jari.user.UserRepository;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -20,10 +22,12 @@ public class ReportController {
 
     private final TimeLogRepository timeLogRepository;
     private final UserRepository userRepository;
+    private final ProjectRepository projectRepository;
 
-    public ReportController(TimeLogRepository timeLogRepository, UserRepository userRepository) {
+    public ReportController(TimeLogRepository timeLogRepository, UserRepository userRepository, ProjectRepository projectRepository) {
         this.timeLogRepository = timeLogRepository;
         this.userRepository = userRepository;
+        this.projectRepository = projectRepository;
     }
 
     @GetMapping("/time-by-project")
@@ -31,10 +35,13 @@ public class ReportController {
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> timeByProject(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-            @RequestParam(required = false) Long projectId) {
+            @RequestParam(required = false) Long projectId,
+            @RequestParam(required = false) Long userId) {
 
         List<TimeLog> logs;
-        if (projectId != null) {
+        if (userId != null) {
+            logs = timeLogRepository.findByUserIdAndDateRange(userId, startDate, endDate);
+        } else if (projectId != null) {
             logs = timeLogRepository.findByProjectIdAndDateRange(projectId, startDate, endDate);
         } else {
             logs = timeLogRepository.findByDateRange(startDate, endDate);
@@ -46,8 +53,17 @@ public class ReportController {
                         Collectors.reducing(BigDecimal.ZERO, TimeLog::getHours, BigDecimal::add)
                 ));
 
+        Map<Long, String> projectNames = projectRepository.findAll().stream()
+                .collect(Collectors.toMap(Project::getId, p -> p.getName()));
+
         List<Map<String, Object>> result = byProject.entrySet().stream()
-                .map(e -> Map.of("projectId", (Object) e.getKey(), "totalHours", e.getValue()))
+                .map(e -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("projectId", e.getKey());
+                    m.put("projectName", projectNames.getOrDefault(e.getKey(), ""));
+                    m.put("totalHours", e.getValue());
+                    return m;
+                })
                 .toList();
 
         return ResponseEntity.ok(ApiResponse.of(result));
@@ -76,8 +92,18 @@ public class ReportController {
                         Collectors.reducing(BigDecimal.ZERO, TimeLog::getHours, BigDecimal::add)
                 ));
 
+        Set<Long> userIds = byUser.keySet();
+        Map<Long, String> userNames = userRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(User::getId, u -> u.getFirstName() + " " + u.getLastName()));
+
         List<Map<String, Object>> result = byUser.entrySet().stream()
-                .map(e -> Map.of("userId", (Object) e.getKey(), "totalHours", e.getValue()))
+                .map(e -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("userId", e.getKey());
+                    m.put("userName", userNames.getOrDefault(e.getKey(), ""));
+                    m.put("totalHours", e.getValue());
+                    return m;
+                })
                 .toList();
 
         return ResponseEntity.ok(ApiResponse.of(result));
@@ -128,6 +154,12 @@ public class ReportController {
 
         // Per-user attendance
         List<Map<String, Object>> userAttendance = new ArrayList<>();
+        Set<Long> userIds = byUser.keySet();
+        List<User> userEntities = userRepository.findAllById(userIds);
+        Map<Long, String> userNames = userEntities.stream()
+                .collect(Collectors.toMap(User::getId, u -> u.getFirstName() + " " + u.getLastName()));
+        Map<Long, String> userCompanies = userEntities.stream()
+                .collect(Collectors.toMap(User::getId, u -> u.getCompany() != null ? u.getCompany().getName() : "Global"));
         for (Map.Entry<Long, List<TimeLog>> entry : byUser.entrySet()) {
             Long userId = entry.getKey();
             List<TimeLog> userLogs = entry.getValue();
@@ -162,6 +194,8 @@ public class ReportController {
 
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("userId", userId);
+            row.put("userName", userNames.getOrDefault(userId, ""));
+            row.put("companyName", userCompanies.getOrDefault(userId, "Global"));
             row.put("daysWorked", daysWorked.size());
             row.put("absentDays", absentDays);
             row.put("totalHours", totalHours);

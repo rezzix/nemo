@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/companies")
-@PreAuthorize("hasAnyRole('ADMIN', 'HR')")
+@PreAuthorize("hasAnyRole('ADMIN', 'HR', 'EXECUTIVE')")
 public class CompanyController {
 
     private final CompanyService companyService;
