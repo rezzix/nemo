@@ -2,8 +2,15 @@ package com.jari.config;
 
 import com.jari.company.Company;
 import com.jari.company.CompanyRepository;
+import com.jari.documentation.WikiPage;
+import com.jari.documentation.WikiPageRepository;
 import com.jari.issue.Issue;
 import com.jari.issue.IssueRepository;
+import com.jari.phase.Deliverable;
+import com.jari.phase.Deliverable.DeliverableState;
+import com.jari.phase.DeliverableRepository;
+import com.jari.phase.Phase;
+import com.jari.phase.PhaseRepository;
 import com.jari.pmo.RaidItem;
 import com.jari.pmo.RaidItemRepository;
 import com.jari.project.BoardColumn;
@@ -60,6 +67,9 @@ public class DataSeeder implements CommandLineRunner {
     private final UserRateRepository userRateRepository;
     private final ProjectFavoriteRepository projectFavoriteRepository;
     private final PublicHolidayRepository publicHolidayRepository;
+    private final PhaseRepository phaseRepository;
+    private final DeliverableRepository deliverableRepository;
+    private final WikiPageRepository wikiPageRepository;
 
     public DataSeeder(UserRepository userRepository,
                       PasswordEncoder passwordEncoder,
@@ -78,7 +88,10 @@ public class DataSeeder implements CommandLineRunner {
                       TimeLogRepository timeLogRepository,
                       UserRateRepository userRateRepository,
                       ProjectFavoriteRepository projectFavoriteRepository,
-                      PublicHolidayRepository publicHolidayRepository) {
+                      PublicHolidayRepository publicHolidayRepository,
+                      PhaseRepository phaseRepository,
+                      DeliverableRepository deliverableRepository,
+                      WikiPageRepository wikiPageRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.companyRepository = companyRepository;
@@ -97,11 +110,16 @@ public class DataSeeder implements CommandLineRunner {
         this.userRateRepository = userRateRepository;
         this.projectFavoriteRepository = projectFavoriteRepository;
         this.publicHolidayRepository = publicHolidayRepository;
+        this.phaseRepository = phaseRepository;
+        this.deliverableRepository = deliverableRepository;
+        this.wikiPageRepository = wikiPageRepository;
     }
 
     @Override
     public void run(String... args) {
         if (userRepository.count() > 1) return;
+
+        LocalDate today = LocalDate.now();
 
         // Companies
         Company netopia = createCompany("Netopia", "NTO", "Digital innovation and technology solutions",
@@ -245,9 +263,141 @@ public class DataSeeder implements CommandLineRunner {
         userRepository.save(bassamat);
         addMember(fse, bassamat);
 
-        // Favorites (per-user)
+        // Favorites (per-user) — each user favorites 1-2 projects from their company (or any if global)
         addFavorite(admin, fse);
         addFavorite(admin, mobileApp);
+        addFavorite(majid, fse);
+        addFavorite(majid, apiGateway);
+        addFavorite(dev1, fse);
+        addFavorite(dev2, fse);
+        addFavorite(dev3, mobileApp);
+        addFavorite(dev4, mobileApp);
+        addFavorite(pmHarmony, mobileApp);
+        addFavorite(pmHarmony, mobilePay);
+        addFavorite(salim, fse);
+        addFavorite(salim, dataWarehouse);
+        addFavorite(younes, medErpProject);
+        addFavorite(youssef, footballTeam);
+        addFavorite(walid, footballTeam);
+        addFavorite(mehdi, fse);
+        addFavorite(mehdi, medErpProject);
+
+        // Phases with deliverables
+        Phase fseInit = createPhase("Initiation", "Project kickoff and requirements gathering", fse, 0,
+                LocalDate.of(2025, 1, 15), LocalDate.of(2025, 2, 15));
+        createDeliverable("Project Charter", "Defines scope, objectives, and stakeholders", fseInit, DeliverableState.VALIDATED, LocalDate.of(2025, 2, 1));
+        createDeliverable("Requirements Document", "Functional and non-functional requirements", fseInit, DeliverableState.VALIDATED, LocalDate.of(2025, 2, 15));
+
+        Phase fseExec = createPhase("Execution", "Core development and implementation", fse, 1,
+                LocalDate.of(2025, 2, 16), LocalDate.of(2025, 8, 31));
+        createDeliverable("MVP Release", "Minimum viable product with core features", fseExec, DeliverableState.DELIVERED, LocalDate.of(2025, 5, 1));
+        createDeliverable("API Layer", "RESTful API endpoints for all modules", fseExec, DeliverableState.DELIVERED, LocalDate.of(2025, 6, 15));
+        createDeliverable("Integration Tests", "End-to-end test suite for all services", fseExec, DeliverableState.DRAFT, LocalDate.of(2025, 8, 31));
+
+        Phase fseClose = createPhase("Closing", "Project wrap-up and handover", fse, 2,
+                LocalDate.of(2025, 9, 1), LocalDate.of(2025, 9, 30));
+        createDeliverable("Final Documentation", "Complete project documentation package", fseClose, DeliverableState.DRAFT, LocalDate.of(2025, 9, 15));
+        createDeliverable("Handover Report", "Lessons learned and operational guide", fseClose, DeliverableState.DRAFT, LocalDate.of(2025, 9, 30));
+
+        Phase mobilePlan = createPhase("Planning", "Design and architecture phase", mobileApp, 0,
+                LocalDate.of(2025, 2, 1), LocalDate.of(2025, 3, 15));
+        createDeliverable("UX Wireframes", "Mobile app screen designs and user flows", mobilePlan, DeliverableState.VALIDATED, LocalDate.of(2025, 3, 1));
+        createDeliverable("Architecture Document", "Technical architecture and API contracts", mobilePlan, DeliverableState.VALIDATED, LocalDate.of(2025, 3, 15));
+
+        Phase mobileExec = createPhase("Execution", "Mobile app development", mobileApp, 1,
+                LocalDate.of(2025, 3, 16), LocalDate.of(2025, 10, 15));
+        createDeliverable("Alpha Build", "Core functionality with placeholder data", mobileExec, DeliverableState.DELIVERED, LocalDate.of(2025, 6, 1));
+        createDeliverable("Beta Build", "Feature-complete build for testing", mobileExec, DeliverableState.DRAFT, LocalDate.of(2025, 9, 1));
+        createDeliverable("App Store Submission", "Final build with App Store assets", mobileExec, DeliverableState.DRAFT, LocalDate.of(2025, 10, 15));
+
+        Phase apiPlan = createPhase("Planning", "API gateway design", apiGateway, 0,
+                LocalDate.of(2025, 3, 1), LocalDate.of(2025, 5, 31));
+        createDeliverable("API Specification", "OpenAPI spec for gateway endpoints", apiPlan, DeliverableState.VALIDATED, LocalDate.of(2025, 4, 15));
+        createDeliverable("Security Audit Plan", "Security review checklist and tooling setup", apiPlan, DeliverableState.DRAFT, LocalDate.of(2025, 5, 31));
+
+        Phase apiExec = createPhase("Execution", "Gateway implementation", apiGateway, 1,
+                LocalDate.of(2025, 6, 1), LocalDate.of(2025, 12, 15));
+        createDeliverable("Rate Limiter Module", "Configurable rate limiting per service", apiExec, DeliverableState.DRAFT, LocalDate.of(2025, 9, 1));
+        createDeliverable("Service Registry", "Dynamic service discovery and health checks", apiExec, DeliverableState.DRAFT, LocalDate.of(2025, 12, 15));
+
+        Phase medInit = createPhase("Initiation", "Stakeholder alignment and scope", medErpProject, 0,
+                LocalDate.of(2025, 1, 1), LocalDate.of(2025, 2, 28));
+        createDeliverable("Business Case", "ROI analysis and project justification", medInit, DeliverableState.VALIDATED, LocalDate.of(2025, 1, 31));
+        createDeliverable("Stakeholder Map", "Key stakeholders and communication plan", medInit, DeliverableState.VALIDATED, LocalDate.of(2025, 2, 15));
+
+        Phase medExec = createPhase("Execution", "ERP module development", medErpProject, 1,
+                LocalDate.of(2025, 3, 1), LocalDate.of(2025, 11, 30));
+        createDeliverable("Patient Management Module", "Core patient record system", medExec, DeliverableState.DELIVERED, LocalDate.of(2025, 6, 30));
+        createDeliverable("Billing Module", "Insurance and payment processing", medExec, DeliverableState.DRAFT, LocalDate.of(2025, 11, 30));
+
+        Phase ftmExec = createPhase("Execution", "Core platform features", footballTeam, 0,
+                LocalDate.of(2025, 3, 1), LocalDate.of(2025, 9, 30));
+        createDeliverable("Player Database", "Player profiles, stats, and history", ftmExec, DeliverableState.DELIVERED, LocalDate.of(2025, 5, 15));
+        createDeliverable("Match Engine", "Match scheduling and result tracking", ftmExec, DeliverableState.DRAFT, LocalDate.of(2025, 9, 30));
+
+        // Wiki pages with mermaid diagrams
+        createWikiPage("Project Overview", "overview", fse, admin,
+                "# FSE Project Overview\n\n## Objectives\n\nThe Full Stack Engineering platform aims to deliver a modern, scalable web application for enterprise customers.\n\n### Key Goals\n\n- **Performance**: Sub-200ms response times\n- **Security**: SOC2 compliance\n- **Scalability**: 10x traffic growth support\n\n## Architecture\n\n```mermaid\ngraph TD\n    Client[Web Client] --> LB[Load Balancer]\n    LB --> GW[API Gateway]\n    GW --> Auth[Auth Service]\n    GW --> Core[Core API]\n    GW --> Notify[Notification Service]\n    Core --> DB[(PostgreSQL)]\n    Core --> Cache[(Redis Cache)]\n    Notify --> Queue[RabbitMQ]\n```\n\n## Timeline\n\n```mermaid\ngantt\n    title FSE Project Timeline\n    dateFormat YYYY-MM-DD\n    section Initiation\n    Requirements gathering  :done, init1, 2025-01-15, 2025-02-15\n    section Execution\n    MVP Development        :active, exec1, 2025-02-16, 2025-08-31\n    section Closing\n    Handover & Docs        :closing, 2025-09-01, 2025-09-30\n```\n\n## Team Structure\n\n```mermaid\ngraph LR\n    PM[Majid - PM] --> Dev1[Ismail - Backend]\n    PM --> Dev2[Hanane - Frontend]\n    PM --> Admin[Admin - Oversight]\n```");
+
+        createWikiPage("Technical Design", "technical-design", fse, dev1,
+                "# Technical Design\n\n## System Architecture\n\n```mermaid\ngraph TB\n    subgraph Frontend\n        UI[React SPA]\n        Mobile[Mobile App]\n    end\n    subgraph Backend\n        API[REST API]\n        Auth[Auth Service]\n        Worker[Background Worker]\n    end\n    subgraph Data\n        PG[(PostgreSQL)]\n        Redis[(Redis)]\n        S3[Object Storage]\n    end\n    UI --> API\n    Mobile --> API\n    API --> Auth\n    API --> PG\n    API --> Redis\n    Worker --> PG\n    Worker --> S3\n```\n\n## Database Schema\n\n```mermaid\nerDiagram\n    USER ||--o{ ISSUE : creates\n    USER ||--o{ TIME_LOG : logs\n    PROJECT ||--o{ ISSUE : contains\n    PROJECT ||--o{ MEMBER : has\n    ISSUE ||--o{ TIME_LOG : tracks\n    PROJECT ||--o{ RAID_ITEM : manages\n```\n\n## API Endpoints\n\n| Method | Path | Description |\n|--------|------|------------- |\n| GET | /api/projects | List all projects |\n| POST | /api/projects | Create a project |\n| GET | /api/issues | List all issues |\n| POST | /api/time-logs | Log time |\n\n## Deployment Pipeline\n\n```mermaid\ngraph LR\n    Code[Code Push] --> CI[CI Build & Test]\n    CI --> Stage[Staging Deploy]\n    Stage --> Review[Code Review]\n    Review --> Prod[Production Deploy]\n```");
+
+        createWikiPage("Getting Started", "getting-started", mobileApp, dev3,
+                "# Getting Started\n\n## Setup\n\n1. Clone the repository\n2. Run `npm install`\n3. Configure environment variables\n4. Start with `npm run dev`\n\n## Development Workflow\n\n```mermaid\ngraph TD\n    A[Feature Branch] --> B[Local Testing]\n    B --> C[Pull Request]\n    C --> D[Code Review]\n    D --> |Approved| E[Merge to Main]\n    D --> |Changes Needed| A\n    E --> F[CI/CD Pipeline]\n    F --> G[Deploy to Staging]\n    G --> H[QA Testing]\n    H --> |Pass| I[Deploy to Production]\n    H --> |Fail| A\n```\n\n## Mobile App Architecture\n\n```mermaid\ngraph TD\n    App[React Native App] --> API[Backend API]\n    App --> Push[Push Notifications]\n    App --> Cache[Local Storage]\n    API --> DB[(Database)]\n    API --> Auth[OAuth Provider]\n```");
+
+        createWikiPage("Roadmap", "roadmap", medErpProject, younes,
+                "# medERP Roadmap\n\n## 2025 Milestones\n\n```mermaid\ngantt\n    title medERP 2025 Roadmap\n    dateFormat YYYY-MM-DD\n    section Q1\n    Patient Management  :done, q1a, 2025-01-01, 2025-03-31\n    section Q2\n    Billing Module      :active, q2a, 2025-04-01, 2025-06-30\n    section Q3\n    Lab Integration     :q3a, 2025-07-01, 2025-09-30\n    section Q4\n    Pharmacy Module     :q4a, 2025-10-01, 2025-12-31\n```\n\n## Module Dependencies\n\n```mermaid\ngraph TD\n    Patient[Patient Module] --> Billing[Billing Module]\n    Patient --> Lab[Lab Integration]\n    Billing --> Insurance[Insurance Claims]\n    Lab --> Pharmacy[Pharmacy Module]\n    Insurance --> Reports[Reporting]\n```\n\n## Integration Points\n\n```mermaid\ngraph LR\n    HIS[Hospital Info System] --> API[medERP API]\n    LIS[Lab Info System] --> API\n    PIS[Pharmacy System] --> API\n    API --> DW[Data Warehouse]\n    API --> Portal[Patient Portal]\n```");
+
+        createWikiPage("Project Charter", "project-charter", apiGateway, majid,
+                "# API Gateway Project Charter\n\n## Scope\n\nCentral API gateway for service routing, rate limiting, and authentication.\n\n## Stakeholders\n\n```mermaid\ngraph TD\n    Sponsor[Salim - Executive Sponsor] --> PM[Majid - Project Manager]\n    PM --> Dev1[Ismail - Lead Developer]\n    PM --> Dev2[Wadii - Backend Developer]\n    PM --> QA[Admin - QA Lead]\n```\n\n## Risk Assessment\n\n```mermaid\nquadrantChart\n    title Risk Assessment\n    x-axis Low Impact --> High Impact\n    y-axis Low Probability --> High Probability\n    quadrant-1 High Impact Low Probability\n    quadrant-2 High Impact High Probability\n    quadrant-3 Low Impact Low Probability\n    quadrant-4 Low Impact High Probability\n    Vendor Lock-in: [0.3, 0.4]\n    Scalability: [0.8, 0.6]\n    Security Breach: [0.9, 0.3]\n    Team Turnover: [0.4, 0.5]\n```\n\n## Budget\n\n| Category | Amount (DH) |\n|----------|-------------|\n| Development | 50,000 |\n| Infrastructure | 15,000 |\n| Testing | 10,000 |\n| Contingency | 5,000 |");
+
+        // Additional RAID items for remaining projects
+        createRaidItem(eHealthPortal, RaidItem.RaidType.RISK, "Patient data privacy",
+                "HIPAA compliance requirements for patient health information",
+                RaidItem.RaidStatus.OPEN, 4, 5, "Engage privacy consultant and implement data encryption",
+                majid, today.plusMonths(2));
+
+        createRaidItem(eHealthPortal, RaidItem.RaidType.ASSUMPTION, "Hospital IT will provide API access",
+                "Assuming existing hospital systems expose HL7/FHIR APIs",
+                RaidItem.RaidStatus.OPEN, null, null, null, null, null);
+
+        createRaidItem(mobilePay, RaidItem.RaidType.RISK, "Payment gateway integration complexity",
+                "Multiple payment providers with different APIs and compliance rules",
+                RaidItem.RaidStatus.OPEN, 3, 4, "Start with single provider, add others incrementally",
+                pmHarmony, today.plusMonths(1));
+
+        createRaidItem(mobilePay, RaidItem.RaidType.ISSUE, "PCI-DSS compliance gap",
+                "Current architecture does not meet all PCI-DSS requirements",
+                RaidItem.RaidStatus.MITIGATING, null, null, "Security audit scheduled, remediation plan in progress",
+                dev4, today.plusWeeks(4));
+
+        createRaidItem(dataWarehouse, RaidItem.RaidType.RISK, "Data quality from source systems",
+                "Inconsistent data formats across source systems may affect analytics accuracy",
+                RaidItem.RaidStatus.OPEN, 3, 5, "Implement data validation layer and ETL monitoring",
+                dev1, today.plusMonths(3));
+
+        createRaidItem(dataWarehouse, RaidItem.RaidType.DEPENDENCY, "Source system API availability",
+                "Data extraction depends on uptime and API access of 5 source systems",
+                RaidItem.RaidStatus.OPEN, null, null, null, majid, today.plusMonths(2));
+
+        createRaidItem(footballTeam, RaidItem.RaidType.RISK, "Data privacy regulations",
+                "Player health data subject to GDPR and local privacy laws",
+                RaidItem.RaidStatus.OPEN, 3, 4, "Implement role-based access and data anonymization",
+                youssef, today.plusMonths(2));
+
+        createRaidItem(footballTeam, RaidItem.RaidType.ASSUMPTION, "Clubs will adopt the platform",
+                "Assuming 70% of local clubs sign up within the first year",
+                RaidItem.RaidStatus.OPEN, null, null, null, null, null);
+
+        createRaidItem(infraUpgrade, RaidItem.RaidType.RISK, "Migration data loss",
+                "Risk of data loss during migration from on-premise to cloud",
+                RaidItem.RaidStatus.OPEN, 2, 5, "Implement incremental migration with rollback capability",
+                dev1, today.plusMonths(2));
+
+        createRaidItem(infraUpgrade, RaidItem.RaidType.ISSUE, "Legacy system compatibility",
+                "Some legacy services cannot run on the new cloud infrastructure",
+                RaidItem.RaidStatus.MITIGATING, null, null, "Containerization strategy being evaluated",
+                dev3, today.plusWeeks(6));
 
         // Board columns
         List<IssueStatus> allStatuses = issueStatusRepository.findAll();
@@ -322,7 +472,6 @@ public class DataSeeder implements CommandLineRunner {
         createLabel(mobileApp, "Android", "#F59E0B");
 
         // Time logs for EVM (labor cost)
-        LocalDate today = LocalDate.now();
         createTimeLog(fse, "FSE-3", dev1, new BigDecimal("6.5"), today.minusDays(4), "Profile API implementation");
         createTimeLog(fse, "FSE-3", dev1, new BigDecimal("4.0"), today.minusDays(3), "Profile validation logic");
         createTimeLog(fse, "FSE-4", dev2, new BigDecimal("7.0"), today.minusDays(3), "Search index setup");
@@ -563,5 +712,39 @@ public class DataSeeder implements CommandLineRunner {
         holiday.setName(name);
         holiday.setCompany(company);
         publicHolidayRepository.save(holiday);
+    }
+
+    private Phase createPhase(String name, String description, Project project, int position,
+                              LocalDate startDate, LocalDate endDate) {
+        Phase phase = new Phase();
+        phase.setName(name);
+        phase.setDescription(description);
+        phase.setProject(project);
+        phase.setPosition(position);
+        phase.setStartDate(startDate);
+        phase.setEndDate(endDate);
+        return phaseRepository.save(phase);
+    }
+
+    private Deliverable createDeliverable(String name, String description, Phase phase,
+                                           DeliverableState state, LocalDate dueDate) {
+        Deliverable deliverable = new Deliverable();
+        deliverable.setName(name);
+        deliverable.setDescription(description);
+        deliverable.setPhase(phase);
+        deliverable.setState(state);
+        deliverable.setDueDate(dueDate);
+        return deliverableRepository.save(deliverable);
+    }
+
+    private WikiPage createWikiPage(String title, String slug, Project project, User author, String content) {
+        WikiPage page = new WikiPage();
+        page.setTitle(title);
+        page.setSlug(slug);
+        page.setProject(project);
+        page.setAuthor(author);
+        page.setContent(content);
+        page.setPosition(0);
+        return wikiPageRepository.save(page);
     }
 }
