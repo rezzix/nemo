@@ -24,6 +24,7 @@ import PmoDashboardPage from '@/pages/PmoDashboardPage';
 import HolidaysPage from '@/pages/HolidaysPage';
 import LeavePage from '@/pages/LeavePage';
 import AssetsPage from '@/pages/AssetsPage';
+import UserDetailPage from '@/pages/UserDetailPage';
 
 export default function App() {
   const checkSession = useAuthStore((s) => s.checkSession);
@@ -72,6 +73,7 @@ export default function App() {
           <Route path="/my-time" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'CONTRIBUTOR']}><MyTimePage /></RoleGuard>} />
           <Route path="/timesheets" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'HR']}><TimesheetsPage /></RoleGuard>} />
           <Route path="/people" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'HR']}><PeoplePage /></RoleGuard>} />
+          <Route path="/people/:id" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'HR', 'EXECUTIVE']}><UserDetailPage /></RoleGuard>} />
           <Route path="/holidays" element={<RoleGuard roles={['HR', 'ADMIN']}><HolidaysPage /></RoleGuard>} />
           <Route path="/leave" element={<LeavePage />} />
           <Route path="/reports" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR']}><TimeReportsPage /></RoleGuard>} />

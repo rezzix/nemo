@@ -53,7 +53,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.username")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EXECUTIVE', 'HR') or #id == authentication.principal.username")
     public ResponseEntity<ApiResponse<UserDto>> get(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.of(userMapper.toDto(userService.getById(id))));
     }

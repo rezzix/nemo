@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { listAllUsers } from '@/api/users';
 import { listCompanies } from '@/api/companies';
 import { getMembers } from '@/api/projects';
@@ -151,7 +152,7 @@ export default function PeoplePage() {
       {/* People Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredUsers.map((user) => (
-          <div key={user.id} className="bg-white rounded-xl border border-gray-200 p-5 hover:border-primary-300 transition-colors">
+          <Link key={user.id} to={`/people/${user.id}`} className="bg-white rounded-xl border border-gray-200 p-5 hover:border-primary-300 transition-colors block">
             <div className="flex items-start gap-3">
               <div className="w-12 h-12 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-semibold text-sm flex-shrink-0">
                 {getInitials(user.firstName, user.lastName)}
@@ -195,7 +196,7 @@ export default function PeoplePage() {
                 </div>
               </div>
             )}
-          </div>
+          </Link>
         ))}
       </div>
 
