@@ -545,30 +545,25 @@ public class DataSeeder implements CommandLineRunner {
         createHoliday(LocalDate.of(2025, 11, 6), "Green March Day", null);
         createHoliday(LocalDate.of(2025, 11, 18), "Independence Day", null);
 
-        // Locations (hierarchical)
-        Location netopiaHQ = createLocation("Netopia HQ", "Main headquarters building", null, netopia, 1);
-        Location buildingA = createLocation("Building A", "Office building A", netopiaHQ, netopia, 1);
-        Location buildingAFloor1 = createLocation("Floor 1", "First floor of Building A", buildingA, netopia, 1);
-        Location buildingAFloor2 = createLocation("Floor 2", "Second floor of Building A", buildingA, netopia, 2);
-        Location buildingB = createLocation("Building B", "Office building B", netopiaHQ, netopia, 2);
-        Location serverRoom = createLocation("Server Room", "Data center and server room", buildingB, netopia, 1);
+        // Locations
+        Location plateauHightech = createLocation("Plateau 19 Imb Hightech", "Netopia main office at Hay Riad", null, netopia, 1);
+        Location camelias = createLocation("Camelias", "Netopia secondary office", null, netopia, 2);
 
-        Location harmonyOffice = createLocation("Harmony Office", "Main Harmony office", null, harmony, 1);
-        Location harmonyMain = createLocation("Main Floor", "Open workspace area", harmonyOffice, harmony, 1);
-        Location harmonyMeeting = createLocation("Meeting Rooms", "Meeting room wing", harmonyOffice, harmony, 2);
+        Location villaAnnasim = createLocation("Villa Annasim", "Harmony main office", null, harmony, 1);
+        Location centreAlKassous = createLocation("Centre Al Kassous", "Harmony branch office", null, harmony, 2);
 
-        Location myteamOffice = createLocation("MyTeam Office", "MyTeam workspace", null, myteam, 1);
-        Location myteamOpen = createLocation("Open Space", "Open plan work area", myteamOffice, myteam, 1);
-        Location myteamMeeting = createLocation("Meeting Room", "Conference room", myteamOffice, myteam, 2);
+        Location plateauBouskoura = createLocation("Plateau Bouskoura", "MyTeam office", null, myteam, 1);
+
+        Location bureauTechnoparc = createLocation("Bureau technoparc", "medERP office", null, mederp, 1);
 
         // Assets
-        createAsset("MacBook Pro 16\"", Asset.Type.COMPUTER, Asset.Status.ASSIGNED, buildingAFloor1, dev1, netopia,
+        createAsset("MacBook Pro 16\"", Asset.Type.COMPUTER, Asset.Status.ASSIGNED, plateauHightech, dev1, netopia,
                 "MBP-2024-001", LocalDate.of(2024, 1, 15), new BigDecimal("2400"));
-        createAsset("Dell Latitude 5540", Asset.Type.COMPUTER, Asset.Status.ASSIGNED, buildingAFloor1, dev2, netopia,
+        createAsset("Dell Latitude 5540", Asset.Type.COMPUTER, Asset.Status.ASSIGNED, plateauHightech, dev2, netopia,
                 "DL-5540-002", LocalDate.of(2024, 3, 1), new BigDecimal("1200"));
-        createAsset("Dell PowerEdge R740", Asset.Type.SERVER, Asset.Status.IN_USE, serverRoom, null, netopia,
+        createAsset("Dell PowerEdge R740", Asset.Type.SERVER, Asset.Status.IN_USE, camelias, null, netopia,
                 "SRV-R740-001", LocalDate.of(2023, 6, 1), new BigDecimal("8500"));
-        createAsset("HP ProLiant DL380", Asset.Type.SERVER, Asset.Status.IN_USE, serverRoom, null, netopia,
+        createAsset("HP ProLiant DL380", Asset.Type.SERVER, Asset.Status.IN_USE, camelias, null, netopia,
                 "SRV-DL380-002", LocalDate.of(2023, 6, 1), new BigDecimal("7200"));
         createAsset("iPhone 15 Pro", Asset.Type.MOBILE, Asset.Status.ASSIGNED, null, majid, netopia,
                 "IPH-15PRO-001", LocalDate.of(2024, 2, 1), new BigDecimal("1100"));
@@ -576,15 +571,15 @@ public class DataSeeder implements CommandLineRunner {
                 "SGS-S24-002", LocalDate.of(2024, 4, 1), new BigDecimal("900"));
         createAsset("Toyota Hilux", Asset.Type.VEHICLE, Asset.Status.IN_USE, null, dev3, harmony,
                 "VHC-HILUX-001", LocalDate.of(2022, 8, 1), new BigDecimal("35000"));
-        createAsset("Samsung Microwave", Asset.Type.MICROWAVE, Asset.Status.IN_USE, harmonyMain, null, harmony,
+        createAsset("Samsung Microwave", Asset.Type.MICROWAVE, Asset.Status.IN_USE, villaAnnasim, null, harmony,
                 "MCI-SAM-001", LocalDate.of(2023, 3, 1), new BigDecimal("150"));
         createAsset("ThinkPad X1 Carbon", Asset.Type.COMPUTER, Asset.Status.ASSIGNED, null, dev3, harmony,
                 "TP-X1C-001", LocalDate.of(2024, 1, 10), new BigDecimal("1800"));
         createAsset("MacBook Air M2", Asset.Type.COMPUTER, Asset.Status.ASSIGNED, null, dev4, harmony,
                 "MBA-M2-001", LocalDate.of(2024, 2, 15), new BigDecimal("1300"));
-        createAsset("Dell Monitor 27\"", Asset.Type.OTHER, Asset.Status.IN_USE, buildingAFloor2, null, netopia,
+        createAsset("Dell Monitor 27\"", Asset.Type.OTHER, Asset.Status.IN_USE, plateauHightech, null, netopia,
                 "MON-DELL27-001", LocalDate.of(2024, 1, 20), new BigDecimal("350"));
-        createAsset("Cisco Switch C9200", Asset.Type.OTHER, Asset.Status.IN_USE, serverRoom, null, netopia,
+        createAsset("Cisco Switch C9200", Asset.Type.OTHER, Asset.Status.IN_USE, camelias, null, netopia,
                 "NET-CS9200-001", LocalDate.of(2023, 5, 1), new BigDecimal("2800"));
         createAsset("iPad Pro 12.9\"", Asset.Type.MOBILE, Asset.Status.MAINTENANCE, null, null, myteam,
                 "IPD-PRO-001", LocalDate.of(2023, 11, 1), new BigDecimal("1100"));
