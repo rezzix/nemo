@@ -5,7 +5,7 @@ import { priorityColor, statusColor, formatDate } from '@/utils/format';
 import { currentWeekRange } from './dashboardUtils';
 import type { IssuePriority, TimeLogDto } from '@/types';
 import Spinner from '@/components/common/Spinner';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
 export default function ContributorDashboard() {
@@ -25,7 +25,6 @@ export default function ContributorDashboard() {
       })
       .catch(() => setWeekHours(null));
 
-    // Fetch most recent time log (sorted by logDate desc by default)
     listTimeLogs({ userId: user.id, size: 1 })
       .then((logs: TimeLogDto[]) => {
         if (logs.length > 0) {
@@ -37,6 +36,17 @@ export default function ContributorDashboard() {
       })
       .catch(() => {});
   }, [user]);
+
+  // Group issues by project
+  const issuesByProject = useMemo(() => {
+    const map = new Map<number, typeof myIssues>();
+    for (const issue of myIssues) {
+      const list = map.get(issue.projectId) || [];
+      list.push(issue);
+      map.set(issue.projectId, list);
+    }
+    return map;
+  }, [myIssues]);
 
   if (isLoading) {
     return (
@@ -69,10 +79,6 @@ export default function ContributorDashboard() {
   const lastLogLabel = lastLogDaysAgo !== null
     ? lastLogDaysAgo === 0 ? 'Today' : lastLogDaysAgo === 1 ? 'Yesterday' : `${lastLogDaysAgo} days ago`
     : 'No logs';
-
-  const inProgressIssues = myIssues.filter(
-    (i) => i.statusName.toLowerCase().includes('progress') || i.statusName.toLowerCase().includes('active'),
-  );
 
   return (
     <div className="space-y-8">
@@ -107,99 +113,7 @@ export default function ContributorDashboard() {
         </div>
       </div>
 
-      {/* Current tasks (in progress) */}
-      {inProgressIssues.length > 0 && (
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Current Tasks</h3>
-          <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Key</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Title</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Project</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Priority</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Status</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Updated</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {inProgressIssues.map((issue) => (
-                  <tr key={issue.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-mono text-xs text-gray-500">{issue.issueKey}</td>
-                    <td className="px-4 py-3 font-medium text-gray-900">
-                      <Link to={`/projects/${issue.projectId}/issues/${issue.id}`} className="hover:text-primary-600">
-                        {issue.title}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-gray-500">{issue.projectKey}</td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${priorityColor(issue.priority as IssuePriority)}`}>
-                        {issue.priority}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${statusColor(issue.statusName)}`}>
-                        {issue.statusName}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-500">{formatDate(issue.updatedAt)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">My Issues</h3>
-        {myIssues.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-500">
-            No issues assigned to you.
-          </div>
-        ) : (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Key</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Title</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Project</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Priority</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Status</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Updated</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {myIssues.map((issue) => (
-                  <tr key={issue.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-mono text-xs text-gray-500">{issue.issueKey}</td>
-                    <td className="px-4 py-3 font-medium text-gray-900">
-                      <Link to={`/projects/${issue.projectId}/issues/${issue.id}`} className="hover:text-primary-600">
-                        {issue.title}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-gray-500">{issue.projectKey}</td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${priorityColor(issue.priority as IssuePriority)}`}>
-                        {issue.priority}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${statusColor(issue.statusName)}`}>
-                        {issue.statusName}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-500">{formatDate(issue.updatedAt)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
+      {/* My Projects with tasks */}
       <div>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">My Projects</h3>
         {projects.length === 0 ? (
@@ -207,27 +121,75 @@ export default function ContributorDashboard() {
             No projects found.
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {projects.map((project) => (
-              <Link
-                key={project.id}
-                to={`/projects/${project.id}`}
-                className="bg-white rounded-xl border border-gray-200 p-5 hover:border-primary-300 transition-colors"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs font-mono bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
-                    {project.key}
-                  </span>
-                  <h4 className="font-semibold text-gray-900 truncate">{project.name}</h4>
+          <div className="space-y-4">
+            {projects.map((project) => {
+              const projectIssues = issuesByProject.get(project.id) || [];
+              const projectInProgress = projectIssues.filter(
+                (i) => i.statusName.toLowerCase().includes('progress') || i.statusName.toLowerCase().includes('active'),
+              );
+              const projectTodo = projectIssues.filter(
+                (i) => i.statusName.toLowerCase().includes('todo') || i.statusName.toLowerCase().includes('open'),
+              );
+              return (
+                <div key={project.id} className="bg-white rounded-xl border border-gray-200">
+                  {/* Project header */}
+                  <Link to={`/projects/${project.id}`} className="block px-5 py-4 hover:bg-gray-50 rounded-t-xl">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{project.key}</span>
+                        <h4 className="font-semibold text-gray-900">{project.name}</h4>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-gray-500">
+                        {projectIssues.length > 0 && (
+                          <>
+                            <span>{projectIssues.length} issue{projectIssues.length !== 1 ? 's' : ''}</span>
+                            {projectInProgress.length > 0 && <span className="text-blue-600">{projectInProgress.length} in progress</span>}
+                            {projectTodo.length > 0 && <span>{projectTodo.length} to do</span>}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    {project.description && (
+                      <p className="text-sm text-gray-500 mt-1 line-clamp-1">{project.description}</p>
+                    )}
+                  </Link>
+
+                  {/* Issues under this project */}
+                  {projectIssues.length > 0 && (
+                    <div className="border-t border-gray-100 divide-y divide-gray-50">
+                      {projectIssues.map((issue) => {
+                        const isProgress = issue.statusName.toLowerCase().includes('progress') || issue.statusName.toLowerCase().includes('active');
+                        return (
+                          <Link
+                            key={issue.id}
+                            to={`/projects/${issue.projectId}/issues/${issue.id}`}
+                            className="flex items-center justify-between px-5 py-2.5 hover:bg-gray-50"
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${isProgress ? 'bg-blue-500' : 'bg-gray-300'}`} />
+                              <span className="font-mono text-xs text-gray-400">{issue.issueKey}</span>
+                              <span className="text-sm text-gray-900 truncate">{issue.title}</span>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0 ml-3">
+                              <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${priorityColor(issue.priority as IssuePriority)}`}>
+                                {issue.priority}
+                              </span>
+                              <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${statusColor(issue.statusName)}`}>
+                                {issue.statusName}
+                              </span>
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {projectIssues.length === 0 && (
+                    <div className="px-5 py-3 border-t border-gray-100 text-sm text-gray-400">No assigned issues</div>
+                  )}
                 </div>
-                {project.description && (
-                  <p className="text-sm text-gray-500 line-clamp-2">{project.description}</p>
-                )}
-                <p className="text-xs text-gray-400 mt-3">
-                  Lead: {project.managerName}
-                </p>
-              </Link>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
