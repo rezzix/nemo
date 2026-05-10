@@ -673,44 +673,78 @@ export default function ExecutiveDashboard() {
         );
       })()}
 
-      {/* Top Risks */}
-      {filteredRisks.length > 0 && (
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Risks</h3>
-          <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Project</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Title</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Score</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">P × I</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredRisks.slice(0, 10).map((r) => (
-                  <tr key={r.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-gray-500">{r.projectName}</td>
-                    <td className="px-4 py-3 font-medium text-gray-900">{r.title}</td>
-                    <td className="px-4 py-3">
+      {/* Risk Matrix */}
+      {filteredRisks.length > 0 && (() => {
+        const matrixRisks = filteredRisks.filter((r) => r.probability != null && r.impact != null);
+        const cellColor = (p: number, i: number): string => {
+          const score = p * i;
+          if (score >= 15) return 'bg-red-100 text-red-800';
+          if (score >= 8) return 'bg-amber-100 text-amber-800';
+          if (score >= 4) return 'bg-yellow-100 text-yellow-800';
+          return 'bg-green-100 text-green-800';
+        };
+        const risksAt = (p: number, i: number) => matrixRisks.filter((r) => r.probability === p && r.impact === i);
+        return (
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Risk Matrix</h3>
+            <div className="bg-white rounded-xl border border-gray-200 p-5">
+              <div className="flex items-end gap-1">
+                <div className="flex flex-col items-center gap-1 pr-2">
+                  <span className="text-xs font-medium text-gray-500 -rotate-90 origin-center whitespace-nowrap mb-2">Probability</span>
+                  {[5, 4, 3, 2, 1].map((p) => (
+                    <div key={p} className="h-12 flex items-center justify-center text-xs font-medium text-gray-500">{p}</div>
+                  ))}
+                </div>
+                <div className="flex-1">
+                  <div className="grid grid-cols-5 gap-1">
+                    {([5, 4, 3, 2, 1] as const).flatMap((p) =>
+                      ([1, 2, 3, 4, 5] as const).map((i) => {
+                        const risksHere = risksAt(p, i);
+                        return (
+                          <div key={`${p}-${i}`} className={`h-12 rounded-lg flex flex-col items-center justify-center text-xs font-medium ${cellColor(p, i)} ${risksHere.length > 0 ? 'ring-2 ring-offset-1 ring-gray-400' : ''}`}>
+                            {risksHere.length > 0 ? (
+                              <span className="font-bold" title={risksHere.map((r) => r.title).join(', ')}>{risksHere.length}</span>
+                            ) : (
+                              <span className="text-gray-300">{p * i}</span>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                  <div className="flex justify-between mt-1">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div key={i} className="w-[20%] text-center text-xs font-medium text-gray-500">{i}</div>
+                    ))}
+                  </div>
+                  <div className="text-center text-xs font-medium text-gray-500 mt-0.5">Impact</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 mt-4 text-xs text-gray-500">
+                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-200 inline-block" /> Low (1-3)</span>
+                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-yellow-200 inline-block" /> Medium (4-6)</span>
+                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-amber-200 inline-block" /> High (8-12)</span>
+                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-200 inline-block" /> Critical (15-25)</span>
+              </div>
+              {filteredRisks.length > 0 && (
+                <div className="mt-4 space-y-1">
+                  {filteredRisks.slice(0, 10).map((r) => (
+                    <div key={r.id} className="flex items-center gap-2 text-sm">
+                      <span className={`inline-block w-2 h-2 rounded-full ${riskColor(r.riskScore).replace('text-', 'bg-').split(' ')[0]}`} />
+                      <span className="text-gray-500">{r.projectName}</span>
+                      <span className="font-medium text-gray-900">{r.title}</span>
+                      {r.probability && r.impact && <span className="text-gray-400">P{r.probability}×I{r.impact}</span>}
                       <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${riskColor(r.riskScore)}`}>
-                        {r.riskScore} — {riskLabel(r.riskScore)}
+                        {r.riskScore}
                       </span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-500">{r.probability} × {r.impact}</td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-                        r.status === 'MITIGATING' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'
-                      }`}>{r.status}</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
