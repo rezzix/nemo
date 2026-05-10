@@ -687,65 +687,67 @@ export default function ExecutiveDashboard() {
         return (
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Risk Matrix</h3>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white rounded-xl border border-gray-200 p-5">
-                <div className="flex items-end gap-1">
-                  <div className="flex flex-col items-center gap-1 pr-2">
-                    <span className="text-xs font-medium text-gray-500 -rotate-90 origin-center whitespace-nowrap mb-2">Probability</span>
-                    {[5, 4, 3, 2, 1].map((p) => (
-                      <div key={p} className="h-12 flex items-center justify-center text-xs font-medium text-gray-500">{p}</div>
-                    ))}
-                  </div>
-                  <div className="flex-1">
-                    <div className="grid grid-cols-5 gap-1">
-                      {([5, 4, 3, 2, 1] as const).flatMap((p) =>
-                        ([1, 2, 3, 4, 5] as const).map((i) => {
-                          const risksHere = risksAt(p, i);
-                          return (
-                            <div key={`${p}-${i}`} className={`h-12 rounded-lg flex flex-col items-center justify-center text-xs font-medium ${cellColor(p, i)} ${risksHere.length > 0 ? 'ring-2 ring-offset-1 ring-gray-400' : ''}`}>
-                              {risksHere.length > 0 ? (
-                                <span className="font-bold" title={risksHere.map((r) => r.title).join(', ')}>{risksHere.length}</span>
-                              ) : (
-                                <span className="text-gray-300">{p * i}</span>
-                              )}
-                            </div>
-                          );
-                        })
-                      )}
-                    </div>
-                    <div className="flex justify-between mt-1">
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <div key={i} className="w-[20%] text-center text-xs font-medium text-gray-500">{i}</div>
+            <div className="bg-white rounded-xl border border-gray-200 p-5">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                  <div className="flex items-end gap-1">
+                    <div className="flex flex-col items-center gap-1 pr-2">
+                      <span className="text-xs font-medium text-gray-500 -rotate-90 origin-center whitespace-nowrap mb-2">Probability</span>
+                      {[5, 4, 3, 2, 1].map((p) => (
+                        <div key={p} className="h-12 flex items-center justify-center text-xs font-medium text-gray-500">{p}</div>
                       ))}
                     </div>
-                    <div className="text-center text-xs font-medium text-gray-500 mt-0.5">Impact</div>
+                    <div className="flex-1">
+                      <div className="grid grid-cols-5 gap-1">
+                        {([5, 4, 3, 2, 1] as const).flatMap((p) =>
+                          ([1, 2, 3, 4, 5] as const).map((i) => {
+                            const risksHere = risksAt(p, i);
+                            return (
+                              <div key={`${p}-${i}`} className={`h-12 rounded-lg flex flex-col items-center justify-center text-xs font-medium ${cellColor(p, i)} ${risksHere.length > 0 ? 'ring-2 ring-offset-1 ring-gray-400' : ''}`}>
+                                {risksHere.length > 0 ? (
+                                  <span className="font-bold" title={risksHere.map((r) => r.title).join(', ')}>{risksHere.length}</span>
+                                ) : (
+                                  <span className="text-gray-300">{p * i}</span>
+                                )}
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                      <div className="flex justify-between mt-1">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                          <div key={i} className="w-[20%] text-center text-xs font-medium text-gray-500">{i}</div>
+                        ))}
+                      </div>
+                      <div className="text-center text-xs font-medium text-gray-500 mt-0.5">Impact</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 mt-4 text-xs text-gray-500">
+                    <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-200 inline-block" /> Low (1-3)</span>
+                    <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-yellow-200 inline-block" /> Medium (4-6)</span>
+                    <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-amber-200 inline-block" /> High (8-12)</span>
+                    <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-200 inline-block" /> Critical (15-25)</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-4 mt-4 text-xs text-gray-500">
-                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-200 inline-block" /> Low (1-3)</span>
-                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-yellow-200 inline-block" /> Medium (4-6)</span>
-                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-amber-200 inline-block" /> High (8-12)</span>
-                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-200 inline-block" /> Critical (15-25)</span>
-                </div>
-              </div>
-              <div className="bg-white rounded-xl border border-gray-200 p-5">
-                <h4 className="text-sm font-semibold text-gray-700 mb-3">Risk Details</h4>
-                <div className="space-y-2">
-                  {filteredRisks.slice(0, 10).map((r) => (
-                    <div key={r.id} className="flex items-start gap-2 text-sm">
-                      <span className={`inline-block w-2 h-2 rounded-full mt-1.5 shrink-0 ${riskColor(r.riskScore).replace('text-', 'bg-').split(' ')[0]}`} />
-                      <div className="min-w-0">
-                        <span className="font-medium text-gray-900">{r.title}</span>
-                        <div className="flex items-center gap-2 text-xs text-gray-500">
-                          <span>{r.projectName}</span>
-                          {r.probability && r.impact && <span>P{r.probability}×I{r.impact}</span>}
-                          <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${riskColor(r.riskScore)}`}>
-                            {r.riskScore}
-                          </span>
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-3">Risk Details</h4>
+                  <div className="space-y-2">
+                    {filteredRisks.slice(0, 10).map((r) => (
+                      <div key={r.id} className="flex items-start gap-2 text-sm">
+                        <span className={`inline-block w-2 h-2 rounded-full mt-1.5 shrink-0 ${riskColor(r.riskScore).replace('text-', 'bg-').split(' ')[0]}`} />
+                        <div className="min-w-0">
+                          <span className="font-medium text-gray-900">{r.title}</span>
+                          <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <span>{r.projectName}</span>
+                            {r.probability && r.impact && <span>P{r.probability}×I{r.impact}</span>}
+                            <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${riskColor(r.riskScore)}`}>
+                              {r.riskScore}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
