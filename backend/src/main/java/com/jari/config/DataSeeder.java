@@ -2,10 +2,14 @@ package com.jari.config;
 
 import com.jari.company.Company;
 import com.jari.company.CompanyRepository;
+import com.jari.asset.Asset;
+import com.jari.asset.AssetRepository;
 import com.jari.documentation.WikiPage;
 import com.jari.documentation.WikiPageRepository;
 import com.jari.issue.Issue;
 import com.jari.issue.IssueRepository;
+import com.jari.location.Location;
+import com.jari.location.LocationRepository;
 import com.jari.phase.Deliverable;
 import com.jari.phase.Deliverable.DeliverableState;
 import com.jari.phase.DeliverableRepository;
@@ -70,6 +74,8 @@ public class DataSeeder implements CommandLineRunner {
     private final PhaseRepository phaseRepository;
     private final DeliverableRepository deliverableRepository;
     private final WikiPageRepository wikiPageRepository;
+    private final LocationRepository locationRepository;
+    private final AssetRepository assetRepository;
 
     public DataSeeder(UserRepository userRepository,
                       PasswordEncoder passwordEncoder,
@@ -91,7 +97,9 @@ public class DataSeeder implements CommandLineRunner {
                       PublicHolidayRepository publicHolidayRepository,
                       PhaseRepository phaseRepository,
                       DeliverableRepository deliverableRepository,
-                      WikiPageRepository wikiPageRepository) {
+                      WikiPageRepository wikiPageRepository,
+                      LocationRepository locationRepository,
+                      AssetRepository assetRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.companyRepository = companyRepository;
@@ -113,6 +121,8 @@ public class DataSeeder implements CommandLineRunner {
         this.phaseRepository = phaseRepository;
         this.deliverableRepository = deliverableRepository;
         this.wikiPageRepository = wikiPageRepository;
+        this.locationRepository = locationRepository;
+        this.assetRepository = assetRepository;
     }
 
     @Override
@@ -534,6 +544,54 @@ public class DataSeeder implements CommandLineRunner {
         createHoliday(LocalDate.of(2025, 8, 21), "Youth Day", null);
         createHoliday(LocalDate.of(2025, 11, 6), "Green March Day", null);
         createHoliday(LocalDate.of(2025, 11, 18), "Independence Day", null);
+
+        // Locations (hierarchical)
+        Location netopiaHQ = createLocation("Netopia HQ", "Main headquarters building", null, netopia, 1);
+        Location buildingA = createLocation("Building A", "Office building A", netopiaHQ, netopia, 1);
+        Location buildingAFloor1 = createLocation("Floor 1", "First floor of Building A", buildingA, netopia, 1);
+        Location buildingAFloor2 = createLocation("Floor 2", "Second floor of Building A", buildingA, netopia, 2);
+        Location buildingB = createLocation("Building B", "Office building B", netopiaHQ, netopia, 2);
+        Location serverRoom = createLocation("Server Room", "Data center and server room", buildingB, netopia, 1);
+
+        Location harmonyOffice = createLocation("Harmony Office", "Main Harmony office", null, harmony, 1);
+        Location harmonyMain = createLocation("Main Floor", "Open workspace area", harmonyOffice, harmony, 1);
+        Location harmonyMeeting = createLocation("Meeting Rooms", "Meeting room wing", harmonyOffice, harmony, 2);
+
+        Location myteamOffice = createLocation("MyTeam Office", "MyTeam workspace", null, myteam, 1);
+        Location myteamOpen = createLocation("Open Space", "Open plan work area", myteamOffice, myteam, 1);
+        Location myteamMeeting = createLocation("Meeting Room", "Conference room", myteamOffice, myteam, 2);
+
+        // Assets
+        createAsset("MacBook Pro 16\"", Asset.Type.COMPUTER, Asset.Status.ASSIGNED, buildingAFloor1, dev1, netopia,
+                "MBP-2024-001", LocalDate.of(2024, 1, 15), new BigDecimal("2400"));
+        createAsset("Dell Latitude 5540", Asset.Type.COMPUTER, Asset.Status.ASSIGNED, buildingAFloor1, dev2, netopia,
+                "DL-5540-002", LocalDate.of(2024, 3, 1), new BigDecimal("1200"));
+        createAsset("Dell PowerEdge R740", Asset.Type.SERVER, Asset.Status.IN_USE, serverRoom, null, netopia,
+                "SRV-R740-001", LocalDate.of(2023, 6, 1), new BigDecimal("8500"));
+        createAsset("HP ProLiant DL380", Asset.Type.SERVER, Asset.Status.IN_USE, serverRoom, null, netopia,
+                "SRV-DL380-002", LocalDate.of(2023, 6, 1), new BigDecimal("7200"));
+        createAsset("iPhone 15 Pro", Asset.Type.MOBILE, Asset.Status.ASSIGNED, null, majid, netopia,
+                "IPH-15PRO-001", LocalDate.of(2024, 2, 1), new BigDecimal("1100"));
+        createAsset("Samsung Galaxy S24", Asset.Type.MOBILE, Asset.Status.IN_STOCK, null, null, netopia,
+                "SGS-S24-002", LocalDate.of(2024, 4, 1), new BigDecimal("900"));
+        createAsset("Toyota Hilux", Asset.Type.VEHICLE, Asset.Status.IN_USE, null, dev3, harmony,
+                "VHC-HILUX-001", LocalDate.of(2022, 8, 1), new BigDecimal("35000"));
+        createAsset("Samsung Microwave", Asset.Type.MICROWAVE, Asset.Status.IN_USE, harmonyMain, null, harmony,
+                "MCI-SAM-001", LocalDate.of(2023, 3, 1), new BigDecimal("150"));
+        createAsset("ThinkPad X1 Carbon", Asset.Type.COMPUTER, Asset.Status.ASSIGNED, null, dev3, harmony,
+                "TP-X1C-001", LocalDate.of(2024, 1, 10), new BigDecimal("1800"));
+        createAsset("MacBook Air M2", Asset.Type.COMPUTER, Asset.Status.ASSIGNED, null, dev4, harmony,
+                "MBA-M2-001", LocalDate.of(2024, 2, 15), new BigDecimal("1300"));
+        createAsset("Dell Monitor 27\"", Asset.Type.OTHER, Asset.Status.IN_USE, buildingAFloor2, null, netopia,
+                "MON-DELL27-001", LocalDate.of(2024, 1, 20), new BigDecimal("350"));
+        createAsset("Cisco Switch C9200", Asset.Type.OTHER, Asset.Status.IN_USE, serverRoom, null, netopia,
+                "NET-CS9200-001", LocalDate.of(2023, 5, 1), new BigDecimal("2800"));
+        createAsset("iPad Pro 12.9\"", Asset.Type.MOBILE, Asset.Status.MAINTENANCE, null, null, myteam,
+                "IPD-PRO-001", LocalDate.of(2023, 11, 1), new BigDecimal("1100"));
+        createAsset("ThinkPad T14s", Asset.Type.COMPUTER, Asset.Status.ASSIGNED, null, walid, myteam,
+                "TP-T14S-001", LocalDate.of(2024, 3, 1), new BigDecimal("1400"));
+        createAsset("Coffee Machine Jura", Asset.Type.OTHER, Asset.Status.IN_STOCK, null, null, netopia,
+                "BEV-JURA-001", LocalDate.of(2024, 5, 1), new BigDecimal("800"));
     }
 
     private User createUser(String username, String email, String firstName, String lastName, User.Role role, Company company) {
@@ -746,5 +804,32 @@ public class DataSeeder implements CommandLineRunner {
         page.setContent(content);
         page.setPosition(0);
         return wikiPageRepository.save(page);
+    }
+
+    private Location createLocation(String name, String description, Location parent, Company company, Integer order) {
+        Location location = new Location();
+        location.setName(name);
+        location.setDescription(description);
+        location.setParent(parent);
+        location.setCompany(company);
+        location.setOrder(order);
+        location.setActive(true);
+        return locationRepository.save(location);
+    }
+
+    private Asset createAsset(String name, Asset.Type type, Asset.Status status, Location location, User user, Company company,
+                              String identifier, LocalDate purchaseDate, BigDecimal purchaseCost) {
+        Asset asset = new Asset();
+        asset.setName(name);
+        asset.setType(type);
+        asset.setStatus(status);
+        asset.setLocation(location);
+        asset.setUser(user);
+        asset.setCompany(company);
+        asset.setIdentifier(identifier);
+        asset.setPurchaseDate(purchaseDate);
+        asset.setPurchaseCost(purchaseCost);
+        asset.setActive(true);
+        return assetRepository.save(asset);
     }
 }

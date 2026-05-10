@@ -13,3 +13,4 @@ export type { PhaseDto, CreatePhaseRequest, UpdatePhaseRequest, DeliverableDto, 
 export type { IssueTypeDto, IssueStatusDto, IssueStatusCategory, AuditLogDto, ActivityLogDto, OrganizationUpdateRequest, CreateUserRequest, AdminUpdateUserRequest, CreateIssueTypeRequest, CreateIssueStatusRequest } from './admin';
 export type { HolidayDto, CreateHolidayRequest, UpdateHolidayRequest } from './holiday';
 export type { LeaveRequestDto, LeaveType, LeaveStatus, CreateLeaveRequest, LeaveActionRequest } from './leave';
+export type { LocationDto, AssetDto, AssetType, AssetStatus, CreateLocationRequest, UpdateLocationRequest, CreateAssetRequest, UpdateAssetRequest, AssignAssetRequest } from './asset';

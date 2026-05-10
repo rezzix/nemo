@@ -42,6 +42,9 @@ export default function Sidebar() {
         ...(role === 'ADMIN' || role === 'HR' || role === 'MANAGER'
           ? [{ to: '/people', label: 'People', icon: PeopleIcon }]
           : []),
+        ...(role === 'ADMIN' || role === 'HR'
+          ? [{ to: '/assets', label: 'Assets', icon: AssetsIcon }]
+          : []),
       ],
     },
     ...(!isExternal && role !== 'EXECUTIVE' ? [{
@@ -251,6 +254,14 @@ function LeaveIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.181a48.413 48.413 0 00-8.048 0 2.25 2.25 0 00-1.976 2.181V15.75M9 18.75H6a2.25 2.25 0 01-2.25-2.25V6.108c0-1.135.845-2.098 1.976-2.181a48.413 48.413 0 018.048 0 2.25 2.25 0 011.976 2.181V15.75" />
+    </svg>
+  );
+}
+
+function AssetsIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.75 7.5h16.5" />
     </svg>
   );
 }
