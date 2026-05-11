@@ -71,4 +71,16 @@ public record ProjectDto(
             String content, Boolean important,
             String visibleFrom, String visibleTo
     ) {}
+
+    public record NoteDto(Long id, Long projectId, String content, boolean pinned,
+            String createdAt, String updatedAt) {}
+
+    public record NoteCreateRequest(
+            @NotBlank String content,
+            Boolean pinned
+    ) {}
+
+    public record NoteUpdateRequest(
+            String content, Boolean pinned
+    ) {}
 }

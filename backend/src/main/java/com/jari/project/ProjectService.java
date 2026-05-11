@@ -38,13 +38,15 @@ public class ProjectService {
     private final ProjectFavoriteRepository favoriteRepository;
     private final CompanyRepository companyRepository;
     private final ProjectInstructionRepository instructionRepository;
+    private final ProjectNoteRepository noteRepository;
 
     public ProjectService(ProjectRepository projectRepository, ProjectMemberRepository memberRepository,
                           LabelRepository labelRepository, BoardColumnRepository boardColumnRepository,
                           ProgramRepository programRepository, UserRepository userRepository,
                           IssueStatusRepository statusRepository, IssueRepository issueRepository,
                           ProjectFavoriteRepository favoriteRepository, CompanyRepository companyRepository,
-                          ProjectInstructionRepository instructionRepository) {
+                          ProjectInstructionRepository instructionRepository,
+                          ProjectNoteRepository noteRepository) {
         this.projectRepository = projectRepository;
         this.memberRepository = memberRepository;
         this.labelRepository = labelRepository;
@@ -56,6 +58,7 @@ public class ProjectService {
         this.favoriteRepository = favoriteRepository;
         this.companyRepository = companyRepository;
         this.instructionRepository = instructionRepository;
+        this.noteRepository = noteRepository;
     }
 
     @Transactional(readOnly = true)
@@ -332,5 +335,46 @@ public class ProjectService {
             throw new ForbiddenException("Only the author can delete their instruction");
         }
         instructionRepository.delete(instruction);
+    }
+
+    // Notes (private to owner)
+    @Transactional(readOnly = true)
+    public List<ProjectNote> getNotes(Long projectId, Long ownerId) {
+        return noteRepository.findByProjectIdAndOwnerIdOrderByPinnedDescCreatedAtDesc(projectId, ownerId);
+    }
+
+    @Transactional
+    public ProjectNote createNote(Long projectId, Long ownerId, ProjectDto.NoteCreateRequest request) {
+        Project project = getById(projectId);
+        User owner = userRepository.findById(ownerId)
+                .orElseThrow(() -> new EntityNotFoundException("User", ownerId));
+        ProjectNote note = new ProjectNote();
+        note.setProject(project);
+        note.setOwner(owner);
+        note.setContent(request.content());
+        note.setPinned(request.pinned() != null && request.pinned());
+        return noteRepository.save(note);
+    }
+
+    @Transactional
+    public ProjectNote updateNote(Long id, Long ownerId, ProjectDto.NoteUpdateRequest request) {
+        ProjectNote note = noteRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("ProjectNote", id));
+        if (!note.getOwner().getId().equals(ownerId)) {
+            throw new ForbiddenException("Only the owner can update their note");
+        }
+        if (request.content() != null) note.setContent(request.content());
+        if (request.pinned() != null) note.setPinned(request.pinned());
+        return noteRepository.save(note);
+    }
+
+    @Transactional
+    public void deleteNote(Long id, Long ownerId) {
+        ProjectNote note = noteRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("ProjectNote", id));
+        if (!note.getOwner().getId().equals(ownerId)) {
+            throw new ForbiddenException("Only the owner can delete their note");
+        }
+        noteRepository.delete(note);
     }
 }

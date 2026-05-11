@@ -1,5 +1,5 @@
 import { apiGet, apiPost, apiPut, apiDelete, apiGetPaginated } from './client';
-import type { ProjectDto, CreateProjectRequest, UpdateProjectRequest, MemberDto, LabelDto, LabelCreateRequest, BoardConfigDto, BoardUpdateRequest, InstructionDto, CreateInstructionRequest, UpdateInstructionRequest } from '@/types';
+import type { ProjectDto, CreateProjectRequest, UpdateProjectRequest, MemberDto, LabelDto, LabelCreateRequest, BoardConfigDto, BoardUpdateRequest, InstructionDto, CreateInstructionRequest, UpdateInstructionRequest, NoteDto, CreateNoteRequest, UpdateNoteRequest } from '@/types';
 
 export async function listProjects(params?: Record<string, string | number>): Promise<ProjectDto[]> {
   const res = await apiGetPaginated<ProjectDto>('/projects', { size: 100, ...params });
@@ -85,4 +85,21 @@ export async function updateInstruction(projectId: number, id: number, request: 
 
 export async function deleteInstruction(projectId: number, id: number): Promise<void> {
   await apiDelete(`/projects/${projectId}/instructions/${id}`);
+}
+
+// Notes (private)
+export async function listNotes(projectId: number): Promise<NoteDto[]> {
+  return apiGet<NoteDto[]>(`/projects/${projectId}/notes`);
+}
+
+export async function createNote(projectId: number, request: CreateNoteRequest): Promise<NoteDto> {
+  return apiPost<NoteDto>(`/projects/${projectId}/notes`, request);
+}
+
+export async function updateNote(projectId: number, id: number, request: UpdateNoteRequest): Promise<NoteDto> {
+  return apiPut<NoteDto>(`/projects/${projectId}/notes/${id}`, request);
+}
+
+export async function deleteNote(projectId: number, id: number): Promise<void> {
+  await apiDelete(`/projects/${projectId}/notes/${id}`);
 }

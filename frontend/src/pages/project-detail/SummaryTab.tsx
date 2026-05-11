@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { PhaseDto, DeliverableDto, MemberDto, InstructionDto } from '@/types';
+import type { PhaseDto, DeliverableDto, MemberDto, InstructionDto, NoteDto } from '@/types';
 import { listPhases, listDeliverables } from '@/api/phases';
-import { getMembers, listInstructions, createInstruction, updateInstruction, deleteInstruction } from '@/api/projects';
+import { getMembers, listInstructions, createInstruction, updateInstruction, deleteInstruction, listNotes, createNote, updateNote, deleteNote } from '@/api/projects';
 import { formatDate, stageLabel } from '@/utils/format';
 import { useAuth } from '@/hooks/useAuth';
 import EvmCard from './EvmCard';
@@ -28,17 +28,20 @@ export default function SummaryTab({ projectId, managerId, onNavigate }: { proje
   const [deliverables, setDeliverables] = useState<DeliverableDto[]>([]);
   const [members, setMembers] = useState<MemberDto[]>([]);
   const [instructions, setInstructions] = useState<InstructionDto[]>([]);
+  const [notes, setNotes] = useState<NoteDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewInstruction, setShowNewInstruction] = useState(false);
+  const [showNewNote, setShowNewNote] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [p, d, m, i] = await Promise.all([listPhases(projectId), listDeliverables(projectId), getMembers(projectId), listInstructions(projectId)]);
+      const [p, d, m, i, n] = await Promise.all([listPhases(projectId), listDeliverables(projectId), getMembers(projectId), listInstructions(projectId), listNotes(projectId)]);
       setPhases(p);
       setDeliverables(d);
       setMembers(m);
       setInstructions(i);
+      setNotes(n);
     } catch {
       // ignore
     } finally {
@@ -60,6 +63,17 @@ export default function SummaryTab({ projectId, managerId, onNavigate }: { proje
   const handleToggleImportant = async (inst: InstructionDto) => {
     const updated = await updateInstruction(projectId, inst.id, { important: !inst.important });
     setInstructions(prev => prev.map(i => i.id === updated.id ? updated : i));
+  };
+
+  const handleDeleteNote = async (note: NoteDto) => {
+    if (!confirm('Delete this note?')) return;
+    await deleteNote(projectId, note.id);
+    setNotes(prev => prev.filter(n => n.id !== note.id));
+  };
+
+  const handleTogglePinned = async (note: NoteDto) => {
+    const updated = await updateNote(projectId, note.id, { pinned: !note.pinned });
+    setNotes(prev => prev.map(n => n.id === updated.id ? updated : n));
   };
 
   return (
@@ -108,6 +122,40 @@ export default function SummaryTab({ projectId, managerId, onNavigate }: { proje
 
       {showNewInstruction && (
         <NewInstructionModal projectId={projectId} onClose={() => setShowNewInstruction(false)} onCreated={(inst) => { setInstructions(prev => [...prev, inst]); setShowNewInstruction(false); }} />
+      )}
+
+      {/* My Notes */}
+      {notes.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-lg font-semibold text-gray-900">My Notes</h3>
+          {notes.map(note => (
+            <div key={note.id} className={`bg-white rounded-xl border p-5 ${note.pinned ? 'border-indigo-300 bg-indigo-50/30' : 'border-gray-200'}`}>
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  {note.pinned && <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">Pinned</span>}
+                  <span className="text-xs text-gray-400">{formatDate(note.createdAt)}</span>
+                </div>
+                <div className="flex items-center gap-1 shrink-0 ml-2">
+                  <button onClick={() => handleTogglePinned(note)} className="text-xs text-gray-400 hover:text-indigo-600 px-1" title={note.pinned ? 'Unpin' : 'Pin'}>
+                    {note.pinned ? '📌' : '📍'}
+                  </button>
+                  <button onClick={() => handleDeleteNote(note)} className="text-xs text-red-400 hover:text-red-600 px-1">Delete</button>
+                </div>
+              </div>
+              <MarkdownRenderer content={note.content} />
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div>
+        <button onClick={() => setShowNewNote(true)} className="text-sm text-primary-600 hover:text-primary-800 font-medium">
+          + Add Note
+        </button>
+      </div>
+
+      {showNewNote && (
+        <NewNoteModal projectId={projectId} onClose={() => setShowNewNote(false)} onCreated={(note) => { setNotes(prev => [...prev, note]); setShowNewNote(false); }} />
       )}
 
       {/* Phases and Members side by side */}
@@ -242,6 +290,53 @@ function NewInstructionModal({ projectId, onClose, onCreated }: { projectId: num
             <label className="block text-sm font-medium text-gray-700 mb-1">Visible to</label>
             <input type="date" value={visibleTo} onChange={e => setVisibleTo(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
           </div>
+        </div>
+        <div className="flex justify-end gap-3 pt-2">
+          <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100">Cancel</button>
+          <button type="submit" disabled={saving || !content.trim()} className="bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50 flex items-center gap-2">
+            {saving && <Spinner className="h-4 w-4" />}Create
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function NewNoteModal({ projectId, onClose, onCreated }: { projectId: number; onClose: () => void; onCreated: (note: NoteDto) => void }) {
+  const [content, setContent] = useState('');
+  const [pinned, setPinned] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!content.trim()) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const note = await createNote(projectId, {
+        content: content.trim(),
+        pinned,
+      });
+      onCreated(note);
+    } catch {
+      setError('Failed to create note.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Modal title="New Note" onClose={onClose}>
+      <form onSubmit={handleSave} className="space-y-4">
+        {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-3 py-2">{error}</div>}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
+          <textarea value={content} onChange={e => setContent(e.target.value)} rows={6} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder="Write your note (markdown supported)..." />
+        </div>
+        <div className="flex items-center gap-2">
+          <input type="checkbox" id="pinned" checked={pinned} onChange={e => setPinned(e.target.checked)} className="rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
+          <label htmlFor="pinned" className="text-sm font-medium text-gray-700">Pin to top</label>
         </div>
         <div className="flex justify-end gap-3 pt-2">
           <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100">Cancel</button>

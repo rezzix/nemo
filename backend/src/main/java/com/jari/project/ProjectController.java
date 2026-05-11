@@ -292,4 +292,53 @@ public class ProjectController {
         projectService.deleteInstruction(instructionId, userId, isAdmin);
         return ResponseEntity.noContent().build();
     }
+
+    // Notes (private)
+    @GetMapping("/{id}/notes")
+    public ResponseEntity<ApiResponse<List<ProjectDto.NoteDto>>> getNotes(
+            @PathVariable Long id, @AuthenticationPrincipal UserDetails currentUser) {
+        authHelper.requireProjectReadAccess(currentUser, id);
+        Long userId = authHelper.getCurrentUserId(currentUser);
+        List<ProjectDto.NoteDto> notes = projectService.getNotes(id, userId).stream()
+                .map(n -> new ProjectDto.NoteDto(n.getId(), n.getProject().getId(),
+                        n.getContent(), n.isPinned(),
+                        n.getCreatedAt().toString(), n.getUpdatedAt().toString()))
+                .toList();
+        return ResponseEntity.ok(ApiResponse.of(notes));
+    }
+
+    @PostMapping("/{id}/notes")
+    public ResponseEntity<ApiResponse<ProjectDto.NoteDto>> createNote(
+            @PathVariable Long id, @Valid @RequestBody ProjectDto.NoteCreateRequest request,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        authHelper.requireProjectReadAccess(currentUser, id);
+        Long userId = authHelper.getCurrentUserId(currentUser);
+        ProjectNote note = projectService.createNote(id, userId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.of(
+                new ProjectDto.NoteDto(note.getId(), note.getProject().getId(),
+                        note.getContent(), note.isPinned(),
+                        note.getCreatedAt().toString(), note.getUpdatedAt().toString())));
+    }
+
+    @PutMapping("/{id}/notes/{noteId}")
+    public ResponseEntity<ApiResponse<ProjectDto.NoteDto>> updateNote(
+            @PathVariable Long id, @PathVariable Long noteId,
+            @RequestBody ProjectDto.NoteUpdateRequest request,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        Long userId = authHelper.getCurrentUserId(currentUser);
+        ProjectNote note = projectService.updateNote(noteId, userId, request);
+        return ResponseEntity.ok(ApiResponse.of(
+                new ProjectDto.NoteDto(note.getId(), note.getProject().getId(),
+                        note.getContent(), note.isPinned(),
+                        note.getCreatedAt().toString(), note.getUpdatedAt().toString())));
+    }
+
+    @DeleteMapping("/{id}/notes/{noteId}")
+    public ResponseEntity<Void> deleteNote(
+            @PathVariable Long id, @PathVariable Long noteId,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        Long userId = authHelper.getCurrentUserId(currentUser);
+        projectService.deleteNote(noteId, userId);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -112,3 +112,22 @@ export interface UpdateInstructionRequest {
   visibleFrom?: string | null;
   visibleTo?: string | null;
 }
+
+export interface NoteDto {
+  id: number;
+  projectId: number;
+  content: string;
+  pinned: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateNoteRequest {
+  content: string;
+  pinned?: boolean;
+}
+
+export interface UpdateNoteRequest {
+  content?: string;
+  pinned?: boolean;
+}
