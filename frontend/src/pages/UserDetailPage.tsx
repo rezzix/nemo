@@ -11,8 +11,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { scoreLabel, scoreColor, roleBadgeColor, formatDate } from '@/utils/format';
 import Spinner from '@/components/common/Spinner';
 
-type Tab = 'issues' | 'evaluations' | 'timelogs' | 'leaves' | 'assets';
-
 const ASSET_TYPE_LABELS: Record<AssetType, string> = {
   COMPUTER: 'Computer', SERVER: 'Server', MOBILE: 'Mobile', VEHICLE: 'Vehicle', MICROWAVE: 'Microwave', OTHER: 'Other',
 };
@@ -38,10 +36,19 @@ const leaveStatusColor = (s: string) => {
     default: return 'bg-gray-100 text-gray-700';
   }
 };
+const issueStatusColor = (name: string) => {
+  const n = name.toLowerCase();
+  if (n.includes('progress') || n.includes('active')) return 'bg-blue-100 text-blue-700';
+  if (n.includes('done') || n.includes('closed') || n.includes('resolved')) return 'bg-green-100 text-green-700';
+  if (n.includes('review')) return 'bg-purple-100 text-purple-700';
+  return 'bg-gray-100 text-gray-700';
+};
 
-interface ProjectWithIssues {
+interface ProjectData {
   project: ProjectDto;
   issues: IssueDto[];
+  score: number | null;
+  totalHours: number;
 }
 
 export default function UserDetailPage() {
@@ -49,10 +56,7 @@ export default function UserDetailPage() {
   const { user: currentUser } = useAuth();
   const [user, setUser] = useState<UserDto | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<Tab>('issues');
-  const [projectIssues, setProjectIssues] = useState<ProjectWithIssues[]>([]);
-  const [evaluations, setEvaluations] = useState<{ project: ProjectDto; score: number }[]>([]);
-  const [timeLogs, setTimeLogs] = useState<TimeLogDto[]>([]);
+  const [projectData, setProjectData] = useState<ProjectData[]>([]);
   const [leaves, setLeaves] = useState<LeaveRequestDto[]>([]);
   const [assets, setAssets] = useState<AssetDto[]>([]);
   const [dataLoading, setDataLoading] = useState(false);
@@ -73,33 +77,35 @@ export default function UserDetailPage() {
     const fetchAll = async () => {
       try {
         const projects = await listProjects();
-        // Find projects the user is a member of and get their issues
-        const memberProjects: ProjectWithIssues[] = [];
-        const evals: { project: ProjectDto; score: number }[] = [];
+        const pData: ProjectData[] = [];
         for (const p of projects) {
           try {
             const members = await getMembers(p.id);
             const member = members.find((m: MemberDto) => m.userId === userId);
-            if (member) {
-              const issues = await listProjectIssues(p.id, { assigneeId: userId });
-              if (issues.length > 0) {
-                memberProjects.push({ project: p, issues });
-              }
-              if (member.score != null) {
-                evals.push({ project: p, score: member.score });
-              }
+            if (!member) continue;
+
+            const issues = await listProjectIssues(p.id, { assigneeId: userId });
+            const logs = await listTimeLogs({ userId, size: 200 });
+            const projectHours = logs
+              .filter((l: TimeLogDto) => issues.some((i: IssueDto) => i.id === l.issueId))
+              .reduce((sum: number, l: TimeLogDto) => sum + l.hours, 0);
+
+            if (issues.length > 0 || member.score != null) {
+              pData.push({
+                project: p,
+                issues,
+                score: member.score,
+                totalHours: projectHours,
+              });
             }
           } catch { /* skip project */ }
         }
-        setProjectIssues(memberProjects);
-        setEvaluations(evals);
+        setProjectData(pData);
 
-        const [logs, leaveReqs, userAssets] = await Promise.all([
-          listTimeLogs({ userId, size: 20 }),
+        const [leaveReqs, userAssets] = await Promise.all([
           listLeaveRequests({ userId }),
           listAssets({ userId }),
         ]);
-        setTimeLogs(logs);
         setLeaves(leaveReqs);
         setAssets(userAssets);
       } catch { /* ignore */ }
@@ -115,14 +121,6 @@ export default function UserDetailPage() {
   if (!user) {
     return <div className="text-center text-gray-500 py-8">User not found.</div>;
   }
-
-  const tabs: { key: Tab; label: string }[] = [
-    { key: 'issues', label: `Issues (${projectIssues.reduce((sum, p) => sum + p.issues.length, 0)})` },
-    ...(canSeeScores ? [{ key: 'evaluations' as Tab, label: `Evaluations (${evaluations.length})` }] : []),
-    { key: 'timelogs', label: `Time Logs (${timeLogs.length})` },
-    { key: 'leaves', label: `Leaves (${leaves.length})` },
-    { key: 'assets', label: `Assets (${assets.length})` },
-  ];
 
   return (
     <div className="space-y-6">
@@ -150,159 +148,117 @@ export default function UserDetailPage() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="flex gap-6 overflow-x-auto whitespace-nowrap">
-          {tabs.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`shrink-0 pb-3 text-sm font-medium border-b-2 transition-colors ${activeTab === tab.key ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </nav>
-      </div>
-
       {dataLoading && <div className="flex items-center justify-center h-32"><Spinner className="h-6 w-6 text-primary-600" /></div>}
 
-      {!dataLoading && activeTab === 'issues' && (
-        projectIssues.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-500">No assigned issues found.</div>
-        ) : (
-          <div className="space-y-4">
-            {projectIssues.map(({ project, issues }) => (
+      {/* Projects card — issues grouped by project with evaluation and time */}
+      {!dataLoading && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900">Projects</h3>
+          {projectData.length === 0 ? (
+            <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-500">No project assignments found.</div>
+          ) : (
+            projectData.map(({ project, issues, score, totalHours }) => (
               <div key={project.id} className="bg-white rounded-xl border border-gray-200">
-                <div className="px-5 py-3 border-b border-gray-100">
-                  <Link to={`/projects/${project.id}`} className="font-semibold text-gray-900 hover:text-primary-600">
-                    <span className="text-xs font-mono bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded mr-2">{project.key}</span>
-                    {project.name}
-                  </Link>
-                  <span className="ml-2 text-sm text-gray-500">{issues.length} issue{issues.length !== 1 ? 's' : ''}</span>
-                </div>
-                <div className="divide-y divide-gray-50">
-                  {issues.map((issue) => (
-                    <Link key={issue.id} to={`/projects/${issue.projectId}/issues/${issue.id}`} className="flex items-center justify-between px-5 py-2.5 hover:bg-gray-50">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="font-mono text-xs text-gray-400">{issue.issueKey}</span>
-                        <span className="text-sm text-gray-900 truncate">{issue.title}</span>
-                      </div>
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${issue.statusName?.toLowerCase().includes('progress') ? 'bg-blue-100 text-blue-700' : issue.statusName?.toLowerCase().includes('done') || issue.statusName?.toLowerCase().includes('closed') ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
-                        {issue.statusName}
-                      </span>
-                    </Link>
-                  ))}
-                </div>
+                {/* Project header */}
+                <Link to={`/projects/${project.id}`} className="block px-5 py-4 hover:bg-gray-50 rounded-t-xl">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{project.key}</span>
+                      <h4 className="font-semibold text-gray-900">{project.name}</h4>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-gray-500">
+                      {canSeeScores && score != null && (
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${scoreColor(score)}`}>{score} - {scoreLabel(score)}</span>
+                      )}
+                      <span>{totalHours.toFixed(1)}h logged</span>
+                      <span>{issues.length} issue{issues.length !== 1 ? 's' : ''}</span>
+                    </div>
+                  </div>
+                </Link>
+
+                {/* Issues under this project */}
+                {issues.length > 0 && (
+                  <div className="border-t border-gray-100 divide-y divide-gray-50">
+                    {issues.map((issue) => (
+                      <Link
+                        key={issue.id}
+                        to={`/projects/${issue.projectId}/issues/${issue.id}`}
+                        className="flex items-center justify-between px-5 py-2.5 hover:bg-gray-50"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="font-mono text-xs text-gray-400">{issue.issueKey}</span>
+                          <span className="text-sm text-gray-900 truncate">{issue.title}</span>
+                        </div>
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${issueStatusColor(issue.statusName)}`}>
+                          {issue.statusName}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
-            ))}
-          </div>
-        )
+            ))
+          )}
+        </div>
       )}
 
-      {!dataLoading && activeTab === 'evaluations' && (
-        evaluations.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-500">No evaluations found.</div>
-        ) : (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <table className="w-full text-sm">
-              <thead><tr className="border-b border-gray-200 bg-gray-50"><th className="text-left px-4 py-3 font-medium text-gray-500">Project</th><th className="text-left px-4 py-3 font-medium text-gray-500">Score</th></tr></thead>
-              <tbody className="divide-y divide-gray-100">
-                {evaluations.map(({ project, score }) => (
-                  <tr key={project.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3"><Link to={`/projects/${project.id}`} className="text-primary-600 hover:text-primary-800"><span className="text-xs font-mono bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded mr-2">{project.key}</span>{project.name}</Link></td>
-                    <td className="px-4 py-3"><span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${scoreColor(score)}`}>{score} - {scoreLabel(score)}</span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* Leaves and Assets side by side */}
+      {!dataLoading && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Leaves */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Leaves</h3>
+            {leaves.length === 0 ? (
+              <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-500">No leave requests.</div>
+            ) : (
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead><tr className="border-b border-gray-200 bg-gray-50">
+                    <th className="text-left px-4 py-3 font-medium text-gray-500">Type</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500">Dates</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500">Status</th>
+                  </tr></thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {leaves.map((leave) => (
+                      <tr key={leave.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 font-medium">{leave.type}</td>
+                        <td className="px-4 py-3 text-gray-600">{formatDate(leave.startDate)} → {formatDate(leave.endDate)}</td>
+                        <td className="px-4 py-3"><span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${leaveStatusColor(leave.status)}`}>{leave.status}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-        )
-      )}
 
-      {!dataLoading && activeTab === 'timelogs' && (
-        timeLogs.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-500">No time logs found.</div>
-        ) : (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <table className="w-full text-sm">
-              <thead><tr className="border-b border-gray-200 bg-gray-50">
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Date</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Issue</th>
-                <th className="text-right px-4 py-3 font-medium text-gray-500">Hours</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Description</th>
-              </tr></thead>
-              <tbody className="divide-y divide-gray-100">
-                {timeLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-gray-600">{formatDate(log.logDate)}</td>
-                    <td className="px-4 py-3"><Link to={`/projects/${log.issueId}/issues/${log.issueId}`} className="text-primary-600 hover:text-primary-800">{log.issueKey}</Link> <span className="text-gray-500">— {log.issueTitle}</span></td>
-                    <td className="px-4 py-3 text-right font-medium">{log.hours}h</td>
-                    <td className="px-4 py-3 text-gray-500 truncate max-w-xs">{log.description || '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {/* Assets */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Assets</h3>
+            {assets.length === 0 ? (
+              <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-500">No assets assigned.</div>
+            ) : (
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead><tr className="border-b border-gray-200 bg-gray-50">
+                    <th className="text-left px-4 py-3 font-medium text-gray-500">Asset</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500">Type</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500">Status</th>
+                  </tr></thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {assets.map((asset) => (
+                      <tr key={asset.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 font-medium text-gray-900">{asset.name}</td>
+                        <td className="px-4 py-3 text-gray-600">{ASSET_TYPE_LABELS[asset.type] || asset.type}</td>
+                        <td className="px-4 py-3"><span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${assetStatusColor(asset.status)}`}>{ASSET_STATUS_LABELS[asset.status] || asset.status}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-        )
-      )}
-
-      {!dataLoading && activeTab === 'leaves' && (
-        leaves.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-500">No leave requests found.</div>
-        ) : (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <table className="w-full text-sm">
-              <thead><tr className="border-b border-gray-200 bg-gray-50">
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Type</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Start</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">End</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Status</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Reason</th>
-              </tr></thead>
-              <tbody className="divide-y divide-gray-100">
-                {leaves.map((leave) => (
-                  <tr key={leave.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium">{leave.type}</td>
-                    <td className="px-4 py-3 text-gray-600">{formatDate(leave.startDate)}</td>
-                    <td className="px-4 py-3 text-gray-600">{formatDate(leave.endDate)}</td>
-                    <td className="px-4 py-3"><span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${leaveStatusColor(leave.status)}`}>{leave.status}</span></td>
-                    <td className="px-4 py-3 text-gray-500 truncate max-w-xs">{leave.reason || '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )
-      )}
-
-      {!dataLoading && activeTab === 'assets' && (
-        assets.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-500">No assets assigned.</div>
-        ) : (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <table className="w-full text-sm">
-              <thead><tr className="border-b border-gray-200 bg-gray-50">
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Name</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Type</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Identifier</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Status</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Location</th>
-              </tr></thead>
-              <tbody className="divide-y divide-gray-100">
-                {assets.map((asset) => (
-                  <tr key={asset.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-900">{asset.name}</td>
-                    <td className="px-4 py-3 text-gray-600">{ASSET_TYPE_LABELS[asset.type] || asset.type}</td>
-                    <td className="px-4 py-3 text-gray-500 font-mono text-xs">{asset.identifier || '—'}</td>
-                    <td className="px-4 py-3"><span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${assetStatusColor(asset.status)}`}>{ASSET_STATUS_LABELS[asset.status] || asset.status}</span></td>
-                    <td className="px-4 py-3 text-gray-600">{asset.locationName || '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )
+        </div>
       )}
     </div>
   );
