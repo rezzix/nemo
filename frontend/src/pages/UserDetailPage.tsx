@@ -49,6 +49,7 @@ interface ProjectData {
   issues: IssueDto[];
   score: number | null;
   totalHours: number;
+  issueHours: Record<number, number>;
 }
 
 export default function UserDetailPage() {
@@ -86,9 +87,12 @@ export default function UserDetailPage() {
 
             const issues = await listProjectIssues(p.id, { assigneeId: userId });
             const logs = await listTimeLogs({ userId, size: 200 });
-            const projectHours = logs
-              .filter((l: TimeLogDto) => issues.some((i: IssueDto) => i.id === l.issueId))
-              .reduce((sum: number, l: TimeLogDto) => sum + l.hours, 0);
+            const issueHoursMap: Record<number, number> = {};
+            const projectLogs = logs.filter((l: TimeLogDto) => issues.some((i: IssueDto) => i.id === l.issueId));
+            const projectHours = projectLogs.reduce((sum: number, l: TimeLogDto) => sum + l.hours, 0);
+            for (const l of projectLogs) {
+              issueHoursMap[l.issueId] = (issueHoursMap[l.issueId] || 0) + l.hours;
+            }
 
             if (issues.length > 0 || member.score != null) {
               pData.push({
@@ -96,6 +100,7 @@ export default function UserDetailPage() {
                 issues,
                 score: member.score,
                 totalHours: projectHours,
+                issueHours: issueHoursMap,
               });
             }
           } catch { /* skip project */ }
@@ -157,7 +162,7 @@ export default function UserDetailPage() {
           {projectData.length === 0 ? (
             <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-500">No project assignments found.</div>
           ) : (
-            projectData.map(({ project, issues, score, totalHours }) => (
+            projectData.map(({ project, issues, score, totalHours, issueHours }) => (
               <div key={project.id} className="bg-white rounded-xl border border-gray-200">
                 {/* Project header */}
                 <Link to={`/projects/${project.id}`} className="block px-5 py-4 hover:bg-gray-50 rounded-t-xl">
@@ -189,9 +194,14 @@ export default function UserDetailPage() {
                           <span className="font-mono text-xs text-gray-400">{issue.issueKey}</span>
                           <span className="text-sm text-gray-900 truncate">{issue.title}</span>
                         </div>
-                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${issueStatusColor(issue.statusName)}`}>
-                          {issue.statusName}
-                        </span>
+                        <div className="flex items-center gap-2 shrink-0 ml-3">
+                          {issueHours[issue.id] != null && (
+                            <span className="text-xs text-gray-500">{issueHours[issue.id].toFixed(1)}h</span>
+                          )}
+                          <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${issueStatusColor(issue.statusName)}`}>
+                            {issue.statusName}
+                          </span>
+                        </div>
                       </Link>
                     ))}
                   </div>
