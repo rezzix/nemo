@@ -37,12 +37,14 @@ public class ProjectService {
     private final IssueRepository issueRepository;
     private final ProjectFavoriteRepository favoriteRepository;
     private final CompanyRepository companyRepository;
+    private final ProjectInstructionRepository instructionRepository;
 
     public ProjectService(ProjectRepository projectRepository, ProjectMemberRepository memberRepository,
                           LabelRepository labelRepository, BoardColumnRepository boardColumnRepository,
                           ProgramRepository programRepository, UserRepository userRepository,
                           IssueStatusRepository statusRepository, IssueRepository issueRepository,
-                          ProjectFavoriteRepository favoriteRepository, CompanyRepository companyRepository) {
+                          ProjectFavoriteRepository favoriteRepository, CompanyRepository companyRepository,
+                          ProjectInstructionRepository instructionRepository) {
         this.projectRepository = projectRepository;
         this.memberRepository = memberRepository;
         this.labelRepository = labelRepository;
@@ -53,6 +55,7 @@ public class ProjectService {
         this.issueRepository = issueRepository;
         this.favoriteRepository = favoriteRepository;
         this.companyRepository = companyRepository;
+        this.instructionRepository = instructionRepository;
     }
 
     @Transactional(readOnly = true)
@@ -95,7 +98,6 @@ public class ProjectService {
         project.setName(request.name());
         project.setKey(request.key().toUpperCase());
         project.setDescription(request.description());
-        project.setInstructions(request.instructions());
         project.setProgram(program);
         project.setManager(manager);
         if (companyId != null) {
@@ -140,7 +142,6 @@ public class ProjectService {
         Project project = getById(id);
         if (request.name() != null) project.setName(request.name());
         if (request.description() != null) project.setDescription(request.description());
-        if (request.instructions() != null) project.setInstructions(request.instructions());
         if (request.managerId() != null) {
             User manager = userRepository.findById(request.managerId())
                     .orElseThrow(() -> new EntityNotFoundException("User", request.managerId()));
@@ -286,5 +287,50 @@ public class ProjectService {
                     .orElseThrow(() -> new EntityNotFoundException("IssueStatus", entry.statusId()));
             boardColumnRepository.save(new BoardColumn(project, status, entry.position()));
         }
+    }
+
+    // Instructions
+    @Transactional(readOnly = true)
+    public List<ProjectInstruction> getInstructions(Long projectId) {
+        return instructionRepository.findByProjectIdOrderByImportantDescCreatedAtDesc(projectId);
+    }
+
+    @Transactional
+    public ProjectInstruction createInstruction(Long projectId, Long authorId, ProjectDto.InstructionCreateRequest request) {
+        Project project = getById(projectId);
+        User author = userRepository.findById(authorId)
+                .orElseThrow(() -> new EntityNotFoundException("User", authorId));
+        ProjectInstruction instruction = new ProjectInstruction();
+        instruction.setProject(project);
+        instruction.setAuthor(author);
+        instruction.setContent(request.content());
+        instruction.setImportant(request.important() != null && request.important());
+        instruction.setVisibleFrom(request.visibleFrom() != null ? LocalDate.parse(request.visibleFrom()) : LocalDate.now());
+        instruction.setVisibleTo(request.visibleTo() != null ? LocalDate.parse(request.visibleTo()) : LocalDate.now().plusMonths(1));
+        return instructionRepository.save(instruction);
+    }
+
+    @Transactional
+    public ProjectInstruction updateInstruction(Long id, Long userId, boolean isAdmin, ProjectDto.InstructionUpdateRequest request) {
+        ProjectInstruction instruction = instructionRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("ProjectInstruction", id));
+        if (!isAdmin && !instruction.getAuthor().getId().equals(userId)) {
+            throw new ForbiddenException("Only the author can update their instruction");
+        }
+        if (request.content() != null) instruction.setContent(request.content());
+        if (request.important() != null) instruction.setImportant(request.important());
+        if (request.visibleFrom() != null) instruction.setVisibleFrom(LocalDate.parse(request.visibleFrom()));
+        if (request.visibleTo() != null) instruction.setVisibleTo(LocalDate.parse(request.visibleTo()));
+        return instructionRepository.save(instruction);
+    }
+
+    @Transactional
+    public void deleteInstruction(Long id, Long userId, boolean isAdmin) {
+        ProjectInstruction instruction = instructionRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("ProjectInstruction", id));
+        if (!isAdmin && !instruction.getAuthor().getId().equals(userId)) {
+            throw new ForbiddenException("Only the author can delete their instruction");
+        }
+        instructionRepository.delete(instruction);
     }
 }

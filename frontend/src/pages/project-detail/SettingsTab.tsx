@@ -12,7 +12,6 @@ export default function SettingsTab({ project, onUpdate, canEdit }: { project: P
   const [budgetSpent, setBudgetSpent] = useState(project.budgetSpent || '');
   const [targetStartDate, setTargetStartDate] = useState(project.targetStartDate || '');
   const [targetEndDate, setTargetEndDate] = useState(project.targetEndDate || '');
-  const [instructions, setInstructions] = useState(project.instructions || '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -86,7 +85,6 @@ export default function SettingsTab({ project, onUpdate, canEdit }: { project: P
         plannedValue: plannedValue || null, budget: budget || null,
         budgetSpent: budgetSpent || null,
         targetStartDate: targetStartDate || null, targetEndDate: targetEndDate || null,
-        instructions,
       });
       onUpdate(updated);
       setSuccess(true);
@@ -156,12 +154,6 @@ export default function SettingsTab({ project, onUpdate, canEdit }: { project: P
             <input type="date" value={targetEndDate} onChange={e => setTargetEndDate(e.target.value)} className={inputClass('targetEndDate')} />
             {fieldErrors.targetEndDate && <p className="mt-1 text-sm text-red-600">{fieldErrors.targetEndDate}</p>}
           </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Instructions</label>
-          <p className="text-xs text-gray-400 mb-1">Markdown supported. Visible on the Summary tab for all project members.</p>
-          <textarea value={instructions} onChange={e => setInstructions(e.target.value)} rows={6} placeholder="Project instructions, guidelines, or directives..." className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
         </div>
 
         <div className="flex justify-end">

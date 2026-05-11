@@ -3,7 +3,6 @@ export interface ProjectDto {
   name: string;
   key: string;
   description: string | null;
-  instructions: string | null;
   programId: number | null;
   programName: string | null;
   managerId: number;
@@ -26,7 +25,6 @@ export interface CreateProjectRequest {
   name: string;
   key: string;
   description?: string;
-  instructions?: string;
   programId: number;
   managerId: number;
   companyId?: number | null;
@@ -42,7 +40,6 @@ export interface CreateProjectRequest {
 export interface UpdateProjectRequest {
   name?: string;
   description?: string;
-  instructions?: string;
   managerId?: number;
   stage?: string;
   strategicScore?: number | null;
@@ -87,4 +84,31 @@ export interface BoardConfigDto {
 
 export interface BoardUpdateRequest {
   columns: { statusId: number; position: number }[];
+}
+
+export interface InstructionDto {
+  id: number;
+  projectId: number;
+  authorId: number;
+  authorName: string;
+  content: string;
+  important: boolean;
+  visibleFrom: string | null;
+  visibleTo: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateInstructionRequest {
+  content: string;
+  important?: boolean;
+  visibleFrom?: string;
+  visibleTo?: string;
+}
+
+export interface UpdateInstructionRequest {
+  content?: string;
+  important?: boolean;
+  visibleFrom?: string | null;
+  visibleTo?: string | null;
 }

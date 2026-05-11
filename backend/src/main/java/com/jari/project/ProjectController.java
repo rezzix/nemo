@@ -73,7 +73,6 @@ public class ProjectController {
         Set<Long> favoriteIds = projectService.getFavoriteProjectIds(userId);
         List<ProjectDto> dtos = projectMapper.toDtoList(result.getContent()).stream()
                 .map(dto -> new ProjectDto(dto.id(), dto.name(), dto.key(), dto.description(),
-                        dto.instructions(),
                         dto.programId(), dto.programName(), dto.managerId(), dto.managerName(),
                         dto.companyId(), dto.companyName(),
                         dto.stage(), dto.strategicScore(), dto.plannedValue(), dto.budget(), dto.budgetSpent(),
@@ -95,7 +94,6 @@ public class ProjectController {
         ProjectDto dto = projectMapper.toDto(projectService.getById(id));
         Set<Long> favoriteIds = projectService.getFavoriteProjectIds(userId);
         ProjectDto enriched = new ProjectDto(dto.id(), dto.name(), dto.key(), dto.description(),
-                dto.instructions(),
                 dto.programId(), dto.programName(), dto.managerId(), dto.managerName(),
                 dto.companyId(), dto.companyName(),
                 dto.stage(), dto.strategicScore(), dto.plannedValue(), dto.budget(), dto.budgetSpent(),
@@ -233,4 +231,65 @@ public class ProjectController {
     }
 
     public record MemberRequest(List<Long> userIds) {}
+
+    // Instructions
+    @GetMapping("/{id}/instructions")
+    public ResponseEntity<ApiResponse<List<ProjectDto.InstructionDto>>> getInstructions(
+            @PathVariable Long id, @AuthenticationPrincipal UserDetails currentUser) {
+        authHelper.requireProjectReadAccess(currentUser, id);
+        List<ProjectDto.InstructionDto> instructions = projectService.getInstructions(id).stream()
+                .map(i -> new ProjectDto.InstructionDto(i.getId(), i.getProject().getId(),
+                        i.getAuthor().getId(), i.getAuthor().getFirstName() + " " + i.getAuthor().getLastName(),
+                        i.getContent(), i.isImportant(),
+                        i.getVisibleFrom() != null ? i.getVisibleFrom().toString() : null,
+                        i.getVisibleTo() != null ? i.getVisibleTo().toString() : null,
+                        i.getCreatedAt().toString(), i.getUpdatedAt().toString()))
+                .toList();
+        return ResponseEntity.ok(ApiResponse.of(instructions));
+    }
+
+    @PostMapping("/{id}/instructions")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EXECUTIVE')")
+    public ResponseEntity<ApiResponse<ProjectDto.InstructionDto>> createInstruction(
+            @PathVariable Long id, @Valid @RequestBody ProjectDto.InstructionCreateRequest request,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        Long userId = authHelper.getCurrentUserId(currentUser);
+        ProjectInstruction instruction = projectService.createInstruction(id, userId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.of(
+                new ProjectDto.InstructionDto(instruction.getId(), instruction.getProject().getId(),
+                        instruction.getAuthor().getId(), instruction.getAuthor().getFirstName() + " " + instruction.getAuthor().getLastName(),
+                        instruction.getContent(), instruction.isImportant(),
+                        instruction.getVisibleFrom() != null ? instruction.getVisibleFrom().toString() : null,
+                        instruction.getVisibleTo() != null ? instruction.getVisibleTo().toString() : null,
+                        instruction.getCreatedAt().toString(), instruction.getUpdatedAt().toString())));
+    }
+
+    @PutMapping("/{id}/instructions/{instructionId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EXECUTIVE')")
+    public ResponseEntity<ApiResponse<ProjectDto.InstructionDto>> updateInstruction(
+            @PathVariable Long id, @PathVariable Long instructionId,
+            @RequestBody ProjectDto.InstructionUpdateRequest request,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        Long userId = authHelper.getCurrentUserId(currentUser);
+        boolean isAdmin = authHelper.hasAnyRole(currentUser, "ADMIN");
+        ProjectInstruction instruction = projectService.updateInstruction(instructionId, userId, isAdmin, request);
+        return ResponseEntity.ok(ApiResponse.of(
+                new ProjectDto.InstructionDto(instruction.getId(), instruction.getProject().getId(),
+                        instruction.getAuthor().getId(), instruction.getAuthor().getFirstName() + " " + instruction.getAuthor().getLastName(),
+                        instruction.getContent(), instruction.isImportant(),
+                        instruction.getVisibleFrom() != null ? instruction.getVisibleFrom().toString() : null,
+                        instruction.getVisibleTo() != null ? instruction.getVisibleTo().toString() : null,
+                        instruction.getCreatedAt().toString(), instruction.getUpdatedAt().toString())));
+    }
+
+    @DeleteMapping("/{id}/instructions/{instructionId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EXECUTIVE')")
+    public ResponseEntity<Void> deleteInstruction(
+            @PathVariable Long id, @PathVariable Long instructionId,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        Long userId = authHelper.getCurrentUserId(currentUser);
+        boolean isAdmin = authHelper.hasAnyRole(currentUser, "ADMIN");
+        projectService.deleteInstruction(instructionId, userId, isAdmin);
+        return ResponseEntity.noContent().build();
+    }
 }

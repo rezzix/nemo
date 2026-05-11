@@ -28,9 +28,6 @@ public class Project {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(columnDefinition = "TEXT")
-    private String instructions;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "program_id")
     private Program program;
@@ -82,8 +79,6 @@ public class Project {
     public void setKey(String key) { this.key = key; }
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
-    public String getInstructions() { return instructions; }
-    public void setInstructions(String instructions) { this.instructions = instructions; }
     public Program getProgram() { return program; }
     public void setProgram(Program program) { this.program = program; }
     public User getManager() { return manager; }

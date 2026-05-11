@@ -1,5 +1,5 @@
 import { apiGet, apiPost, apiPut, apiDelete, apiGetPaginated } from './client';
-import type { ProjectDto, CreateProjectRequest, UpdateProjectRequest, MemberDto, LabelDto, LabelCreateRequest, BoardConfigDto, BoardUpdateRequest } from '@/types';
+import type { ProjectDto, CreateProjectRequest, UpdateProjectRequest, MemberDto, LabelDto, LabelCreateRequest, BoardConfigDto, BoardUpdateRequest, InstructionDto, CreateInstructionRequest, UpdateInstructionRequest } from '@/types';
 
 export async function listProjects(params?: Record<string, string | number>): Promise<ProjectDto[]> {
   const res = await apiGetPaginated<ProjectDto>('/projects', { size: 100, ...params });
@@ -68,4 +68,21 @@ export async function updateBoard(projectId: number, request: BoardUpdateRequest
 // Favorites
 export async function toggleProjectFavorite(projectId: number): Promise<ProjectDto> {
   return apiPost<ProjectDto>(`/projects/${projectId}/favorite`, {});
+}
+
+// Instructions
+export async function listInstructions(projectId: number): Promise<InstructionDto[]> {
+  return apiGet<InstructionDto[]>(`/projects/${projectId}/instructions`);
+}
+
+export async function createInstruction(projectId: number, request: CreateInstructionRequest): Promise<InstructionDto> {
+  return apiPost<InstructionDto>(`/projects/${projectId}/instructions`, request);
+}
+
+export async function updateInstruction(projectId: number, id: number, request: UpdateInstructionRequest): Promise<InstructionDto> {
+  return apiPut<InstructionDto>(`/projects/${projectId}/instructions/${id}`, request);
+}
+
+export async function deleteInstruction(projectId: number, id: number): Promise<void> {
+  await apiDelete(`/projects/${projectId}/instructions/${id}`);
 }
