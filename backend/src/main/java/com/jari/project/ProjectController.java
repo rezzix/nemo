@@ -73,6 +73,7 @@ public class ProjectController {
         Set<Long> favoriteIds = projectService.getFavoriteProjectIds(userId);
         List<ProjectDto> dtos = projectMapper.toDtoList(result.getContent()).stream()
                 .map(dto -> new ProjectDto(dto.id(), dto.name(), dto.key(), dto.description(),
+                        dto.instructions(),
                         dto.programId(), dto.programName(), dto.managerId(), dto.managerName(),
                         dto.companyId(), dto.companyName(),
                         dto.stage(), dto.strategicScore(), dto.plannedValue(), dto.budget(), dto.budgetSpent(),
@@ -94,6 +95,7 @@ public class ProjectController {
         ProjectDto dto = projectMapper.toDto(projectService.getById(id));
         Set<Long> favoriteIds = projectService.getFavoriteProjectIds(userId);
         ProjectDto enriched = new ProjectDto(dto.id(), dto.name(), dto.key(), dto.description(),
+                dto.instructions(),
                 dto.programId(), dto.programName(), dto.managerId(), dto.managerName(),
                 dto.companyId(), dto.companyName(),
                 dto.stage(), dto.strategicScore(), dto.plannedValue(), dto.budget(), dto.budgetSpent(),

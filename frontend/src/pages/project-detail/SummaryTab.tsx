@@ -4,11 +4,12 @@ import { listPhases, listDeliverables } from '@/api/phases';
 import { getMembers } from '@/api/projects';
 import { formatDate, stageLabel } from '@/utils/format';
 import EvmCard from './EvmCard';
+import MarkdownRenderer from '@/components/common/MarkdownRenderer';
 import Spinner from '@/components/common/Spinner';
 
 type Tab = 'summary' | 'issues' | 'board' | 'docs' | 'raid' | 'phases' | 'members' | 'settings';
 
-export default function SummaryTab({ projectId, managerId, onNavigate }: { projectId: number; managerId: number; onNavigate?: (tab: Tab) => void }) {
+export default function SummaryTab({ projectId, managerId, instructions, onNavigate }: { projectId: number; managerId: number; instructions: string | null; onNavigate?: (tab: Tab) => void }) {
   const [phases, setPhases] = useState<PhaseDto[]>([]);
   const [deliverables, setDeliverables] = useState<DeliverableDto[]>([]);
   const [members, setMembers] = useState<MemberDto[]>([]);
@@ -35,6 +36,14 @@ export default function SummaryTab({ projectId, managerId, onNavigate }: { proje
   return (
     <div className="space-y-6">
       <EvmCard projectId={projectId} />
+
+      {/* Instructions */}
+      {instructions && (
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">Instructions</h3>
+          <MarkdownRenderer content={instructions} />
+        </div>
+      )}
 
       {/* Phases and Members side by side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

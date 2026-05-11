@@ -95,6 +95,7 @@ public class ProjectService {
         project.setName(request.name());
         project.setKey(request.key().toUpperCase());
         project.setDescription(request.description());
+        project.setInstructions(request.instructions());
         project.setProgram(program);
         project.setManager(manager);
         if (companyId != null) {
@@ -139,6 +140,7 @@ public class ProjectService {
         Project project = getById(id);
         if (request.name() != null) project.setName(request.name());
         if (request.description() != null) project.setDescription(request.description());
+        if (request.instructions() != null) project.setInstructions(request.instructions());
         if (request.managerId() != null) {
             User manager = userRepository.findById(request.managerId())
                     .orElseThrow(() -> new EntityNotFoundException("User", request.managerId()));

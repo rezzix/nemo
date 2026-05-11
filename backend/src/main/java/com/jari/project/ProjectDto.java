@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 import java.util.List;
 
 public record ProjectDto(
-        Long id, String name, String key, String description,
+        Long id, String name, String key, String description, String instructions,
         Long programId, String programName,
         Long managerId, String managerName,
         Long companyId, String companyName,
@@ -20,6 +20,7 @@ public record ProjectDto(
             @NotBlank @Size(min = 1, max = 255) String name,
             @NotBlank @Size(min = 1, max = 10) String key,
             String description,
+            String instructions,
             @NotNull Long programId,
             @NotNull Long managerId,
             List<Long> memberIds,
@@ -33,7 +34,7 @@ public record ProjectDto(
     ) {}
 
     public record UpdateRequest(
-            String name, String description, Long managerId,
+            String name, String description, String instructions, Long managerId,
             String stage, Integer strategicScore,
             String plannedValue, String budget, String budgetSpent,
             String targetStartDate, String targetEndDate

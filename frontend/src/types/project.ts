@@ -3,6 +3,7 @@ export interface ProjectDto {
   name: string;
   key: string;
   description: string | null;
+  instructions: string | null;
   programId: number | null;
   programName: string | null;
   managerId: number;
@@ -25,6 +26,7 @@ export interface CreateProjectRequest {
   name: string;
   key: string;
   description?: string;
+  instructions?: string;
   programId: number;
   managerId: number;
   companyId?: number | null;
@@ -40,6 +42,7 @@ export interface CreateProjectRequest {
 export interface UpdateProjectRequest {
   name?: string;
   description?: string;
+  instructions?: string;
   managerId?: number;
   stage?: string;
   strategicScore?: number | null;
