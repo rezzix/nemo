@@ -45,6 +45,9 @@ export default function Sidebar() {
         ...(role === 'ADMIN' || role === 'HR'
           ? [{ to: '/assets', label: 'Assets', icon: AssetsIcon }]
           : []),
+        ...(role === 'ADMIN' || role === 'MANAGER' || role === 'EXECUTIVE' || role === 'HR'
+          ? [{ to: '/clients', label: 'Clients', icon: ClientsIcon }]
+          : []),
       ],
     },
     ...(!isExternal && role !== 'EXECUTIVE' ? [{
@@ -262,6 +265,14 @@ function AssetsIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.75 7.5h16.5" />
+    </svg>
+  );
+}
+
+function ClientsIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.001A9.375 9.375 0 0112 21.75c-2.527 0-4.87-.82-6.75-2.21M12 21.75c1.755 0 3.392-.47 4.808-1.289M12 21.75a9.375 9.375 0 01-6.75-2.21m0 0A4.125 4.125 0 018.25 15.375M15 19.128a9.375 9.375 0 00-3-5.613M9 9.375a3.375 3.375 0 116.75 0 3.375 3.375 0 01-6.75 0z" />
     </svg>
   );
 }

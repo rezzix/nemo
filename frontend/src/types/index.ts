@@ -14,3 +14,4 @@ export type { IssueTypeDto, IssueStatusDto, IssueStatusCategory, AuditLogDto, Ac
 export type { HolidayDto, CreateHolidayRequest, UpdateHolidayRequest } from './holiday';
 export type { LeaveRequestDto, LeaveType, LeaveStatus, CreateLeaveRequest, LeaveActionRequest } from './leave';
 export type { LocationDto, AssetDto, AssetType, AssetStatus, CreateLocationRequest, UpdateLocationRequest, CreateAssetRequest, UpdateAssetRequest, AssignAssetRequest } from './asset';
+export type { ClientDto, ClientContactDto, CreateClientRequest, UpdateClientRequest, CreateClientContactRequest, UpdateClientContactRequest } from './client';

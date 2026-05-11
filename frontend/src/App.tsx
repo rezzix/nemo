@@ -24,6 +24,8 @@ import PmoDashboardPage from '@/pages/PmoDashboardPage';
 import HolidaysPage from '@/pages/HolidaysPage';
 import LeavePage from '@/pages/LeavePage';
 import AssetsPage from '@/pages/AssetsPage';
+import ClientsPage from '@/pages/ClientsPage';
+import ClientDetailPage from '@/pages/ClientDetailPage';
 import UserDetailPage from '@/pages/UserDetailPage';
 
 export default function App() {
@@ -78,6 +80,8 @@ export default function App() {
           <Route path="/leave" element={<LeavePage />} />
           <Route path="/reports" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR']}><TimeReportsPage /></RoleGuard>} />
           <Route path="/assets" element={<RoleGuard roles={['ADMIN', 'HR']}><AssetsPage /></RoleGuard>} />
+          <Route path="/clients" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR']}><ClientsPage /></RoleGuard>} />
+          <Route path="/clients/:id" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR']}><ClientDetailPage /></RoleGuard>} />
           <Route path="/pmo" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE']}><PmoDashboardPage /></RoleGuard>} />
           <Route path="/admin" element={<AdminGuard><AdminPage /></AdminGuard>} />
           <Route path="/profile" element={<ProfilePage />} />
