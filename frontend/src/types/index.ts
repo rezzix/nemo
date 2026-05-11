@@ -9,7 +9,7 @@ export type { SprintDto, CreateSprintRequest, UpdateSprintRequest } from './spri
 export type { TimeLogDto, CreateTimeLogRequest, UpdateTimeLogRequest } from './timeLog';
 export type { WikiPageDto, WikiTreeItem, CreateWikiPageRequest, UpdateWikiPageRequest, WikiSearchHit } from './wiki';
 export type { RaidItemDto, CreateRaidItemRequest, UpdateRaidItemRequest, EvmMetrics, PortfolioSummary, CompanyPortfolioSummary, PhaseTimelineEntry, ProjectTimelineEntry, UserRateDto } from './pmo';
-export type { PhaseDto, CreatePhaseRequest, UpdatePhaseRequest, DeliverableDto, DeliverableAttachmentDto, CreateDeliverableRequest, UpdateDeliverableRequest } from './phase';
+export type { PhaseDto, CreatePhaseRequest, UpdatePhaseRequest, PhasePaymentDto, CreatePhasePaymentRequest, UpdatePhasePaymentRequest, DeliverableDto, DeliverableAttachmentDto, CreateDeliverableRequest, UpdateDeliverableRequest } from './phase';
 export type { IssueTypeDto, IssueStatusDto, IssueStatusCategory, AuditLogDto, ActivityLogDto, OrganizationUpdateRequest, CreateUserRequest, AdminUpdateUserRequest, CreateIssueTypeRequest, CreateIssueStatusRequest } from './admin';
 export type { HolidayDto, CreateHolidayRequest, UpdateHolidayRequest } from './holiday';
 export type { LeaveRequestDto, LeaveType, LeaveStatus, CreateLeaveRequest, LeaveActionRequest } from './leave';

@@ -10,6 +10,7 @@ public record ProjectDto(
         Long programId, String programName,
         Long managerId, String managerName,
         Long companyId, String companyName,
+        Long clientId, String clientName,
         String stage, Integer strategicScore,
         String plannedValue, String budget, String budgetSpent,
         String targetStartDate, String targetEndDate,
@@ -29,14 +30,16 @@ public record ProjectDto(
             String budget,
             String targetStartDate,
             String targetEndDate,
-            Long companyId
+            Long companyId,
+            Long clientId
     ) {}
 
     public record UpdateRequest(
             String name, String description, Long managerId,
             String stage, Integer strategicScore,
             String plannedValue, String budget, String budgetSpent,
-            String targetStartDate, String targetEndDate
+            String targetStartDate, String targetEndDate,
+            Long clientId
     ) {}
 
     public record BoardColumnDto(Long id, Long statusId, String name, int position, long issueCount) {}

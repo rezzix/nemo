@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { PhaseDto, DeliverableDto, MemberDto, InstructionDto, NoteDto } from '@/types';
 import { listPhases, listDeliverables } from '@/api/phases';
 import { getMembers, listInstructions, createInstruction, updateInstruction, deleteInstruction, listNotes, createNote, updateNote, deleteNote } from '@/api/projects';
-import { formatDate, stageLabel } from '@/utils/format';
+import { formatDate, formatCurrency, stageLabel } from '@/utils/format';
 import { useAuth } from '@/hooks/useAuth';
 import EvmCard from './EvmCard';
 import MarkdownRenderer from '@/components/common/MarkdownRenderer';
@@ -180,6 +180,7 @@ export default function SummaryTab({ projectId, managerId, onNavigate }: { proje
               {phases.map(phase => {
                 const phaseDels = deliverablesByPhase(phase.id);
                 const completedDels = phaseDels.filter(d => d.state === 'VALIDATED').length;
+                const hasPayment = phase.plannedAmount && Number(phase.plannedAmount) > 0;
                 return (
                   <div key={phase.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50">
                     <div className="min-w-0">
@@ -189,6 +190,9 @@ export default function SummaryTab({ projectId, managerId, onNavigate }: { proje
                       )}
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-500 shrink-0">
+                      {hasPayment && (
+                        <span className="text-xs">{formatCurrency(Number(phase.totalPaid || 0))} / {formatCurrency(Number(phase.plannedAmount))}</span>
+                      )}
                       {phaseDels.length > 0 && (
                         <span>{completedDels}/{phaseDels.length} deliverables</span>
                       )}

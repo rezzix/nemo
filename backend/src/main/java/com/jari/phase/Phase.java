@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 
@@ -35,6 +36,9 @@ public class Phase {
     @Column(nullable = false)
     private int position = 0;
 
+    @Column(name = "planned_amount", precision = 12, scale = 2)
+    private BigDecimal plannedAmount;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -58,6 +62,8 @@ public class Phase {
     public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
     public int getPosition() { return position; }
     public void setPosition(int position) { this.position = position; }
+    public BigDecimal getPlannedAmount() { return plannedAmount; }
+    public void setPlannedAmount(BigDecimal plannedAmount) { this.plannedAmount = plannedAmount; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 }

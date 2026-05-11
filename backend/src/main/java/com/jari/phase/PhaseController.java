@@ -31,7 +31,7 @@ public class PhaseController {
             @PathVariable Long projectId,
             @AuthenticationPrincipal UserDetails currentUser) {
         authHelper.requireProjectReadAccess(currentUser, projectId);
-        List<PhaseDto> dtos = phaseService.enrichWithDeliverableCount(
+        List<PhaseDto> dtos = phaseService.enrichWithComputedFields(
                 phaseMapper.toDtoList(phaseService.getByProjectId(projectId)));
         return ResponseEntity.ok(ApiResponse.of(dtos));
     }
@@ -43,7 +43,7 @@ public class PhaseController {
             @AuthenticationPrincipal UserDetails currentUser) {
         authHelper.requireProjectReadAccess(currentUser, projectId);
         PhaseDto dto = phaseMapper.toDto(phaseService.getById(phaseId));
-        dto = phaseService.enrichWithDeliverableCount(List.of(dto)).get(0);
+        dto = phaseService.enrichWithComputedFields(List.of(dto)).get(0);
         return ResponseEntity.ok(ApiResponse.of(dto));
     }
 

@@ -9,6 +9,8 @@ export interface ProjectDto {
   managerName: string;
   companyId: number | null;
   companyName: string | null;
+  clientId: number | null;
+  clientName: string | null;
   stage: string | null;
   strategicScore: number | null;
   plannedValue: string | null;
@@ -28,6 +30,7 @@ export interface CreateProjectRequest {
   programId: number;
   managerId: number;
   companyId?: number | null;
+  clientId?: number | null;
   memberIds?: number[];
   stage?: string;
   strategicScore?: number;
@@ -48,6 +51,7 @@ export interface UpdateProjectRequest {
   budgetSpent?: string | null;
   targetStartDate?: string | null;
   targetEndDate?: string | null;
+  clientId?: number | null;
 }
 
 export interface MemberDto {

@@ -1,5 +1,6 @@
 package com.jari.project;
 
+import com.jari.client.Client;
 import com.jari.company.Company;
 import com.jari.program.Program;
 import com.jari.user.User;
@@ -39,6 +40,10 @@ public class Project {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id")
     private Company company;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "client_id")
+    private Client client;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -99,6 +104,8 @@ public class Project {
     public void setTargetEndDate(LocalDate targetEndDate) { this.targetEndDate = targetEndDate; }
     public Company getCompany() { return company; }
     public void setCompany(Company company) { this.company = company; }
+    public Client getClient() { return client; }
+    public void setClient(Client client) { this.client = client; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 

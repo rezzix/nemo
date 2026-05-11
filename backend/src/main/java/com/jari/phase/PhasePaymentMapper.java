@@ -6,14 +6,13 @@ import org.mapstruct.Mapping;
 import java.util.List;
 
 @Mapper(componentModel = "spring")
-public interface PhaseMapper {
+public interface PhasePaymentMapper {
 
-    @Mapping(target = "projectId", source = "project.id")
-    @Mapping(target = "deliverableCount", ignore = true)
-    @Mapping(target = "totalPaid", ignore = true)
+    @Mapping(target = "phaseId", source = "phase.id")
+    @Mapping(target = "paymentDate", source = "paymentDate", dateFormat = "yyyy-MM-dd")
     @Mapping(target = "createdAt", source = "createdAt", dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     @Mapping(target = "updatedAt", source = "updatedAt", dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'")
-    PhaseDto toDto(Phase phase);
+    PhasePaymentDto toDto(PhasePayment payment);
 
-    List<PhaseDto> toDtoList(List<Phase> phases);
+    List<PhasePaymentDto> toDtoList(List<PhasePayment> payments);
 }

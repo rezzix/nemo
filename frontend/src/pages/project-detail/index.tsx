@@ -83,6 +83,7 @@ export default function ProjectDetailPage() {
         {project.description && <p className="text-gray-500 mt-1">{project.description}</p>}
         <div className="flex items-center gap-4 mt-1 text-sm text-gray-400">
           <span>Manager: {project.managerName}</span>
+          {project.clientName && <span>Client: {project.clientName}</span>}
           {project.programName && <span>Program: {project.programName}</span>}
           {project.budget && <span>Budget: ${Number(project.budget).toLocaleString()}</span>}
           {project.strategicScore != null && <span>Score: {project.strategicScore}/10</span>}

@@ -1,6 +1,6 @@
 import { apiGet, apiPost, apiPut, apiDelete } from './client';
 import client from './client';
-import type { PhaseDto, CreatePhaseRequest, UpdatePhaseRequest, DeliverableDto, DeliverableAttachmentDto, CreateDeliverableRequest, UpdateDeliverableRequest } from '@/types';
+import type { PhaseDto, CreatePhaseRequest, UpdatePhaseRequest, PhasePaymentDto, CreatePhasePaymentRequest, UpdatePhasePaymentRequest, DeliverableDto, DeliverableAttachmentDto, CreateDeliverableRequest, UpdateDeliverableRequest } from '@/types';
 import type { ApiResponse } from '@/types';
 
 // Phases
@@ -19,6 +19,24 @@ export function updatePhase(projectId: number, phaseId: number, data: UpdatePhas
 
 export function deletePhase(projectId: number, phaseId: number): Promise<void> {
   return apiDelete(`/projects/${projectId}/phases/${phaseId}`);
+}
+
+// Phase Payments
+
+export function listPhasePayments(projectId: number, phaseId: number): Promise<PhasePaymentDto[]> {
+  return apiGet(`/projects/${projectId}/phases/${phaseId}/payments`);
+}
+
+export function createPhasePayment(projectId: number, phaseId: number, data: CreatePhasePaymentRequest): Promise<PhasePaymentDto> {
+  return apiPost(`/projects/${projectId}/phases/${phaseId}/payments`, data);
+}
+
+export function updatePhasePayment(projectId: number, phaseId: number, paymentId: number, data: UpdatePhasePaymentRequest): Promise<PhasePaymentDto> {
+  return apiPut(`/projects/${projectId}/phases/${phaseId}/payments/${paymentId}`, data);
+}
+
+export function deletePhasePayment(projectId: number, phaseId: number, paymentId: number): Promise<void> {
+  return apiDelete(`/projects/${projectId}/phases/${phaseId}/payments/${paymentId}`);
 }
 
 // Deliverables

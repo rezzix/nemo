@@ -1,5 +1,7 @@
 package com.jari.project;
 
+import com.jari.client.Client;
+import com.jari.client.ClientRepository;
 import com.jari.common.exception.BadRequestException;
 import com.jari.common.exception.DuplicateKeyException;
 import com.jari.common.exception.EntityNotFoundException;
@@ -37,6 +39,7 @@ public class ProjectService {
     private final IssueRepository issueRepository;
     private final ProjectFavoriteRepository favoriteRepository;
     private final CompanyRepository companyRepository;
+    private final ClientRepository clientRepository;
     private final ProjectInstructionRepository instructionRepository;
     private final ProjectNoteRepository noteRepository;
 
@@ -45,6 +48,7 @@ public class ProjectService {
                           ProgramRepository programRepository, UserRepository userRepository,
                           IssueStatusRepository statusRepository, IssueRepository issueRepository,
                           ProjectFavoriteRepository favoriteRepository, CompanyRepository companyRepository,
+                          ClientRepository clientRepository,
                           ProjectInstructionRepository instructionRepository,
                           ProjectNoteRepository noteRepository) {
         this.projectRepository = projectRepository;
@@ -57,6 +61,7 @@ public class ProjectService {
         this.issueRepository = issueRepository;
         this.favoriteRepository = favoriteRepository;
         this.companyRepository = companyRepository;
+        this.clientRepository = clientRepository;
         this.instructionRepository = instructionRepository;
         this.noteRepository = noteRepository;
     }
@@ -108,6 +113,11 @@ public class ProjectService {
                     .orElseThrow(() -> new EntityNotFoundException("Company", companyId));
             project.setCompany(company);
         }
+        if (request.clientId() != null) {
+            Client client = clientRepository.findById(request.clientId())
+                    .orElseThrow(() -> new EntityNotFoundException("Client", request.clientId()));
+            project.setClient(client);
+        }
         if (request.stage() != null) project.setStage(Project.Stage.valueOf(request.stage()));
         if (request.strategicScore() != null) project.setStrategicScore(request.strategicScore());
         if (request.plannedValue() != null) project.setPlannedValue(new BigDecimal(request.plannedValue()));
@@ -157,6 +167,11 @@ public class ProjectService {
         if (request.budgetSpent() != null) project.setBudgetSpent(new BigDecimal(request.budgetSpent()));
         if (request.targetStartDate() != null) project.setTargetStartDate(LocalDate.parse(request.targetStartDate()));
         if (request.targetEndDate() != null) project.setTargetEndDate(LocalDate.parse(request.targetEndDate()));
+        if (request.clientId() != null) {
+            Client client = clientRepository.findById(request.clientId())
+                    .orElseThrow(() -> new EntityNotFoundException("Client", request.clientId()));
+            project.setClient(client);
+        }
         return projectRepository.save(project);
     }
 

@@ -13,6 +13,8 @@ public record PhaseDto(
         LocalDate endDate,
         int position,
         long deliverableCount,
+        String plannedAmount,
+        String totalPaid,
         String createdAt,
         String updatedAt
 ) {
@@ -20,7 +22,8 @@ public record PhaseDto(
             @NotBlank String name,
             String description,
             LocalDate startDate,
-            LocalDate endDate
+            LocalDate endDate,
+            String plannedAmount
     ) {}
 
     public record UpdateRequest(
@@ -28,6 +31,7 @@ public record PhaseDto(
             String description,
             LocalDate startDate,
             LocalDate endDate,
-            Integer position
+            Integer position,
+            String plannedAmount
     ) {}
 }

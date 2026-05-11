@@ -186,7 +186,8 @@ public class PreSaleService {
                 request.budget(),
                 request.targetStartDate(),
                 request.targetEndDate(),
-                companyId
+                companyId,
+                preSale.getClient() != null ? preSale.getClient().getId() : null
         );
 
         Project project = projectService.create(projectRequest, companyId);

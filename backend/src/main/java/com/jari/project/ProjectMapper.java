@@ -14,6 +14,8 @@ public interface ProjectMapper {
     @Mapping(target = "managerName", source = "manager.firstName")
     @Mapping(target = "companyId", source = "company.id")
     @Mapping(target = "companyName", source = "company.name")
+    @Mapping(target = "clientId", source = "client.id")
+    @Mapping(target = "clientName", source = "client.name")
     @Mapping(target = "stage", source = "stage")
     @Mapping(target = "strategicScore", source = "strategicScore")
     @Mapping(target = "plannedValue", source = "plannedValue")

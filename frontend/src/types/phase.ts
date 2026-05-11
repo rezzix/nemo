@@ -7,6 +7,8 @@ export interface PhaseDto {
   endDate: string | null;
   position: number;
   deliverableCount: number;
+  plannedAmount: string | null;
+  totalPaid: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -16,6 +18,7 @@ export interface CreatePhaseRequest {
   description?: string;
   startDate?: string;
   endDate?: string;
+  plannedAmount?: string;
 }
 
 export interface UpdatePhaseRequest {
@@ -24,6 +27,32 @@ export interface UpdatePhaseRequest {
   startDate?: string | null;
   endDate?: string | null;
   position?: number;
+  plannedAmount?: string | null;
+}
+
+export interface PhasePaymentDto {
+  id: number;
+  phaseId: number;
+  amount: string;
+  paymentDate: string | null;
+  reference: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreatePhasePaymentRequest {
+  amount: string;
+  paymentDate?: string;
+  reference?: string;
+  notes?: string;
+}
+
+export interface UpdatePhasePaymentRequest {
+  amount?: string;
+  paymentDate?: string | null;
+  reference?: string | null;
+  notes?: string | null;
 }
 
 export interface DeliverableAttachmentDto {

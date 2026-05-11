@@ -7,7 +7,10 @@ import com.jari.project.ProjectRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class PhaseService {
@@ -16,15 +19,18 @@ public class PhaseService {
     private final ProjectRepository projectRepository;
     private final DeliverableRepository deliverableRepository;
     private final AttachmentService attachmentService;
+    private final PhasePaymentRepository phasePaymentRepository;
 
     public PhaseService(PhaseRepository phaseRepository,
                         ProjectRepository projectRepository,
                         DeliverableRepository deliverableRepository,
-                        AttachmentService attachmentService) {
+                        AttachmentService attachmentService,
+                        PhasePaymentRepository phasePaymentRepository) {
         this.phaseRepository = phaseRepository;
         this.projectRepository = projectRepository;
         this.deliverableRepository = deliverableRepository;
         this.attachmentService = attachmentService;
+        this.phasePaymentRepository = phasePaymentRepository;
     }
 
     @Transactional(readOnly = true)
@@ -54,6 +60,9 @@ public class PhaseService {
         phase.setStartDate(request.startDate());
         phase.setEndDate(request.endDate());
         phase.setPosition(nextPosition);
+        if (request.plannedAmount() != null && !request.plannedAmount().isBlank()) {
+            phase.setPlannedAmount(new BigDecimal(request.plannedAmount()));
+        }
         return phaseRepository.save(phase);
     }
 
@@ -65,6 +74,9 @@ public class PhaseService {
         if (request.startDate() != null) phase.setStartDate(request.startDate());
         if (request.endDate() != null) phase.setEndDate(request.endDate());
         if (request.position() != null) phase.setPosition(request.position());
+        if (request.plannedAmount() != null) {
+            phase.setPlannedAmount(request.plannedAmount().isBlank() ? null : new BigDecimal(request.plannedAmount()));
+        }
         return phaseRepository.save(phase);
     }
 
@@ -77,17 +89,27 @@ public class PhaseService {
             attachmentService.deleteByDeliverableIds(deliverableIds);
         }
         deliverableRepository.deleteByPhaseId(id);
+        phasePaymentRepository.deleteByPhaseId(id);
         phaseRepository.deleteById(id);
     }
 
     @Transactional(readOnly = true)
-    public List<PhaseDto> enrichWithDeliverableCount(List<PhaseDto> dtos) {
-        return dtos.stream().map(dto ->
-                new PhaseDto(dto.id(), dto.name(), dto.description(),
-                        dto.projectId(), dto.startDate(), dto.endDate(),
-                        dto.position(),
-                        deliverableRepository.countByPhaseId(dto.id()),
-                        dto.createdAt(), dto.updatedAt())
-        ).toList();
+    public List<PhaseDto> enrichWithComputedFields(List<PhaseDto> dtos) {
+        if (dtos.isEmpty()) return dtos;
+        List<Long> phaseIds = dtos.stream().map(PhaseDto::id).toList();
+        Map<Long, Long> deliverableCounts = deliverableRepository.countByPhaseIds(phaseIds).stream()
+                .collect(Collectors.toMap(arr -> (Long) arr[0], arr -> (Long) arr[1]));
+        Map<Long, BigDecimal> paidSums = phasePaymentRepository.sumPaidByPhaseIds(phaseIds).stream()
+                .collect(Collectors.toMap(arr -> (Long) arr[0], arr -> (BigDecimal) arr[1]));
+
+        return dtos.stream().map(dto -> {
+            long dCount = deliverableCounts.getOrDefault(dto.id(), 0L);
+            BigDecimal totalPaid = paidSums.getOrDefault(dto.id(), BigDecimal.ZERO);
+            return new PhaseDto(dto.id(), dto.name(), dto.description(),
+                    dto.projectId(), dto.startDate(), dto.endDate(),
+                    dto.position(), dCount,
+                    dto.plannedAmount(), totalPaid.toPlainString(),
+                    dto.createdAt(), dto.updatedAt());
+        }).toList();
     }
 }
