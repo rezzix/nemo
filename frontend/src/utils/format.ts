@@ -156,3 +156,27 @@ export function roleBadgeColor(role: string): string {
     default: return 'bg-gray-100 text-gray-600';
   }
 }
+
+export function preSaleStageLabel(stage: string): string {
+  switch (stage) {
+    case 'LEAD': return 'Lead';
+    case 'QUALIFIED': return 'Qualified';
+    case 'PROPOSAL': return 'Proposal';
+    case 'NEGOTIATION': return 'Negotiation';
+    case 'WON': return 'Won';
+    case 'LOST': return 'Lost';
+    default: return stage;
+  }
+}
+
+export function preSaleStageBadge(stage: string): string {
+  switch (stage) {
+    case 'LEAD': return 'bg-gray-100 text-gray-700';
+    case 'QUALIFIED': return 'bg-blue-100 text-blue-700';
+    case 'PROPOSAL': return 'bg-purple-100 text-purple-700';
+    case 'NEGOTIATION': return 'bg-amber-100 text-amber-700';
+    case 'WON': return 'bg-green-100 text-green-700';
+    case 'LOST': return 'bg-red-100 text-red-700';
+    default: return 'bg-gray-100 text-gray-600';
+  }
+}

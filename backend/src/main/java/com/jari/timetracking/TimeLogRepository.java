@@ -16,9 +16,10 @@ public interface TimeLogRepository extends JpaRepository<TimeLog, Long> {
            "(:userId IS NULL OR tl.user.id = :userId) AND " +
            "(:issueId IS NULL OR tl.issue.id = :issueId) AND " +
            "(:projectId IS NULL OR tl.issue.project.id = :projectId) AND " +
+           "(:presaleId IS NULL OR tl.presale.id = :presaleId) AND " +
            "(:startDate IS NULL OR tl.logDate >= :startDate) AND " +
            "(:endDate IS NULL OR tl.logDate <= :endDate)")
-    Page<TimeLog> search(Long userId, Long issueId, Long projectId, LocalDate startDate, LocalDate endDate, Pageable pageable);
+    Page<TimeLog> search(Long userId, Long issueId, Long projectId, Long presaleId, LocalDate startDate, LocalDate endDate, Pageable pageable);
 
     List<TimeLog> findByUserIdAndLogDateBetween(Long userId, LocalDate startDate, LocalDate endDate);
 
@@ -33,4 +34,6 @@ public interface TimeLogRepository extends JpaRepository<TimeLog, Long> {
 
     @Query("SELECT DISTINCT tl.user.id FROM TimeLog tl WHERE tl.logDate BETWEEN :startDate AND :endDate")
     List<Long> findDistinctUserIdsByDateRange(LocalDate startDate, LocalDate endDate);
+
+    List<TimeLog> findByPresaleId(Long presaleId);
 }

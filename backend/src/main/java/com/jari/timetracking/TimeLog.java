@@ -28,12 +28,16 @@ public class TimeLog {
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "issue_id", nullable = false)
+    @JoinColumn(name = "issue_id")
     private Issue issue;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "presale_id")
+    private com.jari.presale.PreSale presale;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -54,6 +58,8 @@ public class TimeLog {
     public void setDescription(String description) { this.description = description; }
     public Issue getIssue() { return issue; }
     public void setIssue(Issue issue) { this.issue = issue; }
+    public com.jari.presale.PreSale getPresale() { return presale; }
+    public void setPresale(com.jari.presale.PreSale presale) { this.presale = presale; }
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
     public Instant getCreatedAt() { return createdAt; }

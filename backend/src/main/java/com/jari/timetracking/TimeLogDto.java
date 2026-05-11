@@ -8,11 +8,13 @@ import java.time.LocalDate;
 public record TimeLogDto(
         Long id, BigDecimal hours, LocalDate logDate, String description,
         Long issueId, String issueKey, String issueTitle,
+        Long presaleId, String presaleName,
         Long userId, String userName,
         String createdAt, String updatedAt
 ) {
     public record CreateRequest(
-            @NotNull Long issueId,
+            Long issueId,
+            Long presaleId,
             @DecimalMin("0.01") BigDecimal hours,
             @NotNull LocalDate logDate,
             String description

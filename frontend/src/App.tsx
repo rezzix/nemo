@@ -26,6 +26,8 @@ import LeavePage from '@/pages/LeavePage';
 import AssetsPage from '@/pages/AssetsPage';
 import ClientsPage from '@/pages/ClientsPage';
 import ClientDetailPage from '@/pages/ClientDetailPage';
+import PreSalesPage from '@/pages/PreSalesPage';
+import PreSaleDetailPage from '@/pages/PreSaleDetailPage';
 import UserDetailPage from '@/pages/UserDetailPage';
 
 export default function App() {
@@ -82,6 +84,8 @@ export default function App() {
           <Route path="/assets" element={<RoleGuard roles={['ADMIN', 'HR']}><AssetsPage /></RoleGuard>} />
           <Route path="/clients" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR']}><ClientsPage /></RoleGuard>} />
           <Route path="/clients/:id" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR']}><ClientDetailPage /></RoleGuard>} />
+          <Route path="/presales" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR']}><PreSalesPage /></RoleGuard>} />
+          <Route path="/presales/:id" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR']}><PreSaleDetailPage /></RoleGuard>} />
           <Route path="/pmo" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE']}><PmoDashboardPage /></RoleGuard>} />
           <Route path="/admin" element={<AdminGuard><AdminPage /></AdminGuard>} />
           <Route path="/profile" element={<ProfilePage />} />

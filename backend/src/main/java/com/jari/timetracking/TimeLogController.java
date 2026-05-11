@@ -45,6 +45,7 @@ public class TimeLogController {
             @RequestParam(required = false) Long userId,
             @RequestParam(required = false) Long issueId,
             @RequestParam(required = false) Long projectId,
+            @RequestParam(required = false) Long presaleId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(defaultValue = "0") int page,
@@ -56,7 +57,7 @@ public class TimeLogController {
                 && !authHelper.hasAnyRole(currentUser, "ADMIN", "MANAGER", "EXECUTIVE", "HR")) {
             throw new com.jari.common.exception.ForbiddenException("You can only view your own time logs");
         }
-        Page<TimeLog> result = timeLogService.search(userId, issueId, projectId, startDate, endDate, page, size, sort);
+        Page<TimeLog> result = timeLogService.search(userId, issueId, projectId, presaleId, startDate, endDate, page, size, sort);
         return ResponseEntity.ok(PaginatedResponse.of(
                 timeLogMapper.toDtoList(result.getContent()),
                 new PaginationInfo(page, size, result.getTotalElements(), result.getTotalPages())
