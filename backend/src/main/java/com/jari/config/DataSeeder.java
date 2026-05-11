@@ -481,17 +481,46 @@ public class DataSeeder implements CommandLineRunner {
         createLabel(mobileApp, "iOS", "#8B5CF6");
         createLabel(mobileApp, "Android", "#F59E0B");
 
-        // Time logs for EVM (labor cost)
-        createTimeLog(fse, "FSE-3", dev1, new BigDecimal("6.5"), today.minusDays(4), "Profile API implementation");
-        createTimeLog(fse, "FSE-3", dev1, new BigDecimal("4.0"), today.minusDays(3), "Profile validation logic");
-        createTimeLog(fse, "FSE-4", dev2, new BigDecimal("7.0"), today.minusDays(3), "Search index setup");
-        createTimeLog(fse, "FSE-4", dev2, new BigDecimal("5.0"), today.minusDays(2), "Search UI components");
-        createTimeLog(fse, "FSE-1", dev1, new BigDecimal("8.0"), today.minusDays(10), "Auth flow - complete");
-        createTimeLog(fse, "FSE-2", dev2, new BigDecimal("7.5"), today.minusDays(9), "Dashboard layout - complete");
-        createTimeLog(mobileApp, "MA-3", dev3, new BigDecimal("6.0"), today.minusDays(2), "Push notification backend");
-        createTimeLog(mobileApp, "MA-3", dev3, new BigDecimal("5.0"), today.minusDays(1), "Push notification UI");
-        createTimeLog(mobileApp, "MA-1", dev3, new BigDecimal("8.0"), today.minusDays(12), "Login screen - complete");
-        createTimeLog(mobileApp, "MA-2", dev4, new BigDecimal("7.0"), today.minusDays(11), "Navigation - complete");
+        // Time logs — each contributor logs 8h/day on their tasks for the last 10 days,
+        // but with 1-3 recent days without logs to simulate delayed time entry
+        // dev1 (Ismail): FSE-1 (done), FSE-3 (in progress), AG-1 (in progress), FTM-3 (in progress)
+        String[] dev1Descriptions = {"Implementation", "Bug fixes and testing", "Code review", "Feature development", "Refactoring", "Unit tests", "Integration work", "Documentation", "Deployment prep", "Optimization"};
+        for (int i = 10; i >= 3; i--) {
+            createTimeLog(fse, "FSE-3", dev1, new BigDecimal("8"), today.minusDays(i), dev1Descriptions[10 - i] + " - profile management");
+        }
+        createTimeLog(fse, "FSE-1", dev1, new BigDecimal("8"), today.minusDays(10), "Auth flow - complete");
+        for (int i = 9; i >= 4; i--) {
+            createTimeLog(apiGateway, "AG-1", dev1, new BigDecimal("8"), today.minusDays(i), "Rate limiting work");
+        }
+
+        // dev2 (Hanane): FSE-2 (done), FSE-4 (in progress)
+        for (int i = 10; i >= 2; i--) {
+            createTimeLog(fse, "FSE-4", dev2, new BigDecimal("8"), today.minusDays(i), "Search functionality work");
+        }
+        createTimeLog(fse, "FSE-2", dev2, new BigDecimal("8"), today.minusDays(10), "Dashboard layout - complete");
+
+        // dev3 (Wadii): MA-1 (done), MA-3 (in progress)
+        createTimeLog(mobileApp, "MA-1", dev3, new BigDecimal("8"), today.minusDays(12), "Login screen - complete");
+        for (int i = 10; i >= 4; i--) {
+            createTimeLog(mobileApp, "MA-3", dev3, new BigDecimal("8"), today.minusDays(i), "Push notifications development");
+        }
+
+        // dev4 (Ahmed): MA-2 (done)
+        createTimeLog(mobileApp, "MA-2", dev4, new BigDecimal("8"), today.minusDays(11), "Navigation - complete");
+        for (int i = 10; i >= 3; i--) {
+            createTimeLog(mobileApp, "MA-3", dev4, new BigDecimal("8"), today.minusDays(i), "Mobile UI development");
+        }
+
+        // younes (medERP): MER-1 (in progress), MER-2 (todo)
+        for (int i = 10; i >= 4; i--) {
+            createTimeLog(medErpProject, "MER-1", younes, new BigDecimal("8"), today.minusDays(i), "Design amelioration work");
+        }
+
+        // walid (MyTeam): FTM-1 (done), FTM-2 (in progress)
+        createTimeLog(footballTeam, "FTM-1", walid, new BigDecimal("8"), today.minusDays(11), "Player registration - complete");
+        for (int i = 10; i >= 3; i--) {
+            createTimeLog(footballTeam, "FTM-2", walid, new BigDecimal("8"), today.minusDays(i), "Match scheduling development");
+        }
 
         // RAID items
         createRaidItem(fse, RaidItem.RaidType.RISK, "Data breach vulnerability",
