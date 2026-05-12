@@ -240,33 +240,28 @@ public class DataSeeder implements CommandLineRunner {
                 LocalDate.of(2025, 3, 1), LocalDate.of(2025, 11, 30), myteam);
 
         // Add members
-        addMember(fse, admin);
+        addMember(fse, majid);
         addMember(fse, dev1);
         addMember(fse, dev2);
         addMember(apiGateway, dev1);
-        addMember(apiGateway, admin);
+        addMember(apiGateway, majid);
         addMember(mobileApp, dev3);
         addMember(mobileApp, dev4);
         addMember(mobileApp, pmHarmony);
-        addMember(mobileApp, admin);
         addMember(infraUpgrade, dev1);
         addMember(infraUpgrade, dev3);
+        addMember(infraUpgrade, salim);
         addMember(eHealthPortal, dev2);
         addMember(eHealthPortal, majid);
-        addMember(eHealthPortal, admin);
         addMember(mobilePay, dev3);
         addMember(mobilePay, dev4);
         addMember(mobilePay, pmHarmony);
-        addMember(mobilePay, admin);
         addMember(dataWarehouse, dev1);
         addMember(dataWarehouse, salim);
-        addMember(dataWarehouse, admin);
         addMember(medErpProject, younes);
-        addMember(medErpProject, admin);
         addMember(footballTeam, youssef);
         addMember(footballTeam, walid);
         addMember(footballTeam, dev1);
-        addMember(footballTeam, admin);
 
         // External user assigned to FSE
         bassamat.setAssignedProject(fse);
