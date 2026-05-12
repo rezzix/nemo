@@ -23,6 +23,11 @@ export default function EvmCard({ projectId }: { projectId: number }) {
   const cpiColor = evm.cpi >= 1 ? 'text-green-600' : evm.cpi >= 0.9 ? 'text-yellow-600' : 'text-red-600';
   const spiColor = evm.spi >= 1 ? 'text-green-600' : evm.spi >= 0.9 ? 'text-yellow-600' : 'text-red-600';
 
+  const totalPaid = evm.totalPaid || 0;
+  const derivedPV = evm.derivedPlannedValue || 0;
+  const paymentPct = derivedPV > 0 ? Math.min(100, Math.round((totalPaid / derivedPV) * 100)) : 0;
+  const paymentColor = paymentPct >= 100 ? 'bg-green-500' : paymentPct >= 50 ? 'bg-blue-500' : derivedPV > 0 ? 'bg-amber-500' : 'bg-gray-300';
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
       <div className="flex items-center justify-between">
@@ -79,14 +84,36 @@ export default function EvmCard({ projectId }: { projectId: number }) {
           <div className="text-sm font-medium text-gray-900 mt-1">{fmt(evm.budget)}</div>
         </div>
         <div>
-          <div className="text-xs text-gray-500">Spent (non-labor)</div>
-          <div className="text-sm font-medium text-gray-900 mt-1">{fmt(evm.budgetSpent)}</div>
+          <div className="text-xs text-gray-500">Labor Cost</div>
+          <div className="text-sm font-medium text-gray-900 mt-1">{fmt(evm.laborCost)}</div>
         </div>
         <div>
           <div className="text-xs text-gray-500">Risk Score (max)</div>
           <div className="text-sm font-medium text-gray-900 mt-1">{evm.maxRiskScore} <span className="text-xs text-gray-400">avg: {evm.avgRiskScore.toFixed(1)}</span></div>
         </div>
       </div>
+
+      {derivedPV > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-3 border-t border-gray-100">
+          <div>
+            <div className="text-xs text-gray-500">Planned (Phases)</div>
+            <div className="text-sm font-medium text-gray-900 mt-1">{fmt(derivedPV)}</div>
+          </div>
+          <div>
+            <div className="text-xs text-gray-500">Payments Received</div>
+            <div className="text-sm font-medium text-gray-900 mt-1">{fmt(totalPaid)}</div>
+          </div>
+          <div className="col-span-2">
+            <div className="text-xs text-gray-500 mb-1">Collection Progress</div>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 bg-gray-200 rounded-full h-2.5">
+                <div className={`${paymentColor} rounded-full h-2.5`} style={{ width: `${paymentPct}%` }} />
+              </div>
+              <span className="text-sm font-semibold text-gray-700">{paymentPct}%</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

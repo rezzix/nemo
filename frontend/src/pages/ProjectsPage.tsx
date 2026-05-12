@@ -167,7 +167,6 @@ function CreateProjectModal({ onClose }: { onClose: () => void }) {
   const [memberIds, setMemberIds] = useState<number[]>([]);
   const [stage, setStage] = useState('INITIATION');
   const [strategicScore, setStrategicScore] = useState('');
-  const [plannedValue, setPlannedValue] = useState('');
   const [budget, setBudget] = useState('');
   const [targetStartDate, setTargetStartDate] = useState('');
   const [targetEndDate, setTargetEndDate] = useState('');
@@ -204,9 +203,6 @@ function CreateProjectModal({ onClose }: { onClose: () => void }) {
     if (strategicScore && (Number(strategicScore) < 1 || Number(strategicScore) > 10)) {
       errors.strategicScore = 'Strategic score must be between 1 and 10';
     }
-    if (plannedValue && isNaN(Number(plannedValue))) {
-      errors.plannedValue = 'Planned value must be a number';
-    }
     if (budget && isNaN(Number(budget))) {
       errors.budget = 'Budget must be a number';
     }
@@ -233,7 +229,6 @@ function CreateProjectModal({ onClose }: { onClose: () => void }) {
         memberIds: memberIds.length > 0 ? memberIds : undefined,
         stage: stage || undefined,
         strategicScore: strategicScore ? Number(strategicScore) : undefined,
-        plannedValue: plannedValue || undefined,
         budget: budget || undefined,
         targetStartDate: targetStartDate || undefined,
         targetEndDate: targetEndDate || undefined,
@@ -301,11 +296,6 @@ function CreateProjectModal({ onClose }: { onClose: () => void }) {
               </select>
             </div>
             <Field label="Strategic Score (1-10)" value={strategicScore} onChange={(v) => setStrategicScore(v.replace(/[^0-9]/g, ''))} error={fieldErrors.strategicScore} />
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Planned Value ($)</label>
-              <input type="text" value={plannedValue} onChange={(e) => setPlannedValue(e.target.value)} placeholder="0" className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 ${fieldErrors.plannedValue ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-primary-500'}`} />
-              {fieldErrors.plannedValue && <p className="mt-1 text-sm text-red-600">{fieldErrors.plannedValue}</p>}
-            </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
             <div>

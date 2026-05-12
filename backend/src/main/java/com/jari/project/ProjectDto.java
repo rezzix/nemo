@@ -26,7 +26,6 @@ public record ProjectDto(
             List<Long> memberIds,
             String stage,
             Integer strategicScore,
-            String plannedValue,
             String budget,
             String targetStartDate,
             String targetEndDate,
@@ -37,7 +36,7 @@ public record ProjectDto(
     public record UpdateRequest(
             String name, String description, Long managerId,
             String stage, Integer strategicScore,
-            String plannedValue, String budget, String budgetSpent,
+            String budget,
             String targetStartDate, String targetEndDate,
             Long clientId
     ) {}

@@ -34,7 +34,6 @@ export interface CreateProjectRequest {
   memberIds?: number[];
   stage?: string;
   strategicScore?: number;
-  plannedValue?: string;
   budget?: string;
   targetStartDate?: string;
   targetEndDate?: string;
@@ -46,9 +45,7 @@ export interface UpdateProjectRequest {
   managerId?: number;
   stage?: string;
   strategicScore?: number | null;
-  plannedValue?: string | null;
   budget?: string | null;
-  budgetSpent?: string | null;
   targetStartDate?: string | null;
   targetEndDate?: string | null;
   clientId?: number | null;

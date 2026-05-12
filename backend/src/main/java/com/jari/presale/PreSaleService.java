@@ -182,7 +182,6 @@ public class PreSaleService {
                 null, // memberIds
                 null, // stage
                 null, // strategicScore
-                preSale.getEstimatedValue() != null ? preSale.getEstimatedValue().toPlainString() : request.budget(),
                 request.budget(),
                 request.targetStartDate(),
                 request.targetEndDate(),

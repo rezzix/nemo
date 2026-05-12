@@ -60,7 +60,7 @@ export interface EvmMetrics {
   cpi: number;
   spi: number;
   budget: number;
-  budgetSpent: number;
+  laborCost: number;
   stage: string | null;
   strategicScore: number | null;
   targetStartDate: string | null;
@@ -69,6 +69,8 @@ export interface EvmMetrics {
   mitigatingRisks: number;
   maxRiskScore: number;
   avgRiskScore: number;
+  derivedPlannedValue: number;
+  totalPaid: number;
 }
 
 export interface PortfolioSummary {

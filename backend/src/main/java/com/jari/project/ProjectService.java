@@ -120,7 +120,6 @@ public class ProjectService {
         }
         if (request.stage() != null) project.setStage(Project.Stage.valueOf(request.stage()));
         if (request.strategicScore() != null) project.setStrategicScore(request.strategicScore());
-        if (request.plannedValue() != null) project.setPlannedValue(new BigDecimal(request.plannedValue()));
         if (request.budget() != null) project.setBudget(new BigDecimal(request.budget()));
         if (request.targetStartDate() != null) project.setTargetStartDate(LocalDate.parse(request.targetStartDate()));
         if (request.targetEndDate() != null) project.setTargetEndDate(LocalDate.parse(request.targetEndDate()));
@@ -162,9 +161,7 @@ public class ProjectService {
         }
         if (request.stage() != null) project.setStage(Project.Stage.valueOf(request.stage()));
         if (request.strategicScore() != null) project.setStrategicScore(request.strategicScore());
-        if (request.plannedValue() != null) project.setPlannedValue(new BigDecimal(request.plannedValue()));
         if (request.budget() != null) project.setBudget(new BigDecimal(request.budget()));
-        if (request.budgetSpent() != null) project.setBudgetSpent(new BigDecimal(request.budgetSpent()));
         if (request.targetStartDate() != null) project.setTargetStartDate(LocalDate.parse(request.targetStartDate()));
         if (request.targetEndDate() != null) project.setTargetEndDate(LocalDate.parse(request.targetEndDate()));
         if (request.clientId() != null) {

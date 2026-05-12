@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { ProjectDto, PhaseDto, DeliverableDto, MemberDto, InstructionDto, NoteDto } from '@/types';
+import type { ProjectDto, PhaseDto, DeliverableDto, MemberDto, InstructionDto, NoteDto, EvmMetrics } from '@/types';
 import { listPhases, listDeliverables } from '@/api/phases';
 import { getMembers, listInstructions, createInstruction, updateInstruction, deleteInstruction, listNotes, createNote, updateNote, deleteNote } from '@/api/projects';
+import { getEvmMetrics } from '@/api/pmo';
 import { formatDate, formatCurrency, stageLabel, stageBadge } from '@/utils/format';
 import { useAuth } from '@/hooks/useAuth';
 import EvmCard from './EvmCard';
@@ -29,6 +30,7 @@ export default function SummaryTab({ project, projectId, managerId, onNavigate }
   const [members, setMembers] = useState<MemberDto[]>([]);
   const [instructions, setInstructions] = useState<InstructionDto[]>([]);
   const [notes, setNotes] = useState<NoteDto[]>([]);
+  const [evm, setEvm] = useState<EvmMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [showNewInstruction, setShowNewInstruction] = useState(false);
   const [showNewNote, setShowNewNote] = useState(false);
@@ -36,12 +38,13 @@ export default function SummaryTab({ project, projectId, managerId, onNavigate }
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [p, d, m, i, n] = await Promise.all([listPhases(projectId), listDeliverables(projectId), getMembers(projectId), listInstructions(projectId), listNotes(projectId)]);
+      const [p, d, m, i, n, e] = await Promise.all([listPhases(projectId), listDeliverables(projectId), getMembers(projectId), listInstructions(projectId), listNotes(projectId), getEvmMetrics(projectId)]);
       setPhases(p);
       setDeliverables(d);
       setMembers(m);
       setInstructions(i);
       setNotes(n);
+      setEvm(e);
     } catch {
       // ignore
     } finally {
@@ -54,8 +57,8 @@ export default function SummaryTab({ project, projectId, managerId, onNavigate }
   const visibleInstructions = instructions.filter(isInstructionVisible);
   const deliverablesByPhase = (phaseId: number) => deliverables.filter(d => d.phaseId === phaseId);
 
-  const totalPlanned = phases.reduce((sum, p) => sum + Number(p.plannedAmount || 0), 0);
-  const totalPaid = phases.reduce((sum, p) => sum + Number(p.totalPaid || 0), 0);
+  const totalPlanned = evm?.derivedPlannedValue ?? phases.reduce((sum, p) => sum + Number(p.plannedAmount || 0), 0);
+  const totalPaid = evm?.totalPaid ?? phases.reduce((sum, p) => sum + Number(p.totalPaid || 0), 0);
   const paymentPct = totalPlanned > 0 ? Math.min(100, Math.round((totalPaid / totalPlanned) * 100)) : 0;
   const paymentColor = paymentPct >= 100 ? 'bg-green-500' : paymentPct >= 50 ? 'bg-blue-500' : totalPlanned > 0 ? 'bg-amber-500' : 'bg-gray-300';
 
@@ -149,12 +152,11 @@ export default function SummaryTab({ project, projectId, managerId, onNavigate }
             <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
               <span className="text-gray-500">Budget</span>
               <span className="text-gray-900 font-medium">{formatCurrency(Number(project.budget || 0))}</span>
-              <span className="text-gray-500">Spent (non-labor)</span>
-              <span className="text-gray-900 font-medium">{formatCurrency(Number(project.budgetSpent || 0))}</span>
-              <span className="text-gray-500">Total Planned</span>
+              <span className="text-gray-500">Planned Value</span>
               <span className="text-gray-900 font-medium">{formatCurrency(totalPlanned)}</span>
-              <span className="text-gray-500">Total Paid</span>
+              <span className="text-gray-500">Payments Received</span>
               <span className="text-gray-900 font-medium">{formatCurrency(totalPaid)}</span>
+              {evm && <><span className="text-gray-500">Labor Cost</span><span className="text-gray-900 font-medium">{formatCurrency(evm.laborCost)}</span></>}
             </div>
             {totalPlanned > 0 && (
               <div>

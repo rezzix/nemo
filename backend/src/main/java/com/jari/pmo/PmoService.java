@@ -7,6 +7,7 @@ import com.jari.config.IssueStatusRepository;
 import com.jari.issue.IssueRepository;
 import com.jari.phase.DeliverableRepository;
 import com.jari.phase.Phase;
+import com.jari.phase.PhasePaymentRepository;
 import com.jari.phase.PhaseRepository;
 import com.jari.project.Project;
 import com.jari.project.ProjectRepository;
@@ -35,6 +36,7 @@ public class PmoService {
     private final RaidItemRepository raidItemRepository;
     private final PhaseRepository phaseRepository;
     private final DeliverableRepository deliverableRepository;
+    private final PhasePaymentRepository phasePaymentRepository;
 
     public PmoService(ProjectRepository projectRepository,
                       IssueRepository issueRepository,
@@ -43,7 +45,8 @@ public class PmoService {
                       UserRateRepository userRateRepository,
                       RaidItemRepository raidItemRepository,
                       PhaseRepository phaseRepository,
-                      DeliverableRepository deliverableRepository) {
+                      DeliverableRepository deliverableRepository,
+                      PhasePaymentRepository phasePaymentRepository) {
         this.projectRepository = projectRepository;
         this.issueRepository = issueRepository;
         this.issueStatusRepository = issueStatusRepository;
@@ -52,6 +55,7 @@ public class PmoService {
         this.raidItemRepository = raidItemRepository;
         this.phaseRepository = phaseRepository;
         this.deliverableRepository = deliverableRepository;
+        this.phasePaymentRepository = phasePaymentRepository;
     }
 
     @Transactional(readOnly = true)
@@ -75,19 +79,35 @@ public class PmoService {
                 ? BigDecimal.valueOf(completedIssues).divide(BigDecimal.valueOf(totalIssues), 4, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
-        // Planned Value (PV baseline from project)
-        BigDecimal plannedValue = project.getPlannedValue() != null ? project.getPlannedValue() : BigDecimal.ZERO;
+        // Derived Planned Value = sum of phase planned amounts
+        List<Phase> phases = phaseRepository.findByProjectIdOrderByPositionAsc(projectId);
+        BigDecimal derivedPlannedValue = phases.stream()
+                .map(p -> p.getPlannedAmount() != null ? p.getPlannedAmount() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // Planned Value: use derived from phases if available, otherwise fall back to project field
+        BigDecimal plannedValue = derivedPlannedValue.compareTo(BigDecimal.ZERO) > 0
+                ? derivedPlannedValue
+                : (project.getPlannedValue() != null ? project.getPlannedValue() : BigDecimal.ZERO);
 
         // Earned Value (EV) = completion% × plannedValue
         BigDecimal earnedValue = completionPct.multiply(plannedValue).setScale(2, RoundingMode.HALF_UP);
 
-        // Actual Cost (AC) = sum of (timeLog hours × userRate) + budgetSpent
+        // Actual Cost (AC) = labor cost only (internal cost from time logs × rates)
         LocalDate projectStart = project.getTargetStartDate();
         LocalDate projectEnd = project.getTargetEndDate();
         BigDecimal laborCost = computeLaborCost(projectId, projectStart, projectEnd);
+        BigDecimal actualCost = laborCost.setScale(2, RoundingMode.HALF_UP);
 
-        BigDecimal budgetSpent = project.getBudgetSpent() != null ? project.getBudgetSpent() : BigDecimal.ZERO;
-        BigDecimal actualCost = laborCost.add(budgetSpent).setScale(2, RoundingMode.HALF_UP);
+        // Total paid by client (sum of phase payments)
+        List<Long> phaseIds = phases.stream().map(Phase::getId).toList();
+        BigDecimal totalPaid = BigDecimal.ZERO;
+        if (!phaseIds.isEmpty()) {
+            List<Object[]> paidSums = phasePaymentRepository.sumPaidByPhaseIds(phaseIds);
+            for (Object[] row : paidSums) {
+                if (row[1] != null) totalPaid = totalPaid.add((BigDecimal) row[1]);
+            }
+        }
 
         // Cost Variance (CV) = EV - AC
         BigDecimal costVariance = earnedValue.subtract(actualCost).setScale(2, RoundingMode.HALF_UP);
@@ -121,12 +141,13 @@ public class PmoService {
                 plannedValue, earnedValue, actualCost,
                 pvToday, costVariance, scheduleVariance,
                 cpi, spi,
-                project.getBudget(), budgetSpent,
+                project.getBudget(), laborCost,
                 project.getStage() != null ? project.getStage().name() : null,
                 project.getStrategicScore(),
                 project.getTargetStartDate() != null ? project.getTargetStartDate().toString() : null,
                 project.getTargetEndDate() != null ? project.getTargetEndDate().toString() : null,
-                openRisks, mitigatingRisks, maxRiskScore, avgRiskScore
+                openRisks, mitigatingRisks, maxRiskScore, avgRiskScore,
+                derivedPlannedValue, totalPaid
         );
     }
 
@@ -177,10 +198,11 @@ public class PmoService {
             BigDecimal plannedValue, BigDecimal earnedValue, BigDecimal actualCost,
             BigDecimal pvToday, BigDecimal costVariance, BigDecimal scheduleVariance,
             BigDecimal cpi, BigDecimal spi,
-            BigDecimal budget, BigDecimal budgetSpent,
+            BigDecimal budget, BigDecimal laborCost,
             String stage, Integer strategicScore,
             String targetStartDate, String targetEndDate,
-            long openRisks, long mitigatingRisks, int maxRiskScore, double avgRiskScore
+            long openRisks, long mitigatingRisks, int maxRiskScore, double avgRiskScore,
+            BigDecimal derivedPlannedValue, BigDecimal totalPaid
     ) {}
 
     @Transactional(readOnly = true)

@@ -7,9 +7,7 @@ import Spinner from '@/components/common/Spinner';
 export default function SettingsTab({ project, onUpdate, canEdit }: { project: ProjectDto; onUpdate: (p: ProjectDto) => void; canEdit: boolean }) {
   const [stage, setStage] = useState(project.stage || 'INITIATION');
   const [strategicScore, setStrategicScore] = useState(project.strategicScore?.toString() || '');
-  const [plannedValue, setPlannedValue] = useState(project.plannedValue || '');
   const [budget, setBudget] = useState(project.budget || '');
-  const [budgetSpent, setBudgetSpent] = useState(project.budgetSpent || '');
   const [targetStartDate, setTargetStartDate] = useState(project.targetStartDate || '');
   const [targetEndDate, setTargetEndDate] = useState(project.targetEndDate || '');
   const [saving, setSaving] = useState(false);
@@ -59,14 +57,8 @@ export default function SettingsTab({ project, onUpdate, canEdit }: { project: P
     if (strategicScore && (Number(strategicScore) < 1 || Number(strategicScore) > 10)) {
       errors.strategicScore = 'Strategic score must be between 1 and 10';
     }
-    if (plannedValue && isNaN(Number(plannedValue))) {
-      errors.plannedValue = 'Planned value must be a number';
-    }
     if (budget && isNaN(Number(budget))) {
       errors.budget = 'Budget must be a number';
-    }
-    if (budgetSpent && isNaN(Number(budgetSpent))) {
-      errors.budgetSpent = 'Budget spent must be a number';
     }
     if (targetStartDate && targetEndDate && targetEndDate < targetStartDate) {
       errors.targetEndDate = 'End date must be after start date';
@@ -82,8 +74,7 @@ export default function SettingsTab({ project, onUpdate, canEdit }: { project: P
     try {
       const updated = await updateProject(project.id, {
         stage, strategicScore: strategicScore ? Number(strategicScore) : null,
-        plannedValue: plannedValue || null, budget: budget || null,
-        budgetSpent: budgetSpent || null,
+        budget: budget || null,
         targetStartDate: targetStartDate || null, targetEndDate: targetEndDate || null,
       });
       onUpdate(updated);
@@ -125,22 +116,12 @@ export default function SettingsTab({ project, onUpdate, canEdit }: { project: P
           </div>
         </div>
 
-        <h4 className="text-sm font-semibold text-gray-700 pt-2 border-t border-gray-100">Budget &amp; EVM</h4>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Planned Value (PV Baseline)</label>
-            <input type="text" value={plannedValue} onChange={e => setPlannedValue(e.target.value)} placeholder="e.g. 150000" className={inputClass('plannedValue')} />
-            {fieldErrors.plannedValue && <p className="mt-1 text-sm text-red-600">{fieldErrors.plannedValue}</p>}
-          </div>
+        <h4 className="text-sm font-semibold text-gray-700 pt-2 border-t border-gray-100">Budget</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Total Budget</label>
             <input type="text" value={budget} onChange={e => setBudget(e.target.value)} placeholder="e.g. 150000" className={inputClass('budget')} />
             {fieldErrors.budget && <p className="mt-1 text-sm text-red-600">{fieldErrors.budget}</p>}
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Budget Spent (Non-Labor)</label>
-            <input type="text" value={budgetSpent} onChange={e => setBudgetSpent(e.target.value)} placeholder="e.g. 12000" className={inputClass('budgetSpent')} />
-            {fieldErrors.budgetSpent && <p className="mt-1 text-sm text-red-600">{fieldErrors.budgetSpent}</p>}
           </div>
         </div>
 
