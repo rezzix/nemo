@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import type { PreSaleDto, PreSaleStage } from '@/types';
+import type { PreSaleDto, PreSaleStage, ClientDto } from '@/types';
 import { listPreSales, createPreSale } from '@/api/presales';
+import { listClients } from '@/api/clients';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDate, preSaleStageLabel, preSaleStageBadge } from '@/utils/format';
 import Spinner from '@/components/common/Spinner';
@@ -110,11 +111,17 @@ function CreatePreSaleModal({ onClose, onCreated }: { onClose: () => void; onCre
   const [key, setKey] = useState('');
   const [description, setDescription] = useState('');
   const [stage, setStage] = useState<string>('LEAD');
+  const [clientId, setClientId] = useState<number | ''>('');
+  const [clients, setClients] = useState<ClientDto[]>([]);
   const [estimatedValue, setEstimatedValue] = useState('');
   const [probability, setProbability] = useState('');
   const [expectedCloseDate, setExpectedCloseDate] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    listClients({ size: 200 }).then(res => setClients(res.data)).catch(() => {});
+  }, []);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,6 +133,7 @@ function CreatePreSaleModal({ onClose, onCreated }: { onClose: () => void; onCre
         key: key.trim().toUpperCase(),
         description: description || undefined,
         stage,
+        clientId: clientId || undefined,
         estimatedValue: estimatedValue || undefined,
         probability: probability ? Number(probability) : undefined,
         expectedCloseDate: expectedCloseDate || undefined,
@@ -156,14 +164,17 @@ function CreatePreSaleModal({ onClose, onCreated }: { onClose: () => void; onCre
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Client</label>
+            <select value={clientId} onChange={e => setClientId(e.target.value ? Number(e.target.value) : '')} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+              <option value="">No client</option>
+              {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Stage</label>
             <select value={stage} onChange={e => setStage(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
               {STAGES.map(s => <option key={s} value={s}>{preSaleStageLabel(s)}</option>)}
             </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Probability (%)</label>
-            <input type="number" min="0" max="100" value={probability} onChange={e => setProbability(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -172,9 +183,13 @@ function CreatePreSaleModal({ onClose, onCreated }: { onClose: () => void; onCre
             <input type="text" value={estimatedValue} onChange={e => setEstimatedValue(e.target.value)} placeholder="e.g. 50000" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Expected Close Date</label>
-            <input type="date" value={expectedCloseDate} onChange={e => setExpectedCloseDate(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">Probability (%)</label>
+            <input type="number" min="0" max="100" value={probability} onChange={e => setProbability(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
           </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Expected Close Date</label>
+          <input type="date" value={expectedCloseDate} onChange={e => setExpectedCloseDate(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
         </div>
         <div className="flex justify-end gap-3 pt-2">
           <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100">Cancel</button>
