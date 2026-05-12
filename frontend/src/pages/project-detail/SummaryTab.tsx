@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { PhaseDto, DeliverableDto, MemberDto, InstructionDto, NoteDto } from '@/types';
+import type { ProjectDto, PhaseDto, DeliverableDto, MemberDto, InstructionDto, NoteDto } from '@/types';
 import { listPhases, listDeliverables } from '@/api/phases';
 import { getMembers, listInstructions, createInstruction, updateInstruction, deleteInstruction, listNotes, createNote, updateNote, deleteNote } from '@/api/projects';
-import { formatDate, formatCurrency, stageLabel } from '@/utils/format';
+import { formatDate, formatCurrency, stageLabel, stageBadge } from '@/utils/format';
 import { useAuth } from '@/hooks/useAuth';
 import EvmCard from './EvmCard';
 import MarkdownRenderer from '@/components/common/MarkdownRenderer';
@@ -18,7 +18,7 @@ function isInstructionVisible(inst: InstructionDto): boolean {
   return true;
 }
 
-export default function SummaryTab({ projectId, managerId, onNavigate }: { projectId: number; managerId: number; onNavigate?: (tab: Tab) => void }) {
+export default function SummaryTab({ project, projectId, managerId, onNavigate }: { project: ProjectDto; projectId: number; managerId: number; onNavigate?: (tab: Tab) => void }) {
   const { user } = useAuth();
   const currentUserId = user?.id;
   const isAdmin = user?.role === 'ADMIN';
@@ -54,6 +54,33 @@ export default function SummaryTab({ projectId, managerId, onNavigate }: { proje
   const visibleInstructions = instructions.filter(isInstructionVisible);
   const deliverablesByPhase = (phaseId: number) => deliverables.filter(d => d.phaseId === phaseId);
 
+  const totalPlanned = phases.reduce((sum, p) => sum + Number(p.plannedAmount || 0), 0);
+  const totalPaid = phases.reduce((sum, p) => sum + Number(p.totalPaid || 0), 0);
+  const paymentPct = totalPlanned > 0 ? Math.min(100, Math.round((totalPaid / totalPlanned) * 100)) : 0;
+  const paymentColor = paymentPct >= 100 ? 'bg-green-500' : paymentPct >= 50 ? 'bg-blue-500' : totalPlanned > 0 ? 'bg-amber-500' : 'bg-gray-300';
+
+  const timelinePct = (() => {
+    if (!project.targetStartDate || !project.targetEndDate) return null;
+    const start = new Date(project.targetStartDate).getTime();
+    const end = new Date(project.targetEndDate).getTime();
+    const now = Date.now();
+    if (now >= end) return 100;
+    if (now <= start) return 0;
+    return Math.round(((now - start) / (end - start)) * 100);
+  })();
+  const timelineColor = timelinePct != null ? (timelinePct >= 100 ? 'bg-amber-500' : 'bg-blue-500') : '';
+  const durationLabel = (() => {
+    if (!project.targetStartDate || !project.targetEndDate) return null;
+    const start = new Date(project.targetStartDate);
+    const end = new Date(project.targetEndDate);
+    const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+    if (months < 1) return '< 1 month';
+    if (months < 24) return `${months} month${months > 1 ? 's' : ''}`;
+    const years = Math.floor(months / 12);
+    const rem = months % 12;
+    return rem > 0 ? `${years}y ${rem}m` : `${years} year${years > 1 ? 's' : ''}`;
+  })();
+
   const handleDeleteInstruction = async (inst: InstructionDto) => {
     if (!confirm('Delete this instruction?')) return;
     await deleteInstruction(projectId, inst.id);
@@ -79,6 +106,70 @@ export default function SummaryTab({ projectId, managerId, onNavigate }: { proje
   return (
     <div className="space-y-6">
       <EvmCard projectId={projectId} />
+
+      {/* Project Overview */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Key Info */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              {project.stage && <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${stageBadge(project.stage)}`}>{stageLabel(project.stage)}</span>}
+              {project.strategicScore != null && <span className="text-sm text-gray-500">Score: {project.strategicScore}/10</span>}
+            </div>
+            <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+              <span className="text-gray-500">Manager</span>
+              <span className="text-gray-900 font-medium">{project.managerName}</span>
+              <span className="text-gray-500">Client</span>
+              <span className="text-gray-900 font-medium">{project.clientName || '—'}</span>
+              <span className="text-gray-500">Program</span>
+              <span className="text-gray-900 font-medium">{project.programName || '—'}</span>
+              <span className="text-gray-500">Timeline</span>
+              <span className="text-gray-900 font-medium">
+                {project.targetStartDate && project.targetEndDate
+                  ? `${formatDate(project.targetStartDate)} → ${formatDate(project.targetEndDate)}`
+                  : '—'}
+              </span>
+            </div>
+            {timelinePct != null && (
+              <div>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full ${timelineColor}`} style={{ width: `${timelinePct}%` }} />
+                  </div>
+                  <span className="text-xs text-gray-500">{timelinePct}%</span>
+                </div>
+                {durationLabel && <span className="text-xs text-gray-400">{durationLabel}</span>}
+              </div>
+            )}
+          </div>
+
+          {/* Financials */}
+          <div className="space-y-4">
+            <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Financials</h4>
+            <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+              <span className="text-gray-500">Budget</span>
+              <span className="text-gray-900 font-medium">{formatCurrency(Number(project.budget || 0))}</span>
+              <span className="text-gray-500">Spent (non-labor)</span>
+              <span className="text-gray-900 font-medium">{formatCurrency(Number(project.budgetSpent || 0))}</span>
+              <span className="text-gray-500">Total Planned</span>
+              <span className="text-gray-900 font-medium">{formatCurrency(totalPlanned)}</span>
+              <span className="text-gray-500">Total Paid</span>
+              <span className="text-gray-900 font-medium">{formatCurrency(totalPaid)}</span>
+            </div>
+            {totalPlanned > 0 && (
+              <div>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full ${paymentColor}`} style={{ width: `${paymentPct}%` }} />
+                  </div>
+                  <span className="text-xs text-gray-500">{paymentPct}%</span>
+                </div>
+                <span className="text-xs text-gray-400">{formatCurrency(totalPaid)} of {formatCurrency(totalPlanned)} collected</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Instructions and My Notes side by side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -192,23 +283,36 @@ export default function SummaryTab({ projectId, managerId, onNavigate }: { proje
                 const phaseDels = deliverablesByPhase(phase.id);
                 const completedDels = phaseDels.filter(d => d.state === 'VALIDATED').length;
                 const hasPayment = phase.plannedAmount && Number(phase.plannedAmount) > 0;
+                const paid = Number(phase.totalPaid || 0);
+                const planned = Number(phase.plannedAmount || 0);
+                const phasePct = planned > 0 ? Math.min(100, Math.round((paid / planned) * 100)) : 0;
+                const phaseColor = phasePct >= 100 ? 'bg-green-500' : phasePct >= 50 ? 'bg-blue-500' : planned > 0 ? 'bg-amber-500' : 'bg-gray-300';
                 return (
-                  <div key={phase.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50">
-                    <div className="min-w-0">
-                      <span className="font-medium text-gray-900">{phase.name}</span>
-                      {phase.startDate && phase.endDate && (
-                        <span className="ml-2 text-xs text-gray-400">{formatDate(phase.startDate)} → {formatDate(phase.endDate)}</span>
-                      )}
+                  <div key={phase.id} className="py-2 px-3 rounded-lg bg-gray-50">
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0">
+                        <span className="font-medium text-gray-900">{phase.name}</span>
+                        {phase.startDate && phase.endDate && (
+                          <span className="ml-2 text-xs text-gray-400">{formatDate(phase.startDate)} → {formatDate(phase.endDate)}</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-500 shrink-0">
+                        {hasPayment && (
+                          <span className="text-xs">{formatCurrency(paid)} / {formatCurrency(planned)}</span>
+                        )}
+                        {phaseDels.length > 0 && (
+                          <span>{completedDels}/{phaseDels.length} deliverables</span>
+                        )}
+                        {phase.stage && <span className={`px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700`}>{stageLabel(phase.stage)}</span>}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-500 shrink-0">
-                      {hasPayment && (
-                        <span className="text-xs">{formatCurrency(Number(phase.totalPaid || 0))} / {formatCurrency(Number(phase.plannedAmount))}</span>
-                      )}
-                      {phaseDels.length > 0 && (
-                        <span>{completedDels}/{phaseDels.length} deliverables</span>
-                      )}
-                      {phase.stage && <span className={`px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700`}>{stageLabel(phase.stage)}</span>}
-                    </div>
+                    {hasPayment && (
+                      <div className="mt-1.5">
+                        <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                          <div className={`h-full rounded-full ${phaseColor}`} style={{ width: `${phasePct}%` }} />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}

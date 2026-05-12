@@ -106,7 +106,7 @@ export default function ProjectDetailPage() {
         </nav>
       </div>
 
-      {activeTab === 'summary' && <SummaryTab projectId={project.id} managerId={project.managerId} onNavigate={setActiveTab} />}
+      {activeTab === 'summary' && <SummaryTab project={project} projectId={project.id} managerId={project.managerId} onNavigate={setActiveTab} />}
       {activeTab === 'issues' && <IssuesTab projectId={project.id} projectKey={project.key} canEdit={canEdit} isExternal={isExternal} />}
       {activeTab === 'board' && <BoardTab projectId={project.id} projectKey={project.key} isExternal={isExternal} />}
       {activeTab === 'docs' && <DocsTab projectId={project.id} />}
