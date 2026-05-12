@@ -80,79 +80,90 @@ export default function SummaryTab({ projectId, managerId, onNavigate }: { proje
     <div className="space-y-6">
       <EvmCard projectId={projectId} />
 
-      {/* Instructions */}
-      {visibleInstructions.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold text-gray-900">Instructions</h3>
-          {visibleInstructions.map(inst => (
-            <div key={inst.id} className={`bg-white rounded-xl border p-5 ${inst.important ? 'border-amber-300 bg-amber-50/30' : 'border-gray-200'}`}>
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex items-center gap-2 flex-wrap">
-                  {inst.important && <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Important</span>}
-                  <span className="text-sm text-gray-500">{inst.authorName}</span>
-                  <span className="text-xs text-gray-400">{formatDate(inst.createdAt)}</span>
-                  {inst.visibleFrom && inst.visibleTo && (
-                    <span className="text-xs text-gray-400">{inst.visibleFrom} → {inst.visibleTo}</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-1 shrink-0 ml-2">
-                  {canCreateInstructions && (
-                    <button onClick={() => handleToggleImportant(inst)} className="text-xs text-gray-400 hover:text-amber-600 px-1" title={inst.important ? 'Unmark important' : 'Mark important'}>
-                      {inst.important ? '★' : '☆'}
-                    </button>
-                  )}
-                  {(inst.authorId === currentUserId || isAdmin) && (
-                    <button onClick={() => handleDeleteInstruction(inst)} className="text-xs text-red-400 hover:text-red-600 px-1">Delete</button>
-                  )}
-                </div>
-              </div>
-              <MarkdownRenderer content={inst.content} />
-            </div>
-          ))}
-        </div>
-      )}
-
-      {canCreateInstructions && (
+      {/* Instructions and My Notes side by side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Instructions */}
         <div>
-          <button onClick={() => setShowNewInstruction(true)} className="text-sm text-primary-600 hover:text-primary-800 font-medium">
-            + Add Instruction
+          {visibleInstructions.length > 0 ? (
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold text-gray-900">Instructions</h3>
+              {visibleInstructions.map(inst => (
+                <div key={inst.id} className={`bg-white rounded-xl border p-5 ${inst.important ? 'border-amber-300 bg-amber-50/30' : 'border-gray-200'}`}>
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {inst.important && <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Important</span>}
+                      <span className="text-sm text-gray-500">{inst.authorName}</span>
+                      <span className="text-xs text-gray-400">{formatDate(inst.createdAt)}</span>
+                      {inst.visibleFrom && inst.visibleTo && (
+                        <span className="text-xs text-gray-400">{inst.visibleFrom} → {inst.visibleTo}</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0 ml-2">
+                      {canCreateInstructions && (
+                        <button onClick={() => handleToggleImportant(inst)} className="text-xs text-gray-400 hover:text-amber-600 px-1" title={inst.important ? 'Unmark important' : 'Mark important'}>
+                          {inst.important ? '★' : '☆'}
+                        </button>
+                      )}
+                      {(inst.authorId === currentUserId || isAdmin) && (
+                        <button onClick={() => handleDeleteInstruction(inst)} className="text-xs text-red-400 hover:text-red-600 px-1">Delete</button>
+                      )}
+                    </div>
+                  </div>
+                  <MarkdownRenderer content={inst.content} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl border border-gray-200 p-6 text-center">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Instructions</h3>
+              <p className="text-sm text-gray-400">No instructions yet.</p>
+            </div>
+          )}
+          {canCreateInstructions && (
+            <button onClick={() => setShowNewInstruction(true)} className="mt-2 text-sm text-primary-600 hover:text-primary-800 font-medium">
+              + Add Instruction
+            </button>
+          )}
+        </div>
+
+        {/* My Notes */}
+        <div>
+          {notes.length > 0 ? (
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold text-gray-900">My Notes</h3>
+              {notes.map(note => (
+                <div key={note.id} className={`bg-white rounded-xl border p-5 ${note.pinned ? 'border-indigo-300 bg-indigo-50/30' : 'border-gray-200'}`}>
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      {note.pinned && <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">Pinned</span>}
+                      <span className="text-xs text-gray-400">{formatDate(note.createdAt)}</span>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0 ml-2">
+                      <button onClick={() => handleTogglePinned(note)} className="text-xs text-gray-400 hover:text-indigo-600 px-1" title={note.pinned ? 'Unpin' : 'Pin'}>
+                        {note.pinned ? '📌' : '📍'}
+                      </button>
+                      <button onClick={() => handleDeleteNote(note)} className="text-xs text-red-400 hover:text-red-600 px-1">Delete</button>
+                    </div>
+                  </div>
+                  <MarkdownRenderer content={note.content} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl border border-gray-200 p-6 text-center">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">My Notes</h3>
+              <p className="text-sm text-gray-400">No notes yet.</p>
+            </div>
+          )}
+          <button onClick={() => setShowNewNote(true)} className="mt-2 text-sm text-primary-600 hover:text-primary-800 font-medium">
+            + Add Note
           </button>
         </div>
-      )}
+      </div>
 
       {showNewInstruction && (
         <NewInstructionModal projectId={projectId} onClose={() => setShowNewInstruction(false)} onCreated={(inst) => { setInstructions(prev => [...prev, inst]); setShowNewInstruction(false); }} />
       )}
-
-      {/* My Notes */}
-      {notes.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold text-gray-900">My Notes</h3>
-          {notes.map(note => (
-            <div key={note.id} className={`bg-white rounded-xl border p-5 ${note.pinned ? 'border-indigo-300 bg-indigo-50/30' : 'border-gray-200'}`}>
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  {note.pinned && <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">Pinned</span>}
-                  <span className="text-xs text-gray-400">{formatDate(note.createdAt)}</span>
-                </div>
-                <div className="flex items-center gap-1 shrink-0 ml-2">
-                  <button onClick={() => handleTogglePinned(note)} className="text-xs text-gray-400 hover:text-indigo-600 px-1" title={note.pinned ? 'Unpin' : 'Pin'}>
-                    {note.pinned ? '📌' : '📍'}
-                  </button>
-                  <button onClick={() => handleDeleteNote(note)} className="text-xs text-red-400 hover:text-red-600 px-1">Delete</button>
-                </div>
-              </div>
-              <MarkdownRenderer content={note.content} />
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div>
-        <button onClick={() => setShowNewNote(true)} className="text-sm text-primary-600 hover:text-primary-800 font-medium">
-          + Add Note
-        </button>
-      </div>
 
       {showNewNote && (
         <NewNoteModal projectId={projectId} onClose={() => setShowNewNote(false)} onCreated={(note) => { setNotes(prev => [...prev, note]); setShowNewNote(false); }} />

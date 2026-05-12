@@ -253,7 +253,7 @@ export default function PhasesTab({ projectId, canEdit }: { projectId: number; c
   };
 
   const paymentProgress = (phase: PhaseDto) => {
-    if (!phase.plannedAmount || Number(phase.plannedAmount) === 0) return null;
+    if (!phase.plannedAmount || Number(phase.plannedAmount) === 0) return { planned: 0, paid: Number(phase.totalPaid || 0), pct: 0, color: 'bg-gray-300' };
     const planned = Number(phase.plannedAmount);
     const paid = Number(phase.totalPaid || 0);
     const pct = Math.min(100, Math.round((paid / planned) * 100));
@@ -296,12 +296,12 @@ export default function PhasesTab({ projectId, canEdit }: { projectId: number; c
                       {phaseDeliverables.length > 0 && (
                         <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-100 text-[10px] font-medium text-gray-600">{phaseDeliverables.length}</span>
                       )}
-                      {phase.plannedAmount && (
+                      {phase.plannedAmount && Number(phase.plannedAmount) > 0 && (
                         <span className="text-xs font-medium text-gray-500">{formatCurrency(Number(phase.plannedAmount))}</span>
                       )}
                     </div>
                     <div className="flex items-center gap-4">
-                      {progress && (
+                      {(progress.paid > 0 || progress.planned > 0) && (
                         <div className="flex items-center gap-2 min-w-[140px]">
                           <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
                             <div className={`h-full rounded-full ${progress.color}`} style={{ width: `${progress.pct}%` }} />
@@ -330,52 +330,55 @@ export default function PhasesTab({ projectId, canEdit }: { projectId: number; c
                 {isExpanded && (
                   <div className="border-t border-gray-100 px-4 pb-4 pt-2 ml-7">
                     {/* Payments section */}
-                    {phase.plannedAmount && (
-                      <div className="mb-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Payments ({phasePayments.length})</span>
-                          {canEdit && (
-                            <button onClick={() => openPaymentForm(phase.id)} className="text-xs font-medium text-primary-600 hover:text-primary-800">+ Add Payment</button>
-                          )}
-                        </div>
-                        {progress && (
-                          <div className="flex items-center gap-3 mb-2 text-xs">
-                            <span className="text-gray-500">Planned: <span className="font-medium text-gray-900">{formatCurrency(progress.planned)}</span></span>
-                            <span className="text-gray-500">Paid: <span className={`font-medium ${progress.pct >= 100 ? 'text-green-700' : 'text-gray-900'}`}>{formatCurrency(progress.paid)}</span></span>
-                            <span className={`font-medium ${progress.pct >= 100 ? 'text-green-700' : 'text-gray-500'}`}>({progress.pct}%)</span>
-                          </div>
-                        )}
-                        {phasePayments.length === 0 ? (
-                          <p className="text-sm text-gray-400 py-1">No payments recorded.</p>
-                        ) : (
-                          <table className="w-full text-sm">
-                            <thead><tr className="border-b border-gray-100">
-                              <th className="text-left px-2 py-1 font-medium text-gray-500 text-xs">Date</th>
-                              <th className="text-right px-2 py-1 font-medium text-gray-500 text-xs">Amount</th>
-                              <th className="text-left px-2 py-1 font-medium text-gray-500 text-xs">Reference</th>
-                              <th className="text-left px-2 py-1 font-medium text-gray-500 text-xs">Notes</th>
-                              {canEdit && <th className="px-2 py-1"></th>}
-                            </tr></thead>
-                            <tbody className="divide-y divide-gray-50">
-                              {phasePayments.map(p => (
-                                <tr key={p.id} className="hover:bg-gray-50">
-                                  <td className="px-2 py-1.5 text-gray-600">{p.paymentDate ? formatDate(p.paymentDate) : '—'}</td>
-                                  <td className="px-2 py-1.5 text-right font-medium text-gray-900">{formatCurrency(Number(p.amount))}</td>
-                                  <td className="px-2 py-1.5 text-gray-600">{p.reference || '—'}</td>
-                                  <td className="px-2 py-1.5 text-gray-500 max-w-[200px] truncate">{p.notes || '—'}</td>
-                                  {canEdit && (
-                                    <td className="px-2 py-1.5 text-right">
-                                      <button onClick={() => openPaymentForm(phase.id, p)} className="text-primary-600 hover:text-primary-800 text-xs font-medium mr-2">Edit</button>
-                                      <button onClick={() => handlePaymentDelete(phase.id, p.id)} className="text-red-600 hover:text-red-800 text-xs font-medium">Delete</button>
-                                    </td>
-                                  )}
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Payments ({phasePayments.length})</span>
+                        {canEdit && (
+                          <button onClick={() => openPaymentForm(phase.id)} className="text-xs font-medium text-primary-600 hover:text-primary-800">+ Add Payment</button>
                         )}
                       </div>
-                    )}
+                      {progress.planned > 0 && (
+                        <div className="flex items-center gap-3 mb-2 text-xs">
+                          <span className="text-gray-500">Planned: <span className="font-medium text-gray-900">{formatCurrency(progress.planned)}</span></span>
+                          <span className="text-gray-500">Paid: <span className={`font-medium ${progress.pct >= 100 ? 'text-green-700' : 'text-gray-900'}`}>{formatCurrency(progress.paid)}</span></span>
+                          <span className={`font-medium ${progress.pct >= 100 ? 'text-green-700' : 'text-gray-500'}`}>({progress.pct}%)</span>
+                        </div>
+                      )}
+                      {progress.paid > 0 && progress.planned === 0 && (
+                        <div className="flex items-center gap-3 mb-2 text-xs">
+                          <span className="text-gray-500">Paid: <span className="font-medium text-gray-900">{formatCurrency(progress.paid)}</span></span>
+                        </div>
+                      )}
+                      {phasePayments.length === 0 ? (
+                        <p className="text-sm text-gray-400 py-1">No payments recorded.</p>
+                      ) : (
+                        <table className="w-full text-sm">
+                          <thead><tr className="border-b border-gray-100">
+                            <th className="text-left px-2 py-1 font-medium text-gray-500 text-xs">Date</th>
+                            <th className="text-right px-2 py-1 font-medium text-gray-500 text-xs">Amount</th>
+                            <th className="text-left px-2 py-1 font-medium text-gray-500 text-xs">Reference</th>
+                            <th className="text-left px-2 py-1 font-medium text-gray-500 text-xs">Notes</th>
+                            {canEdit && <th className="px-2 py-1"></th>}
+                          </tr></thead>
+                          <tbody className="divide-y divide-gray-50">
+                            {phasePayments.map(p => (
+                              <tr key={p.id} className="hover:bg-gray-50">
+                                <td className="px-2 py-1.5 text-gray-600">{p.paymentDate ? formatDate(p.paymentDate) : '—'}</td>
+                                <td className="px-2 py-1.5 text-right font-medium text-gray-900">{formatCurrency(Number(p.amount))}</td>
+                                <td className="px-2 py-1.5 text-gray-600">{p.reference || '—'}</td>
+                                <td className="px-2 py-1.5 text-gray-500 max-w-[200px] truncate">{p.notes || '—'}</td>
+                                {canEdit && (
+                                  <td className="px-2 py-1.5 text-right">
+                                    <button onClick={() => openPaymentForm(phase.id, p)} className="text-primary-600 hover:text-primary-800 text-xs font-medium mr-2">Edit</button>
+                                    <button onClick={() => handlePaymentDelete(phase.id, p.id)} className="text-red-600 hover:text-red-800 text-xs font-medium">Delete</button>
+                                  </td>
+                                )}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                    </div>
 
                     {/* Deliverables section */}
                     <div>

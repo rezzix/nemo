@@ -54,8 +54,9 @@ public class PhaseController {
             @Valid @RequestBody PhaseDto.CreateRequest request,
             @AuthenticationPrincipal UserDetails currentUser) {
         Phase created = phaseService.create(projectId, request);
+        PhaseDto dto = phaseService.enrichWithComputedFields(List.of(phaseMapper.toDto(created))).get(0);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.of(phaseMapper.toDto(created)));
+                .body(ApiResponse.of(dto));
     }
 
     @PutMapping("/{phaseId}")
@@ -66,7 +67,8 @@ public class PhaseController {
             @RequestBody PhaseDto.UpdateRequest request,
             @AuthenticationPrincipal UserDetails currentUser) {
         Phase updated = phaseService.update(phaseId, request);
-        return ResponseEntity.ok(ApiResponse.of(phaseMapper.toDto(updated)));
+        PhaseDto dto = phaseService.enrichWithComputedFields(List.of(phaseMapper.toDto(updated))).get(0);
+        return ResponseEntity.ok(ApiResponse.of(dto));
     }
 
     @DeleteMapping("/{phaseId}")
