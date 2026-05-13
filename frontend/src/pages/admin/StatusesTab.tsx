@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { IssueStatusDto, IssueStatusCategory } from '@/types';
+import type { TaskStatusDto, TaskStatusCategory } from '@/types';
 import {
-  listIssueStatuses, createIssueStatus, updateIssueStatus, deleteIssueStatus,
+  listTaskStatuses, createTaskStatus, updateTaskStatus, deleteTaskStatus,
 } from '@/api/admin';
 import Spinner from '@/components/common/Spinner';
 
@@ -13,21 +13,21 @@ function SpinnerWrapper() {
   );
 }
 
-export default function IssueStatusesTab() {
-  const [statuses, setStatuses] = useState<IssueStatusDto[]>([]);
+export default function TaskStatusesTab() {
+  const [statuses, setStatuses] = useState<TaskStatusDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState('');
-  const [newCategory, setNewCategory] = useState<IssueStatusCategory>('TODO');
+  const [newCategory, setNewCategory] = useState<TaskStatusCategory>('TODO');
   const [newDefault, setNewDefault] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState('');
-  const [editCategory, setEditCategory] = useState<IssueStatusCategory>('TODO');
+  const [editCategory, setEditCategory] = useState<TaskStatusCategory>('TODO');
   const [editDefault, setEditDefault] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const fetchStatuses = useCallback(async () => {
     setLoading(true);
-    try { setStatuses(await listIssueStatuses()); } finally { setLoading(false); }
+    try { setStatuses(await listTaskStatuses()); } finally { setLoading(false); }
   }, []);
 
   useEffect(() => { fetchStatuses(); }, [fetchStatuses]);
@@ -36,7 +36,7 @@ export default function IssueStatusesTab() {
     if (!newName.trim()) return;
     setSaving(true);
     try {
-      await createIssueStatus({ name: newName.trim(), category: newCategory, isDefault: newDefault });
+      await createTaskStatus({ name: newName.trim(), category: newCategory, isDefault: newDefault });
       setNewName('');
       setNewDefault(false);
       fetchStatuses();
@@ -45,14 +45,14 @@ export default function IssueStatusesTab() {
 
   const handleUpdate = async (id: number) => {
     if (!editName.trim()) return;
-    await updateIssueStatus(id, { name: editName.trim(), category: editCategory, isDefault: editDefault });
+    await updateTaskStatus(id, { name: editName.trim(), category: editCategory, isDefault: editDefault });
     setEditingId(null);
     fetchStatuses();
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Delete this issue status?')) return;
-    await deleteIssueStatus(id);
+    if (!confirm('Delete this task status?')) return;
+    await deleteTaskStatus(id);
     fetchStatuses();
   };
 
@@ -78,7 +78,7 @@ export default function IssueStatusesTab() {
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1">Category</label>
-            <select value={newCategory} onChange={(e) => setNewCategory(e.target.value as IssueStatusCategory)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+            <select value={newCategory} onChange={(e) => setNewCategory(e.target.value as TaskStatusCategory)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
               <option value="TODO">To Do</option>
               <option value="IN_PROGRESS">In Progress</option>
               <option value="DONE">Done</option>
@@ -118,7 +118,7 @@ export default function IssueStatusesTab() {
                   </td>
                   <td className="px-4 py-3">
                     {editingId === s.id ? (
-                      <select value={editCategory} onChange={(e) => setEditCategory(e.target.value as IssueStatusCategory)} className="px-2 py-1 border border-gray-300 rounded text-sm">
+                      <select value={editCategory} onChange={(e) => setEditCategory(e.target.value as TaskStatusCategory)} className="px-2 py-1 border border-gray-300 rounded text-sm">
                         <option value="TODO">To Do</option>
                         <option value="IN_PROGRESS">In Progress</option>
                         <option value="DONE">Done</option>
@@ -152,7 +152,7 @@ export default function IssueStatusesTab() {
                 </tr>
               ))}
               {statuses.length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">No issue statuses found.</td></tr>
+                <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">No task statuses found.</td></tr>
               )}
             </tbody>
           </table>

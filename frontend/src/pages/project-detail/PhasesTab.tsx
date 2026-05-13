@@ -16,7 +16,7 @@ export default function PhasesTab({ projectId, canEdit }: { projectId: number; c
   // Phase form state
   const [showPhaseForm, setShowPhaseForm] = useState(false);
   const [editingPhase, setEditingPhase] = useState<PhaseDto | null>(null);
-  const [phaseForm, setPhaseForm] = useState({ name: '', description: '', startDate: '', endDate: '', plannedAmount: '' });
+  const [phaseForm, setPhaseForm] = useState({ name: '', description: '', startDate: '', endDate: '', plannedAmount: '', status: 'OPEN' });
   const [phaseSaving, setPhaseSaving] = useState(false);
   const [phaseError, setPhaseError] = useState<string | null>(null);
 
@@ -68,10 +68,10 @@ export default function PhasesTab({ projectId, canEdit }: { projectId: number; c
   const openPhaseForm = (phase?: PhaseDto) => {
     if (phase) {
       setEditingPhase(phase);
-      setPhaseForm({ name: phase.name, description: phase.description || '', startDate: phase.startDate || '', endDate: phase.endDate || '', plannedAmount: phase.plannedAmount || '' });
+      setPhaseForm({ name: phase.name, description: phase.description || '', startDate: phase.startDate || '', endDate: phase.endDate || '', plannedAmount: phase.plannedAmount || '', status: phase.status || 'OPEN' });
     } else {
       setEditingPhase(null);
-      setPhaseForm({ name: '', description: '', startDate: '', endDate: '', plannedAmount: '' });
+      setPhaseForm({ name: '', description: '', startDate: '', endDate: '', plannedAmount: '', status: 'OPEN' });
     }
     setPhaseError(null);
     setShowPhaseForm(true);
@@ -87,12 +87,14 @@ export default function PhasesTab({ projectId, canEdit }: { projectId: number; c
           name: phaseForm.name, description: phaseForm.description || undefined,
           startDate: phaseForm.startDate || undefined, endDate: phaseForm.endDate || undefined,
           plannedAmount: phaseForm.plannedAmount || undefined,
+          status: phaseForm.status || undefined,
         });
       } else {
         await createPhase(projectId, {
           name: phaseForm.name, description: phaseForm.description || undefined,
           startDate: phaseForm.startDate || undefined, endDate: phaseForm.endDate || undefined,
           plannedAmount: phaseForm.plannedAmount || undefined,
+          status: phaseForm.status || undefined,
         });
       }
       setShowPhaseForm(false);
@@ -107,6 +109,12 @@ export default function PhasesTab({ projectId, canEdit }: { projectId: number; c
   const handlePhaseDelete = async (id: number) => {
     if (!confirm('Delete this phase and all its deliverables and payments?')) return;
     await deletePhase(projectId, id);
+    fetchData();
+  };
+
+  const togglePhaseStatus = async (phase: PhaseDto) => {
+    const newStatus = phase.status === 'OPEN' ? 'CLOSED' : 'OPEN';
+    await updatePhase(projectId, phase.id, { status: newStatus });
     fetchData();
   };
 
@@ -292,6 +300,24 @@ export default function PhasesTab({ projectId, canEdit }: { projectId: number; c
                       <svg className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                       </svg>
+                      {canEdit ? (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); togglePhaseStatus(phase); }}
+                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium ${phase.status === 'CLOSED' ? 'bg-gray-100 text-gray-500' : 'bg-green-100 text-green-700'}`}
+                          title={phase.status === 'OPEN' ? 'Open — click to close' : 'Closed — click to reopen'}
+                        >
+                          {phase.status === 'OPEN' ? (
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" /></svg>
+                          ) : (
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4" /></svg>
+                          )}
+                          {phase.status === 'OPEN' ? 'Open' : 'Closed'}
+                        </button>
+                      ) : (
+                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium ${phase.status === 'CLOSED' ? 'bg-gray-100 text-gray-500' : 'bg-green-100 text-green-700'}`}>
+                          {phase.status === 'OPEN' ? 'Open' : 'Closed'}
+                        </span>
+                      )}
                       <h4 className="font-medium text-gray-900">{phase.name}</h4>
                       {phaseDeliverables.length > 0 && (
                         <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-100 text-[10px] font-medium text-gray-600">{phaseDeliverables.length}</span>
@@ -500,6 +526,13 @@ export default function PhasesTab({ projectId, canEdit }: { projectId: number; c
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Planned Amount</label>
                 <input type="text" value={phaseForm.plannedAmount} onChange={e => setPhaseForm(f => ({ ...f, plannedAmount: e.target.value }))} placeholder="e.g. 25000" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select value={phaseForm.status} onChange={e => setPhaseForm(f => ({ ...f, status: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                  <option value="OPEN">Open</option>
+                  <option value="CLOSED">Closed</option>
+                </select>
               </div>
             </div>
             <div className="flex justify-end gap-3 pt-2">

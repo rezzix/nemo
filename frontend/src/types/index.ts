@@ -2,7 +2,7 @@ export type { ApiResponse, PaginatedResponse, PaginationInfo, ApiError, Validati
 export type { CompanyDto, CreateCompanyRequest, UpdateCompanyRequest } from './company';
 export type { UserDto, UserRole, LoginRequest, UpdateProfileRequest, PasswordChangeRequest } from './user';
 export type { ProjectDto, CreateProjectRequest, UpdateProjectRequest, MemberDto, LabelDto, LabelCreateRequest, BoardColumnDto, BoardConfigDto, BoardUpdateRequest, InstructionDto, CreateInstructionRequest, UpdateInstructionRequest, NoteDto, CreateNoteRequest, UpdateNoteRequest } from './project';
-export type { IssueDto, IssuePriority, CreateIssueRequest, UpdateIssueRequest, CommentDto, CreateCommentRequest, UpdateCommentRequest } from './issue';
+export type { TaskDto, TaskPriority, CreateTaskRequest, UpdateTaskRequest, CommentDto, CreateCommentRequest, UpdateCommentRequest } from './task';
 export type { ProgramDto, CreateProgramRequest, UpdateProgramRequest } from './program';
 export type { OrganizationConfig, PublicConfigResponse } from './organization';
 export type { SprintDto, CreateSprintRequest, UpdateSprintRequest } from './sprint';
@@ -10,7 +10,7 @@ export type { TimeLogDto, CreateTimeLogRequest, UpdateTimeLogRequest } from './t
 export type { WikiPageDto, WikiTreeItem, CreateWikiPageRequest, UpdateWikiPageRequest, WikiSearchHit } from './wiki';
 export type { RaidItemDto, CreateRaidItemRequest, UpdateRaidItemRequest, EvmMetrics, PortfolioSummary, CompanyPortfolioSummary, PhaseTimelineEntry, ProjectTimelineEntry, UserRateDto } from './pmo';
 export type { PhaseDto, CreatePhaseRequest, UpdatePhaseRequest, PhasePaymentDto, CreatePhasePaymentRequest, UpdatePhasePaymentRequest, DeliverableDto, DeliverableAttachmentDto, CreateDeliverableRequest, UpdateDeliverableRequest } from './phase';
-export type { IssueTypeDto, IssueStatusDto, IssueStatusCategory, AuditLogDto, ActivityLogDto, OrganizationUpdateRequest, CreateUserRequest, AdminUpdateUserRequest, CreateIssueTypeRequest, CreateIssueStatusRequest } from './admin';
+export type { TaskTypeDto, TaskStatusDto, TaskStatusCategory, AuditLogDto, ActivityLogDto, OrganizationUpdateRequest, CreateUserRequest, AdminUpdateUserRequest, CreateTaskTypeRequest, CreateTaskStatusRequest } from './admin';
 export type { HolidayDto, CreateHolidayRequest, UpdateHolidayRequest } from './holiday';
 export type { LeaveRequestDto, LeaveType, LeaveStatus, CreateLeaveRequest, LeaveActionRequest } from './leave';
 export type { LocationDto, AssetDto, AssetType, AssetStatus, CreateLocationRequest, UpdateLocationRequest, CreateAssetRequest, UpdateAssetRequest, AssignAssetRequest } from './asset';

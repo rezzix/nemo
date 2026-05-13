@@ -75,7 +75,7 @@ export interface BoardColumnDto {
   statusId: number;
   name: string;
   position: number;
-  issueCount: number;
+  taskCount: number;
 }
 
 export interface BoardConfigDto {

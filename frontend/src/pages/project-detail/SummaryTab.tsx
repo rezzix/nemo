@@ -3,9 +3,8 @@ import type { ProjectDto, PhaseDto, DeliverableDto, MemberDto, InstructionDto, N
 import { listPhases, listDeliverables } from '@/api/phases';
 import { getMembers, listInstructions, createInstruction, updateInstruction, deleteInstruction, listNotes, createNote, updateNote, deleteNote } from '@/api/projects';
 import { getEvmMetrics } from '@/api/pmo';
-import { formatDate, formatCurrency, stageLabel, stageBadge } from '@/utils/format';
+import { formatDate, formatCurrency, stageLabel } from '@/utils/format';
 import { useAuth } from '@/hooks/useAuth';
-import EvmCard from './EvmCard';
 import MarkdownRenderer from '@/components/common/MarkdownRenderer';
 import Spinner from '@/components/common/Spinner';
 import Modal from '@/components/common/Modal';
@@ -57,11 +56,13 @@ export default function SummaryTab({ project, projectId, managerId, onNavigate }
   const visibleInstructions = instructions.filter(isInstructionVisible);
   const deliverablesByPhase = (phaseId: number) => deliverables.filter(d => d.phaseId === phaseId);
 
+  // Derived financials from EVM
   const totalPlanned = evm?.derivedPlannedValue ?? phases.reduce((sum, p) => sum + Number(p.plannedAmount || 0), 0);
   const totalPaid = evm?.totalPaid ?? phases.reduce((sum, p) => sum + Number(p.totalPaid || 0), 0);
   const paymentPct = totalPlanned > 0 ? Math.min(100, Math.round((totalPaid / totalPlanned) * 100)) : 0;
   const paymentColor = paymentPct >= 100 ? 'bg-green-500' : paymentPct >= 50 ? 'bg-blue-500' : totalPlanned > 0 ? 'bg-amber-500' : 'bg-gray-300';
 
+  // Timeline progress
   const timelinePct = (() => {
     if (!project.targetStartDate || !project.targetEndDate) return null;
     const start = new Date(project.targetStartDate).getTime();
@@ -83,6 +84,13 @@ export default function SummaryTab({ project, projectId, managerId, onNavigate }
     const rem = months % 12;
     return rem > 0 ? `${years}y ${rem}m` : `${years} year${years > 1 ? 's' : ''}`;
   })();
+
+  // EVM color helpers
+  const fmt = (v: number | null) => formatCurrency(v);
+  const cvColor = evm && evm.costVariance >= 0 ? 'text-green-600' : 'text-red-600';
+  const svColor = evm && evm.scheduleVariance >= 0 ? 'text-green-600' : 'text-red-600';
+  const cpiColor = evm ? (evm.cpi >= 1 ? 'text-green-600' : evm.cpi >= 0.9 ? 'text-yellow-600' : 'text-red-600') : '';
+  const spiColor = evm ? (evm.spi >= 1 ? 'text-green-600' : evm.spi >= 0.9 ? 'text-yellow-600' : 'text-red-600') : '';
 
   const handleDeleteInstruction = async (inst: InstructionDto) => {
     if (!confirm('Delete this instruction?')) return;
@@ -106,19 +114,25 @@ export default function SummaryTab({ project, projectId, managerId, onNavigate }
     setNotes(prev => prev.map(n => n.id === updated.id ? updated : n));
   };
 
+  if (loading) return <div className="flex items-center justify-center h-32"><Spinner className="h-6 w-6 text-primary-600" /></div>;
+
   return (
     <div className="space-y-6">
-      <EvmCard projectId={projectId} />
+      {/* Merged Project Dashboard Card */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-900">Highlights</h3>
+          <div className="flex items-center gap-3">
+            {project.strategicScore != null && <span className="text-sm text-gray-500">Score: {project.strategicScore}/10</span>}
+            {evm && <span className="text-sm text-gray-500">{evm.completedTasks}/{evm.totalTasks} tasks done</span>}
+          </div>
+        </div>
 
-      {/* Project Overview */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        {/* Two-column body: Key Info + EVM Metrics */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Key Info */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              {project.stage && <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${stageBadge(project.stage)}`}>{stageLabel(project.stage)}</span>}
-              {project.strategicScore != null && <span className="text-sm text-gray-500">Score: {project.strategicScore}/10</span>}
-            </div>
+          <div className="space-y-3">
             <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
               <span className="text-gray-500">Manager</span>
               <span className="text-gray-900 font-medium">{project.managerName}</span>
@@ -146,31 +160,93 @@ export default function SummaryTab({ project, projectId, managerId, onNavigate }
             )}
           </div>
 
-          {/* Financials */}
-          <div className="space-y-4">
-            <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Financials</h4>
-            <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
-              <span className="text-gray-500">Budget</span>
-              <span className="text-gray-900 font-medium">{formatCurrency(Number(project.budget || 0))}</span>
-              <span className="text-gray-500">Planned Value</span>
-              <span className="text-gray-900 font-medium">{formatCurrency(totalPlanned)}</span>
-              <span className="text-gray-500">Payments Received</span>
-              <span className="text-gray-900 font-medium">{formatCurrency(totalPaid)}</span>
-              {evm && <><span className="text-gray-500">Labor Cost</span><span className="text-gray-900 font-medium">{formatCurrency(evm.laborCost)}</span></>}
-            </div>
-            {totalPlanned > 0 && (
-              <div>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full ${paymentColor}`} style={{ width: `${paymentPct}%` }} />
-                  </div>
-                  <span className="text-xs text-gray-500">{paymentPct}%</span>
+          {/* EVM Metrics */}
+          {evm && (
+            <div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="text-center">
+                  <div className="text-xs text-gray-500 font-medium">PV</div>
+                  <div className="text-lg font-bold text-gray-900">{fmt(evm.pvToday)}</div>
                 </div>
-                <span className="text-xs text-gray-400">{formatCurrency(totalPaid)} of {formatCurrency(totalPlanned)} collected</span>
+                <div className="text-center">
+                  <div className="text-xs text-gray-500 font-medium">EV</div>
+                  <div className="text-lg font-bold text-gray-900">{fmt(evm.earnedValue)}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-gray-500 font-medium">AC</div>
+                  <div className="text-lg font-bold text-gray-900">{fmt(evm.actualCost)}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-gray-500 font-medium">CV</div>
+                  <div className={`text-lg font-bold ${cvColor}`}>{fmt(evm.costVariance)}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-gray-500 font-medium">SV</div>
+                  <div className={`text-lg font-bold ${svColor}`}>{fmt(evm.scheduleVariance)}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-gray-500 font-medium">CPI</div>
+                  <div className={`text-lg font-bold ${cpiColor}`}>{evm.cpi.toFixed(2)}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-gray-500 font-medium">SPI</div>
+                  <div className={`text-lg font-bold ${spiColor}`}>{evm.spi.toFixed(2)}</div>
+                </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
+
+        {/* Bottom metrics row */}
+        {evm && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-gray-100">
+            <div>
+              <div className="text-xs text-gray-500">Completion</div>
+              <div className="flex items-center gap-2 mt-1">
+                <div className="flex-1 bg-gray-200 rounded-full h-2.5">
+                  <div className="bg-primary-600 rounded-full h-2.5" style={{ width: `${Math.round(evm.completionPct * 100)}%` }} />
+                </div>
+                <span className="text-sm font-semibold text-gray-700">{(evm.completionPct * 100).toFixed(1)}%</span>
+              </div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-500">Budget</div>
+              <div className="text-sm font-medium text-gray-900 mt-1">{fmt(evm.budget)}</div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-500">Labor Cost</div>
+              <div className="text-sm font-medium text-gray-900 mt-1">{fmt(evm.laborCost)}</div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-500">Risk Score (max)</div>
+              <div className="text-sm font-medium text-gray-900 mt-1">{evm.maxRiskScore} <span className="text-xs text-gray-400">avg: {evm.avgRiskScore.toFixed(1)}</span></div>
+            </div>
+          </div>
+        )}
+
+        {/* Phase financials (only when phases have planned amounts) */}
+        {totalPlanned > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-gray-100">
+            <div>
+              <div className="text-xs text-gray-500">Planned (Phases)</div>
+              <div className="text-sm font-medium text-gray-900 mt-1">{formatCurrency(totalPlanned)}</div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-500">Payments Received</div>
+              <div className="text-sm font-medium text-gray-900 mt-1">{formatCurrency(totalPaid)}</div>
+            </div>
+            <div className="col-span-2">
+              <div className="text-xs text-gray-500 mb-1">Collection Progress</div>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 bg-gray-200 rounded-full h-2.5">
+                  <div className={`${paymentColor} rounded-full h-2.5`} style={{ width: `${paymentPct}%` }} />
+                </div>
+                <span className="text-sm font-semibold text-gray-700">{paymentPct}%</span>
+              </div>
+              <span className="text-xs text-gray-400">{formatCurrency(totalPaid)} of {formatCurrency(totalPlanned)} collected</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Instructions and My Notes side by side */}
@@ -188,7 +264,7 @@ export default function SummaryTab({ project, projectId, managerId, onNavigate }
                       <span className="text-sm text-gray-500">{inst.authorName}</span>
                       <span className="text-xs text-gray-400">{formatDate(inst.createdAt)}</span>
                       {inst.visibleFrom && inst.visibleTo && (
-                        <span className="text-xs text-gray-400">{inst.visibleFrom} → {inst.visibleTo}</span>
+                        <span className="text-xs text-gray-400">{inst.visibleFrom} &rarr; {inst.visibleTo}</span>
                       )}
                     </div>
                     <div className="flex items-center gap-1 shrink-0 ml-2">
@@ -295,7 +371,7 @@ export default function SummaryTab({ project, projectId, managerId, onNavigate }
                       <div className="min-w-0">
                         <span className="font-medium text-gray-900">{phase.name}</span>
                         {phase.startDate && phase.endDate && (
-                          <span className="ml-2 text-xs text-gray-400">{formatDate(phase.startDate)} → {formatDate(phase.endDate)}</span>
+                          <span className="ml-2 text-xs text-gray-400">{formatDate(phase.startDate)} &rarr; {formatDate(phase.endDate)}</span>
                         )}
                       </div>
                       <div className="flex items-center gap-2 text-sm text-gray-500 shrink-0">

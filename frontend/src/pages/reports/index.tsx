@@ -26,7 +26,7 @@ export default function TimeReportsPage() {
     ...(isExecutive ? [{ key: 'portfolio' as Section, label: 'Portfolio' }] : []),
     { key: 'overview', label: 'Project Overview' },
     ...(user?.role !== 'HR' ? [
-      { key: 'aging' as Section, label: 'Issue Aging' },
+      { key: 'aging' as Section, label: 'Task Aging' },
       { key: 'velocity' as Section, label: 'Sprint Velocity' },
     ] : []),
     { key: 'workload', label: 'Workload' },

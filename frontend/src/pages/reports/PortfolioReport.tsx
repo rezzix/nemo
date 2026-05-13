@@ -60,7 +60,7 @@ export default function PortfolioReport() {
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-4">
             <p className="text-xs text-gray-500">Completion</p>
-            <p className="text-xl font-bold text-gray-900">{portfolio.totalIssues > 0 ? ((portfolio.totalCompleted / portfolio.totalIssues) * 100).toFixed(0) + '%' : '-'}</p>
+            <p className="text-xl font-bold text-gray-900">{portfolio.totalTasks > 0 ? ((portfolio.totalCompleted / portfolio.totalTasks) * 100).toFixed(0) + '%' : '-'}</p>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-4">
             <p className="text-xs text-gray-500">Open Risks</p>
@@ -91,7 +91,7 @@ export default function PortfolioReport() {
                   <td className="px-3 py-3 text-right text-gray-700">{c.totalProjects}</td>
                   <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(c.totalBudget)}</td>
                   <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(c.totalBudgetSpent)}</td>
-                  <td className="px-3 py-3 text-right text-gray-700">{c.totalIssues > 0 ? ((c.totalCompleted / c.totalIssues) * 100).toFixed(0) + '%' : '-'}</td>
+                  <td className="px-3 py-3 text-right text-gray-700">{c.totalTasks > 0 ? ((c.totalCompleted / c.totalTasks) * 100).toFixed(0) + '%' : '-'}</td>
                   <td className="px-3 py-3 text-right">{c.totalOpenRisks + c.totalMitigatingRisks > 0 ? (
                     <span className="text-amber-600 font-medium">{c.totalOpenRisks + c.totalMitigatingRisks}</span>
                   ) : <span className="text-gray-400">0</span>}</td>

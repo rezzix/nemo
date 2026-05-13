@@ -6,13 +6,13 @@ import type {
   CreateProgramRequest,
   UpdateProgramRequest,
   OrganizationConfig,
-  IssueTypeDto,
-  IssueStatusDto,
+  TaskTypeDto,
+  TaskStatusDto,
   OrganizationUpdateRequest,
   CreateUserRequest,
   AdminUpdateUserRequest,
-  CreateIssueTypeRequest,
-  CreateIssueStatusRequest,
+  CreateTaskTypeRequest,
+  CreateTaskStatusRequest,
 } from '@/types';
 
 // Users
@@ -60,42 +60,42 @@ export async function updateOrganization(request: OrganizationUpdateRequest): Pr
   return apiPut<OrganizationConfig>('/organization', request);
 }
 
-// Issue Types (returns raw array, no ApiResponse envelope)
-export async function listIssueTypes(): Promise<IssueTypeDto[]> {
-  const res = await client.get<IssueTypeDto[]>('/issue-types');
+// Task Types (returns raw array, no ApiResponse envelope)
+export async function listTaskTypes(): Promise<TaskTypeDto[]> {
+  const res = await client.get<TaskTypeDto[]>('/task-types');
   return res.data;
 }
 
-export async function createIssueType(request: CreateIssueTypeRequest): Promise<IssueTypeDto> {
-  const res = await client.post<IssueTypeDto>('/issue-types', request);
+export async function createTaskType(request: CreateTaskTypeRequest): Promise<TaskTypeDto> {
+  const res = await client.post<TaskTypeDto>('/task-types', request);
   return res.data;
 }
 
-export async function updateIssueType(id: number, request: CreateIssueTypeRequest): Promise<IssueTypeDto> {
-  const res = await client.put<IssueTypeDto>(`/issue-types/${id}`, request);
+export async function updateTaskType(id: number, request: CreateTaskTypeRequest): Promise<TaskTypeDto> {
+  const res = await client.put<TaskTypeDto>(`/task-types/${id}`, request);
   return res.data;
 }
 
-export async function deleteIssueType(id: number): Promise<void> {
-  await client.delete(`/issue-types/${id}`);
+export async function deleteTaskType(id: number): Promise<void> {
+  await client.delete(`/task-types/${id}`);
 }
 
-// Issue Statuses (returns raw array, no ApiResponse envelope)
-export async function listIssueStatuses(): Promise<IssueStatusDto[]> {
-  const res = await client.get<IssueStatusDto[]>('/issue-statuses');
+// Task Statuses (returns raw array, no ApiResponse envelope)
+export async function listTaskStatuses(): Promise<TaskStatusDto[]> {
+  const res = await client.get<TaskStatusDto[]>('/task-statuses');
   return res.data;
 }
 
-export async function createIssueStatus(request: CreateIssueStatusRequest): Promise<IssueStatusDto> {
-  const res = await client.post<IssueStatusDto>('/issue-statuses', request);
+export async function createTaskStatus(request: CreateTaskStatusRequest): Promise<TaskStatusDto> {
+  const res = await client.post<TaskStatusDto>('/task-statuses', request);
   return res.data;
 }
 
-export async function updateIssueStatus(id: number, request: CreateIssueStatusRequest): Promise<IssueStatusDto> {
-  const res = await client.put<IssueStatusDto>(`/issue-statuses/${id}`, request);
+export async function updateTaskStatus(id: number, request: CreateTaskStatusRequest): Promise<TaskStatusDto> {
+  const res = await client.put<TaskStatusDto>(`/task-statuses/${id}`, request);
   return res.data;
 }
 
-export async function deleteIssueStatus(id: number): Promise<void> {
-  await client.delete(`/issue-statuses/${id}`);
+export async function deleteTaskStatus(id: number): Promise<void> {
+  await client.delete(`/task-statuses/${id}`);
 }

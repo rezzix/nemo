@@ -39,9 +39,9 @@ The application is a monorepo with a Spring Boot backend and a React + TypeScrip
 ## 3. Project Structure
 
 ```
-jari/
+nemo/
 ├── backend/
-│   ├── src/main/java/com/jari/
+│   ├── src/main/java/com/nemo/
 │   │   ├── config/            # SecurityConfig, WebSocketConfig, DataSeeder, IssueConfig, OrganizationConfig
 │   │   ├── security/          # AuthController, CaptchaService, CustomUserDetails, CustomUserDetailsService, AuthHelper
 │   │   ├── common/            # DTOs (ApiResponse, PaginatedResponse, ErrorResponse, ValidationError)
@@ -90,7 +90,7 @@ Create the monorepo structure with Gradle multi-project build.
 
 **Backend `settings.gradle`:**
 ```groovy
-rootProject.name = 'jari'
+rootProject.name = 'nemo'
 include 'backend'
 ```
 
@@ -104,7 +104,7 @@ nemo:
   build: ''
 spring:
   application.name: nemo
-  datasource.url: jdbc:h2:file:./data/jari-db
+  datasource.url: jdbc:h2:file:./data/nemo-db
   datasource.driver-class-name: org.h2.Driver
   datasource.username: sa
   datasource.password: ''
@@ -119,7 +119,7 @@ spring:
   sql.init.mode: always
 server.port: 8080
 storage.filesystem.base-path: ./data/attachments
-logging.level.com.jari: DEBUG
+logging.level.com.nemo: DEBUG
 ```
 
 **Backend `application-prod.yml`:**
@@ -127,10 +127,10 @@ logging.level.com.jari: DEBUG
 nemo:
   devmode: false
 spring:
-  datasource.url: ${JARI_DB_URL}
+  datasource.url: ${NEMO_DB_URL}
   datasource.driver-class-name: org.postgresql.Driver
-  datasource.username: ${JARI_DB_USERNAME}
-  datasource.password: ${JARI_DB_PASSWORD}
+  datasource.username: ${NEMO_DB_USERNAME}
+  datasource.password: ${NEMO_DB_PASSWORD}
   jpa.hibernate.ddl-auto: validate
   jpa.properties.hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
   h2.console.enabled: false
@@ -165,14 +165,14 @@ spring:
 
 ### Step 2: Common Infrastructure
 
-**Package: `com.jari.common.dto`**
+**Package: `com.nemo.common.dto`**
 
 - `ApiResponse<T>` — wrapper with `data` and `timestamp` fields. Static factory `ApiResponse.of(data)`.
 - `PaginatedResponse<T>` — extends ApiResponse, adds `pagination` with page, size, totalElements, totalPages.
 - `ErrorResponse` — status, error, message, timestamp.
 - `ValidationError` — status=422, error, message, list of FieldError(field, message), timestamp.
 
-**Package: `com.jari.common.exception`**
+**Package: `com.nemo.common.exception`**
 
 - `EntityNotFoundException` — 404
 - `ForbiddenException` — 403
@@ -180,7 +180,7 @@ spring:
 - `DuplicateKeyException` — 409
 - `GlobalExceptionHandler` (@RestControllerAdvice) — maps each exception to its HTTP status, handles MethodArgumentNotValidException as 422 with field errors.
 
-**Package: `com.jari.common.storage`**
+**Package: `com.nemo.common.storage`**
 
 - `StorageService` interface — store(MultipartFile, String subdir), load(String filename, String subdir), delete(String filename, String subdir). Returns paths/streams.
 - `FilesystemStorageService` — stores to `./data/attachments`, UUID-prefixed filenames, path traversal protection, configurable base-path from `storage.filesystem.base-path`.
@@ -189,7 +189,7 @@ spring:
 
 **IMPORTANT: Reserved word handling.** The following column names use a trailing underscore `_` suffix because they conflict with SQL reserved words: `key` → `key_`, `order` → `order_`, `role` → `role_`, `type` → `type_`, `action` → `action_`. Table names `user` → `app_user`, `comment` → `issue_comment`. All relationships use `FetchType.LAZY`.
 
-Create these entities in order (each in its own package under `com.jari`):
+Create these entities in order (each in its own package under `com.nemo`):
 
 1. **Company** — `@Table(name = "company")`, fields: id, name (unique), key (`@Column(name = "key_")`, unique, length=10), description (TEXT), address (length=500), website (length=500), logo (length=500), order (`@Column(name = "order_")`), active (default true), timestamps. `@UniqueConstraint(columnNames = {"key_"})`.
 

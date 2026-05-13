@@ -3,10 +3,10 @@ nemo:
 
 spring:
   datasource:
-    url: ${JARI_DB_URL}
+    url: ${NEMO_DB_URL}
     driver-class-name: org.postgresql.Driver
-    username: ${JARI_DB_USERNAME}
-    password: ${JARI_DB_PASSWORD}
+    username: ${NEMO_DB_USERNAME}
+    password: ${NEMO_DB_PASSWORD}
 
   jpa:
     hibernate:

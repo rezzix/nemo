@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import type { UserDto, ProjectDto, MemberDto, IssueDto, TimeLogDto, LeaveRequestDto, AssetDto, AssetType, AssetStatus } from '@/types';
+import type { UserDto, ProjectDto, MemberDto, TaskDto, TimeLogDto, LeaveRequestDto, AssetDto, AssetType, AssetStatus } from '@/types';
 import { getUser } from '@/api/users';
 import { listProjects, getMembers } from '@/api/projects';
-import { listProjectIssues } from '@/api/issues';
+import { listProjectTasks } from '@/api/tasks';
 import { listTimeLogs } from '@/api/timeLogs';
 import { listLeaveRequests } from '@/api/leave';
 import { listAssets } from '@/api/assets';
@@ -36,7 +36,7 @@ const leaveStatusColor = (s: string) => {
     default: return 'bg-gray-100 text-gray-700';
   }
 };
-const issueStatusColor = (name: string) => {
+const taskStatusColor = (name: string) => {
   const n = name.toLowerCase();
   if (n.includes('progress') || n.includes('active')) return 'bg-blue-100 text-blue-700';
   if (n.includes('done') || n.includes('closed') || n.includes('resolved')) return 'bg-green-100 text-green-700';
@@ -46,10 +46,10 @@ const issueStatusColor = (name: string) => {
 
 interface ProjectData {
   project: ProjectDto;
-  issues: IssueDto[];
+  tasks: TaskDto[];
   score: number | null;
   totalHours: number;
-  issueHours: Record<number, number>;
+  taskHours: Record<number, number>;
 }
 
 export default function UserDetailPage() {
@@ -85,22 +85,22 @@ export default function UserDetailPage() {
             const member = members.find((m: MemberDto) => m.userId === userId);
             if (!member) continue;
 
-            const issues = await listProjectIssues(p.id, { assigneeId: userId });
+            const tasks = await listProjectTasks(p.id, { assigneeId: userId });
             const logs = await listTimeLogs({ userId, size: 200 });
-            const issueHoursMap: Record<number, number> = {};
-            const projectLogs = logs.filter((l: TimeLogDto) => issues.some((i: IssueDto) => i.id === l.issueId));
+            const taskHoursMap: Record<number, number> = {};
+            const projectLogs = logs.filter((l: TimeLogDto) => tasks.some((i: TaskDto) => i.id === l.taskId));
             const projectHours = projectLogs.reduce((sum: number, l: TimeLogDto) => sum + l.hours, 0);
             for (const l of projectLogs) {
-              issueHoursMap[l.issueId] = (issueHoursMap[l.issueId] || 0) + l.hours;
+              taskHoursMap[l.taskId] = (taskHoursMap[l.taskId] || 0) + l.hours;
             }
 
-            if (issues.length > 0 || member.score != null) {
+            if (tasks.length > 0 || member.score != null) {
               pData.push({
                 project: p,
-                issues,
+                tasks,
                 score: member.score,
                 totalHours: projectHours,
-                issueHours: issueHoursMap,
+                taskHours: taskHoursMap,
               });
             }
           } catch { /* skip project */ }
@@ -155,14 +155,14 @@ export default function UserDetailPage() {
 
       {dataLoading && <div className="flex items-center justify-center h-32"><Spinner className="h-6 w-6 text-primary-600" /></div>}
 
-      {/* Projects card — issues grouped by project with evaluation and time */}
+      {/* Projects card — tasks grouped by project with evaluation and time */}
       {!dataLoading && (
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-gray-900">Projects</h3>
           {projectData.length === 0 ? (
             <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-500">No project assignments found.</div>
           ) : (
-            projectData.map(({ project, issues, score, totalHours, issueHours }) => (
+            projectData.map(({ project, tasks, score, totalHours, taskHours }) => (
               <div key={project.id} className="bg-white rounded-xl border border-gray-200">
                 {/* Project header */}
                 <Link to={`/projects/${project.id}`} className="block px-5 py-4 hover:bg-gray-50 rounded-t-xl">
@@ -176,30 +176,30 @@ export default function UserDetailPage() {
                         <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${scoreColor(score)}`}>{score} - {scoreLabel(score)}</span>
                       )}
                       <span>{totalHours.toFixed(1)}h logged</span>
-                      <span>{issues.length} issue{issues.length !== 1 ? 's' : ''}</span>
+                      <span>{tasks.length} task{tasks.length !== 1 ? 's' : ''}</span>
                     </div>
                   </div>
                 </Link>
 
-                {/* Issues under this project */}
-                {issues.length > 0 && (
+                {/* Tasks under this project */}
+                {tasks.length > 0 && (
                   <div className="border-t border-gray-100 divide-y divide-gray-50">
-                    {issues.map((issue) => (
+                    {tasks.map((task) => (
                       <Link
-                        key={issue.id}
-                        to={`/projects/${issue.projectId}/issues/${issue.id}`}
+                        key={task.id}
+                        to={`/projects/${task.projectId}/tasks/${task.id}`}
                         className="flex items-center justify-between px-5 py-2.5 hover:bg-gray-50"
                       >
                         <div className="flex items-center gap-2 min-w-0">
-                          <span className="font-mono text-xs text-gray-400">{issue.issueKey}</span>
-                          <span className="text-sm text-gray-900 truncate">{issue.title}</span>
+                          <span className="font-mono text-xs text-gray-400">{task.taskKey}</span>
+                          <span className="text-sm text-gray-900 truncate">{task.title}</span>
                         </div>
                         <div className="flex items-center gap-2 shrink-0 ml-3">
-                          {issueHours[issue.id] != null && (
-                            <span className="text-xs text-gray-500">{issueHours[issue.id].toFixed(1)}h</span>
+                          {taskHours[task.id] != null && (
+                            <span className="text-xs text-gray-500">{taskHours[task.id].toFixed(1)}h</span>
                           )}
-                          <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${issueStatusColor(issue.statusName)}`}>
-                            {issue.statusName}
+                          <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${taskStatusColor(task.statusName)}`}>
+                            {task.statusName}
                           </span>
                         </div>
                       </Link>

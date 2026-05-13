@@ -9,10 +9,10 @@ Nemo is a multi-company project management system combining issue tracking, time
 ## 2. Monorepo Structure
 
 ```
-jari/
+nemo/
 ├── backend/                    # Spring Boot application
 │   └── src/
-│       ├── main/java/com/jari/
+│       ├── main/java/com/nemo/
 │       │   ├── config/             # Spring configuration (Security, WebSocket, CORS, DataSeeder)
 │       │   ├── security/           # Auth filters, session management, RBAC, CustomUserDetails, AuthHelper
 │       │   ├── common/             # Shared: DTOs, exceptions, audit, storage

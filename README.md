@@ -30,7 +30,7 @@ A project management system with PMO capabilities, time tracking, and built-in p
 ```
 nemo/
 ├── backend/                   # Spring Boot application
-│   └── src/main/java/com/jari/
+│   └── src/main/java/com/nemo/
 │       ├── attachment/         # File attachments
 │       ├── common/             # Audit, DTOs, exceptions, storage
 │       ├── config/             # Issue types/statuses, org config, data seeder

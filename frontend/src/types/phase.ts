@@ -6,6 +6,7 @@ export interface PhaseDto {
   startDate: string | null;
   endDate: string | null;
   position: number;
+  status: string;
   deliverableCount: number;
   plannedAmount: string | null;
   totalPaid: string | null;
@@ -19,6 +20,7 @@ export interface CreatePhaseRequest {
   startDate?: string;
   endDate?: string;
   plannedAmount?: string;
+  status?: string;
 }
 
 export interface UpdatePhaseRequest {
@@ -28,6 +30,7 @@ export interface UpdatePhaseRequest {
   endDate?: string | null;
   position?: number;
   plannedAmount?: string | null;
+  status?: string;
 }
 
 export interface PhasePaymentDto {

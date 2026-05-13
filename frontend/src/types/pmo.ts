@@ -2,7 +2,7 @@ export interface RaidItemDto {
   id: number;
   projectId: number;
   projectName: string;
-  type: 'RISK' | 'ASSUMPTION' | 'ISSUE' | 'DEPENDENCY';
+  type: 'RISK' | 'ASSUMPTION' | 'TASK' | 'DEPENDENCY';
   title: string;
   description: string | null;
   status: 'OPEN' | 'MITIGATING' | 'RESOLVED' | 'CLOSED';
@@ -20,7 +20,7 @@ export interface RaidItemDto {
 
 export interface CreateRaidItemRequest {
   projectId: number;
-  type: 'RISK' | 'ASSUMPTION' | 'ISSUE' | 'DEPENDENCY';
+  type: 'RISK' | 'ASSUMPTION' | 'TASK' | 'DEPENDENCY';
   title: string;
   description?: string;
   status?: 'OPEN' | 'MITIGATING' | 'RESOLVED' | 'CLOSED';
@@ -33,7 +33,7 @@ export interface CreateRaidItemRequest {
 }
 
 export interface UpdateRaidItemRequest {
-  type?: 'RISK' | 'ASSUMPTION' | 'ISSUE' | 'DEPENDENCY';
+  type?: 'RISK' | 'ASSUMPTION' | 'TASK' | 'DEPENDENCY';
   title?: string;
   description?: string | null;
   status?: 'OPEN' | 'MITIGATING' | 'RESOLVED' | 'CLOSED';
@@ -48,8 +48,8 @@ export interface UpdateRaidItemRequest {
 export interface EvmMetrics {
   projectId: number;
   projectName: string;
-  totalIssues: number;
-  completedIssues: number;
+  totalTasks: number;
+  completedTasks: number;
   completionPct: number;
   plannedValue: number;
   earnedValue: number;
@@ -75,7 +75,7 @@ export interface EvmMetrics {
 
 export interface PortfolioSummary {
   totalProjects: number;
-  totalIssues: number;
+  totalTasks: number;
   totalCompleted: number;
   totalPlannedValue: number;
   totalEarnedValue: number;
@@ -94,7 +94,7 @@ export interface CompanyPortfolioSummary {
   companyName: string;
   companyKey: string;
   totalProjects: number;
-  totalIssues: number;
+  totalTasks: number;
   totalCompleted: number;
   totalBudget: number;
   totalBudgetSpent: number;

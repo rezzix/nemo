@@ -349,7 +349,7 @@ sequenceDiagram
 
     Note over UserA,UserB: Both viewing Kanban for Project X
 
-    UserA->>Server: Drag issue JARI-42 from "To Do" to "In Progress"
+    UserA->>Server: Drag issue NEMO-42 from "To Do" to "In Progress"
     Server->>DB: UPDATE issue SET status_id=? WHERE id=42
     DB-->>Server: OK
     Server->>Server: Publish to /topic/kanban/{projectId}
@@ -357,7 +357,7 @@ sequenceDiagram
     Server-->>UserB: STOMP message: {issueId:42, newStatus:"IN_PROGRESS"}
     UserB->>UserB: Board updates instantly
 
-    UserB->>Server: Drag issue JARI-15 from "In Progress" to "Done"
+    UserB->>Server: Drag issue NEMO-15 from "In Progress" to "Done"
     Server->>DB: UPDATE issue SET status_id=? WHERE id=15
     DB-->>Server: OK
     Server->>Server: Publish to /topic/kanban/{projectId}
@@ -372,7 +372,7 @@ sequenceDiagram
 
 ```mermaid
 flowchart TB
-    subgraph jari-backend
+    subgraph nemo-backend
         direction TB
 
         subgraph common

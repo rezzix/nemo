@@ -4,7 +4,7 @@ import type { PreSaleDto, PreSaleStage, ClientDto } from '@/types';
 import { listPreSales, createPreSale } from '@/api/presales';
 import { listClients } from '@/api/clients';
 import { useAuth } from '@/hooks/useAuth';
-import { formatDate, preSaleStageLabel, preSaleStageBadge } from '@/utils/format';
+import { formatDate, preSaleStageLabel, preSaleStageBadge, formatCurrency } from '@/utils/format';
 import Spinner from '@/components/common/Spinner';
 import Modal from '@/components/common/Modal';
 
@@ -81,7 +81,7 @@ export default function PreSalesPage() {
                   <td className="px-4 py-3"><Link to={`/presales/${ps.id}`} className="font-medium text-gray-900 hover:text-primary-600">{ps.name}</Link></td>
                   <td className="px-4 py-3 text-gray-600">{ps.clientName || '—'}</td>
                   <td className="px-4 py-3"><span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${preSaleStageBadge(ps.stage)}`}>{preSaleStageLabel(ps.stage)}</span></td>
-                  <td className="px-4 py-3 text-gray-600">{ps.estimatedValue ? `$${Number(ps.estimatedValue).toLocaleString()}` : '—'}</td>
+                  <td className="px-4 py-3 text-gray-600">{ps.estimatedValue ? formatCurrency(Number(ps.estimatedValue)) : '—'}</td>
                   <td className="px-4 py-3 text-gray-600">{ps.probability != null ? `${ps.probability}%` : '—'}</td>
                   <td className="px-4 py-3 text-gray-500">{ps.expectedCloseDate ? formatDate(ps.expectedCloseDate) : '—'}</td>
                   <td className="px-4 py-3 text-gray-600">{ps.managerName}</td>

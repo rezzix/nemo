@@ -205,7 +205,7 @@ export default function ExecutiveDashboard() {
         { label: 'Portfolio CPI', value: totalActualCost > 0 ? (totalEarnedValue / totalActualCost).toFixed(2) : '—', color: cv >= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' },
         { label: 'Portfolio SPI', value: totalPlannedValue > 0 ? (totalEarnedValue / totalPlannedValue).toFixed(2) : '—', color: sv >= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' },
         { label: 'Open Risks', value: cs.totalOpenRisks + cs.totalMitigatingRisks, color: 'bg-amber-50 text-amber-700' },
-        { label: 'Completion', value: cs.totalIssues > 0 ? ((cs.totalCompleted / cs.totalIssues) * 100).toFixed(0) + '%' : '—', color: 'bg-emerald-50 text-emerald-700' },
+        { label: 'Completion', value: cs.totalTasks > 0 ? ((cs.totalCompleted / cs.totalTasks) * 100).toFixed(0) + '%' : '—', color: 'bg-emerald-50 text-emerald-700' },
       ];
     }
     // Group (all companies) — use full portfolio
@@ -215,7 +215,7 @@ export default function ExecutiveDashboard() {
     { label: 'Portfolio CPI', value: portfolio.portfolioCv !== 0 ? (portfolio.totalActualCost > 0 ? (portfolio.totalEarnedValue / portfolio.totalActualCost).toFixed(2) : '—') : '—', color: portfolio.portfolioCv >= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' },
     { label: 'Portfolio SPI', value: portfolio.totalPlannedValue > 0 ? (portfolio.totalEarnedValue / portfolio.totalPlannedValue).toFixed(2) : '—', color: portfolio.portfolioSv >= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' },
     { label: 'Open Risks', value: portfolio.totalOpenRisks + portfolio.totalMitigatingRisks, color: 'bg-amber-50 text-amber-700' },
-    { label: 'Completion', value: portfolio.totalIssues > 0 ? ((portfolio.totalCompleted / portfolio.totalIssues) * 100).toFixed(0) + '%' : '—', color: 'bg-emerald-50 text-emerald-700' },
+    { label: 'Completion', value: portfolio.totalTasks > 0 ? ((portfolio.totalCompleted / portfolio.totalTasks) * 100).toFixed(0) + '%' : '—', color: 'bg-emerald-50 text-emerald-700' },
   ] : [
     { label: 'Total Projects', value: projects.length, color: 'bg-primary-50 text-primary-700' },
   ];
@@ -380,7 +380,7 @@ export default function ExecutiveDashboard() {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Company Performance</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {companyData.map((c) => {
-              const completionPct = c.totalIssues > 0 ? ((c.totalCompleted / c.totalIssues) * 100).toFixed(0) : '0';
+              const completionPct = c.totalTasks > 0 ? ((c.totalCompleted / c.totalTasks) * 100).toFixed(0) : '0';
               return (
                 <div key={c.companyId ?? 'unassigned'} className="border border-gray-200 rounded-lg p-4">
                   <h4 className="font-semibold text-gray-900 truncate">{c.companyName}</h4>

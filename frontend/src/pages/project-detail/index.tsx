@@ -4,11 +4,11 @@ import type { ProjectDto, WikiTreeItem, WikiPageDto, WikiSearchHit } from '@/typ
 import { getProject } from '@/api/projects';
 import { getWikiPageTree, getWikiPage, createWikiPage, updateWikiPage, deleteWikiPage, searchWikiPages } from '@/api/wiki';
 import { useAuth } from '@/hooks/useAuth';
-import { stageBadge, stageLabel, formatDate } from '@/utils/format';
+import { stageBadge, stageLabel, formatDate, formatCurrency } from '@/utils/format';
 import Spinner from '@/components/common/Spinner';
 import Modal from '@/components/common/Modal';
 import Field from '@/components/common/Field';
-import IssuesTab from './IssuesTab';
+import TasksTab from './TasksTab';
 import BoardTab from './BoardTab';
 import RaidTab from './RaidTab';
 import PhasesTab from './PhasesTab';
@@ -17,7 +17,7 @@ import MembersTab from './MembersTab';
 import SummaryTab from './SummaryTab';
 import MarkdownRenderer from '@/components/common/MarkdownRenderer';
 
-type Tab = 'summary' | 'issues' | 'board' | 'docs' | 'raid' | 'phases' | 'members' | 'settings';
+type Tab = 'summary' | 'tasks' | 'board' | 'docs' | 'raid' | 'phases' | 'members' | 'settings';
 
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -41,10 +41,10 @@ export default function ProjectDetailPage() {
 
   // Role-based tab visibility:
   // EXECUTIVE: summary, board, raid, docs
-  // MANAGER:   summary, board, raid, issues, docs, phases, members, settings
+  // MANAGER:   summary, board, raid, tasks, docs, phases, members, settings
   // HR:        summary, members, docs
-  // CONTRIBUTOR: issues, board, docs
-  // EXTERNAL: issues, board (existing behavior)
+  // CONTRIBUTOR: tasks, board, docs
+  // EXTERNAL: tasks, board (existing behavior)
   const tabs: { key: Tab; label: string }[] = role === 'EXECUTIVE' ? [
     { key: 'summary', label: 'Summary' },
     { key: 'board', label: 'Board' },
@@ -54,7 +54,7 @@ export default function ProjectDetailPage() {
     { key: 'summary', label: 'Summary' },
     { key: 'board', label: 'Board' },
     { key: 'raid', label: 'RAID' },
-    { key: 'issues', label: 'Issues' },
+    { key: 'tasks', label: 'Tasks' },
     { key: 'docs', label: 'Docs' },
     { key: 'phases', label: 'Phases' },
     { key: 'members', label: 'Members' },
@@ -64,11 +64,11 @@ export default function ProjectDetailPage() {
     { key: 'members', label: 'Members' },
     { key: 'docs', label: 'Docs' },
   ] : role === 'CONTRIBUTOR' ? [
-    { key: 'issues', label: 'Issues' },
+    { key: 'tasks', label: 'Tasks' },
     { key: 'board', label: 'Board' },
     { key: 'docs', label: 'Docs' },
   ] : [ // EXTERNAL or fallback
-    { key: 'issues', label: 'Issues' },
+    { key: 'tasks', label: 'Tasks' },
     { key: 'board', label: 'Board' },
   ];
 
@@ -85,7 +85,7 @@ export default function ProjectDetailPage() {
           <span>Manager: {project.managerName}</span>
           {project.clientName && <span>Client: {project.clientName}</span>}
           {project.programName && <span>Program: {project.programName}</span>}
-          {project.budget && <span>Budget: ${Number(project.budget).toLocaleString()}</span>}
+          {project.budget && <span>Budget: {formatCurrency(Number(project.budget))}</span>}
           {project.strategicScore != null && <span>Score: {project.strategicScore}/10</span>}
         </div>
       </div>
@@ -107,7 +107,7 @@ export default function ProjectDetailPage() {
       </div>
 
       {activeTab === 'summary' && <SummaryTab project={project} projectId={project.id} managerId={project.managerId} onNavigate={setActiveTab} />}
-      {activeTab === 'issues' && <IssuesTab projectId={project.id} projectKey={project.key} canEdit={canEdit} isExternal={isExternal} />}
+      {activeTab === 'tasks' && <TasksTab projectId={project.id} projectKey={project.key} canEdit={canEdit} isExternal={isExternal} />}
       {activeTab === 'board' && <BoardTab projectId={project.id} projectKey={project.key} isExternal={isExternal} />}
       {activeTab === 'docs' && <DocsTab projectId={project.id} />}
       {activeTab === 'raid' && <RaidTab projectId={project.id} canEdit={canEdit} />}

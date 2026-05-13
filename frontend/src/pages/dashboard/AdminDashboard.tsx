@@ -5,10 +5,10 @@ import { listProjects } from '@/api/projects';
 import { listAllUsers } from '@/api/users';
 import { listCompanies } from '@/api/companies';
 import { getOrganization } from '@/api/organization';
-import { listIssueTypes, listIssueStatuses } from '@/api/admin';
+import { listTaskTypes, listTaskStatuses } from '@/api/admin';
 import BarChart from '@/pages/reports/BarChart';
 import { stageBadge, stageLabel } from '@/utils/format';
-import type { ProjectDto, UserDto, CompanyDto, OrganizationConfig, IssueTypeDto, IssueStatusDto } from '@/types';
+import type { ProjectDto, UserDto, CompanyDto, OrganizationConfig, TaskTypeDto, TaskStatusDto } from '@/types';
 import client from '@/api/client';
 import Spinner from '@/components/common/Spinner';
 
@@ -27,8 +27,8 @@ export default function AdminDashboard() {
   const [companies, setCompanies] = useState<CompanyDto[]>([]);
   const [projects, setProjects] = useState<ProjectDto[]>([]);
   const [org, setOrg] = useState<OrganizationConfig | null>(null);
-  const [issueTypes, setIssueTypes] = useState<IssueTypeDto[]>([]);
-  const [issueStatuses, setIssueStatuses] = useState<IssueStatusDto[]>([]);
+  const [taskTypes, setTaskTypes] = useState<TaskTypeDto[]>([]);
+  const [taskStatuses, setTaskStatuses] = useState<TaskStatusDto[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -38,8 +38,8 @@ export default function AdminDashboard() {
       listCompanies().then((res) => setCompanies(res.data)),
       listProjects().then(setProjects),
       getOrganization().then(setOrg).catch(() => {}),
-      listIssueTypes().then(setIssueTypes),
-      listIssueStatuses().then(setIssueStatuses),
+      listTaskTypes().then(setTaskTypes),
+      listTaskStatuses().then(setTaskStatuses),
       client.get('/audit-logs?size=10').then((res: { data: { data?: AuditEntry[]; content?: AuditEntry[] } }) => {
         const d = res.data;
         const entries = d?.data ?? d?.content ?? [];
@@ -157,17 +157,17 @@ export default function AdminDashboard() {
           </div>
         )}
         <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h4 className="text-sm font-medium text-gray-500 mb-2">Issue Types</h4>
+          <h4 className="text-sm font-medium text-gray-500 mb-2">Task Types</h4>
           <div className="flex flex-wrap gap-1.5">
-            {issueTypes.map((t) => (
+            {taskTypes.map((t) => (
               <span key={t.id} className="px-2 py-0.5 rounded bg-gray-100 text-gray-700 text-xs">{t.name}</span>
             ))}
           </div>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h4 className="text-sm font-medium text-gray-500 mb-2">Issue Statuses</h4>
+          <h4 className="text-sm font-medium text-gray-500 mb-2">Task Statuses</h4>
           <div className="flex flex-wrap gap-1.5">
-            {issueStatuses.map((s) => (
+            {taskStatuses.map((s) => (
               <span key={s.id} className="px-2 py-0.5 rounded bg-gray-100 text-gray-700 text-xs">{s.name}</span>
             ))}
           </div>

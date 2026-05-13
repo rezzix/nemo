@@ -76,7 +76,7 @@ export default function PmoDashboardPage() {
           <StatCard label="Total Projects" value={String(portfolio.totalProjects)} icon={ProjectIcon} />
           <StatCard label="Portfolio Budget" value={formatCurrency(portfolio.totalBudget)} sub={`Spent: ${formatCurrency(portfolio.totalBudgetSpent)}`} icon={BudgetIcon} />
           <StatCard label="Open Risks" value={String(portfolio.totalOpenRisks)} sub={`${portfolio.totalMitigatingRisks} mitigating`} icon={RiskIcon} />
-          <StatCard label="Completion" value={`${portfolio.totalIssues > 0 ? Math.round((portfolio.totalCompleted / portfolio.totalIssues) * 100) : 0}%`} sub={`${portfolio.totalCompleted} / ${portfolio.totalIssues} issues`} icon={ProgressIcon} />
+          <StatCard label="Completion" value={`${portfolio.totalTasks > 0 ? Math.round((portfolio.totalCompleted / portfolio.totalTasks) * 100) : 0}%`} sub={`${portfolio.totalCompleted} / ${portfolio.totalTasks} tasks`} icon={ProgressIcon} />
         </div>
       )}
 

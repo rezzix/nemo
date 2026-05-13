@@ -209,7 +209,7 @@ Per-project labels for issue tagging.
 | id | BIGINT | PK, auto-increment | |
 | title | VARCHAR(500) | NOT NULL | |
 | description | TEXT | | Rich text (Markdown) |
-| issue_key | VARCHAR(20) | NOT NULL, UNIQUE | Display key (e.g. "JARI-42") |
+| issue_key | VARCHAR(20) | NOT NULL, UNIQUE | Display key (e.g. "NEMO-42") |
 | status_id | BIGINT | FK → issue_status(id), NOT NULL | |
 | priority | VARCHAR(20) | NOT NULL, CHECK IN ('CRITICAL','HIGH','MEDIUM','LOW') | |
 | type_id | BIGINT | FK → issue_type(id), NOT NULL | |
@@ -437,7 +437,7 @@ Join table for user ↔ project favorites (starred projects in sidebar).
 ## Design Decisions
 
 ### Why `issue_key` instead of auto-generated ID only?
-Issues get human-readable keys like `JARI-42` (project key + sequential number). This is how users reference issues in conversations and time logs. The key is generated on creation: `{project.key}-{next_sequence}`.
+Issues get human-readable keys like `NEMO-42` (project key + sequential number). This is how users reference issues in conversations and time logs. The key is generated on creation: `{project.key}-{next_sequence}`.
 
 ### Why `position` on `issue` instead of a separate ordering table?
 Keeps the schema simple. The `position` field determines ordering within the backlog (when `sprint_id` is null) or within a sprint (when `sprint_id` is set). When dragging issues on the board or backlog, the client sends updated position values.
@@ -455,7 +455,7 @@ Priorities are stable and universal (Critical/High/Medium/Low). Unlike statuses 
 Allows values like `2.50` (two and a half hours) with a max of `999.99`. More precise than integer hours, avoids floating-point rounding issues.
 
 ### Why `slug` on `wiki_page`?
-URL-friendly identifiers for wiki pages (e.g., `/projects/JARI/wiki/getting-started`). Better than exposing internal IDs in URLs and enables search-friendly page addressing.
+URL-friendly identifiers for wiki pages (e.g., `/projects/NEMO/wiki/getting-started`). Better than exposing internal IDs in URLs and enables search-friendly page addressing.
 
 ### Why `is_default` on `issue_status`?
 When creating a new issue, the system needs to know which status to assign by default. Exactly one status should have `is_default = true`.

@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { listTimeLogs, createTimeLog, updateTimeLog, deleteTimeLog, getWeeklyTimesheet } from '@/api/timeLogs';
-import { useMyIssues } from '@/hooks/useMyIssues';
+import { useMyTasks } from '@/hooks/useMyTasks';
 import { useHolidays } from '@/hooks/useHolidays';
-import type { TimeLogDto, IssueDto } from '@/types';
+import type { TimeLogDto, TaskDto } from '@/types';
 import { formatDate } from '@/utils/format';
 import Spinner from '@/components/common/Spinner';
 
@@ -36,7 +36,7 @@ export default function MyTimePage() {
   const [loading, setLoading] = useState(true);
   const [allLogs, setAllLogs] = useState<TimeLogDto[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [formIssueId, setFormIssueId] = useState('');
+  const [formTaskId, setFormTaskId] = useState('');
   const [formHours, setFormHours] = useState('');
   const [formDate, setFormDate] = useState(new Date().toISOString().slice(0, 10));
   const [formDesc, setFormDesc] = useState('');
@@ -49,24 +49,24 @@ export default function MyTimePage() {
   const [editDate, setEditDate] = useState('');
   const [editDesc, setEditDesc] = useState('');
 
-  const { myIssues, projects, isLoading: issuesLoading } = useMyIssues();
+  const { myTasks, projects, isLoading: tasksLoading } = useMyTasks();
 
-  const openIssues = useMemo(() => {
-    return myIssues.filter(
+  const openTasks = useMemo(() => {
+    return myTasks.filter(
       (i) => i.statusCategory === 'TODO' || i.statusCategory === 'IN_PROGRESS',
     );
-  }, [myIssues]);
+  }, [myTasks]);
 
-  // Group open issues by project for the dropdown
-  const issuesByProject = useMemo(() => {
-    const groups: Record<string, IssueDto[]> = {};
-    for (const issue of openIssues) {
-      const key = issue.projectKey || `Project ${issue.projectId}`;
+  // Group open tasks by project for the dropdown
+  const tasksByProject = useMemo(() => {
+    const groups: Record<string, TaskDto[]> = {};
+    for (const task of openTasks) {
+      const key = task.projectKey || `Project ${task.projectId}`;
       if (!groups[key]) groups[key] = [];
-      groups[key].push(issue);
+      groups[key].push(task);
     }
     return groups;
-  }, [openIssues]);
+  }, [openTasks]);
 
   const fetchWeek = useCallback(async () => {
     if (!user) return;
@@ -120,17 +120,17 @@ export default function MyTimePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formIssueId || !formHours) return;
+    if (!formTaskId || !formHours) return;
     setSaving(true);
     setError(null);
     try {
       await createTimeLog({
-        issueId: Number(formIssueId),
+        taskId: Number(formTaskId),
         hours: parseFloat(formHours),
         logDate: formDate,
         description: formDesc || undefined,
       });
-      setFormIssueId('');
+      setFormTaskId('');
       setFormHours('');
       setFormDesc('');
       setShowForm(false);
@@ -197,25 +197,25 @@ export default function MyTimePage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Task</label>
-              {issuesLoading ? (
+              {tasksLoading ? (
                 <div className="flex items-center justify-center py-2">
                   <Spinner className="h-4 w-4 text-gray-400" />
                 </div>
-              ) : openIssues.length === 0 ? (
+              ) : openTasks.length === 0 ? (
                 <p className="text-sm text-gray-400 py-2">No open tasks assigned to you.</p>
               ) : (
                 <select
-                  value={formIssueId}
-                  onChange={(e) => setFormIssueId(e.target.value)}
+                  value={formTaskId}
+                  onChange={(e) => setFormTaskId(e.target.value)}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="">Select a task...</option>
-                  {Object.entries(issuesByProject).map(([projectKey, issues]) => (
+                  {Object.entries(tasksByProject).map(([projectKey, tasks]) => (
                     <optgroup key={projectKey} label={projectKey}>
-                      {issues.map((issue) => (
-                        <option key={issue.id} value={issue.id}>
-                          {issue.issueKey}: {issue.title}
+                      {tasks.map((task) => (
+                        <option key={task.id} value={task.id}>
+                          {task.taskKey}: {task.title}
                         </option>
                       ))}
                     </optgroup>
@@ -260,7 +260,7 @@ export default function MyTimePage() {
           <div className="flex justify-end">
             <button
               type="submit"
-              disabled={saving || !formIssueId || !formHours}
+              disabled={saving || !formTaskId || !formHours}
               className="bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50 flex items-center gap-2"
             >
               {saving && <Spinner className="h-4 w-4" />}Log Time
@@ -307,8 +307,8 @@ export default function MyTimePage() {
                 <div className="space-y-1 max-h-32 overflow-y-auto">
                   {logs.map((l) => (
                     <div key={l.id} className="text-xs bg-gray-50 rounded p-1.5">
-                      <div className="font-medium text-gray-800 truncate">{l.issueKey}</div>
-                      <div className="text-gray-500 truncate">{l.description || l.issueTitle}</div>
+                      <div className="font-medium text-gray-800 truncate">{l.taskKey}</div>
+                      <div className="text-gray-500 truncate">{l.description || l.taskTitle}</div>
                     </div>
                   ))}
                 </div>
@@ -329,7 +329,7 @@ export default function MyTimePage() {
               <div key={l.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
                 {editingId === l.id ? (
                   <div className="flex-1 flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-medium text-primary-600">{l.issueKey}</span>
+                    <span className="text-sm font-medium text-primary-600">{l.taskKey}</span>
                     <input
                       type="number" step="0.25" min="0.25" value={editHours}
                       onChange={(e) => setEditHours(e.target.value)}
@@ -355,7 +355,7 @@ export default function MyTimePage() {
                   <>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-primary-600">{l.issueKey}</span>
+                        <span className="text-sm font-medium text-primary-600">{l.taskKey}</span>
                         <span className="text-sm font-semibold text-gray-700">{l.hours}h</span>
                         <span className="text-xs text-gray-400">{formatDate(l.logDate)}</span>
                       </div>

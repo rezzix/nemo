@@ -52,10 +52,10 @@ export async function getTimeByUser(startDate: string, endDate: string, projectI
   return apiGet('/reports/time-by-user', params);
 }
 
-export async function getTimeByIssue(startDate: string, endDate: string, projectId: number, assigneeId?: number): Promise<{ issueId: number; totalHours: number }[]> {
+export async function getTimeByTask(startDate: string, endDate: string, projectId: number, assigneeId?: number): Promise<{ taskId: number; totalHours: number }[]> {
   const params: Record<string, string | number> = { startDate, endDate, projectId };
   if (assigneeId) params.assigneeId = assigneeId;
-  return apiGet('/reports/time-by-issue', params);
+  return apiGet('/reports/time-by-task', params);
 }
 
 export interface AttendanceData {

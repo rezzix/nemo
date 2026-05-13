@@ -74,12 +74,12 @@ export default function ManagerDashboard() {
     );
   }
 
-  const totalIssues = Object.values(evmData).reduce((s, e) => s + e.totalIssues, 0);
+  const totalTasks = Object.values(evmData).reduce((s, e) => s + e.totalTasks, 0);
   const openRisks = topRisks.length;
 
   const stats = [
     { label: 'My Projects', value: myProjects.length, color: 'bg-primary-50 text-primary-700' },
-    { label: 'Total Issues', value: totalIssues, color: 'bg-blue-50 text-blue-700' },
+    { label: 'Total Tasks', value: totalTasks, color: 'bg-blue-50 text-blue-700' },
     { label: 'Open Risks', value: openRisks, color: 'bg-red-50 text-red-700' },
     { label: 'Active Sprints', value: activeSprints.length, color: 'bg-amber-50 text-amber-700' },
   ];

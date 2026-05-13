@@ -33,7 +33,8 @@ export interface UpdateClientRequest {
   industry?: string;
   website?: string;
   notes?: string;
-  companyId?: number;
+  companyId?: number | null;
+  clearCompany?: boolean;
 }
 
 export interface CreateClientContactRequest {

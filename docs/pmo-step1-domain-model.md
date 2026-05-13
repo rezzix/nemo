@@ -375,14 +375,14 @@ classDiagram
 ## 5. Files Created/Modified in Step 1
 
 **New files (4):**
-- `backend/src/main/java/com/jari/pmo/RaidItem.java`
-- `backend/src/main/java/com/jari/pmo/RaidItemDto.java`
-- `backend/src/main/java/com/jari/pmo/RaidItemRepository.java`
-- `backend/src/main/java/com/jari/timetracking/UserRate.java`
+- `backend/src/main/java/com/nemo/pmo/RaidItem.java`
+- `backend/src/main/java/com/nemo/pmo/RaidItemDto.java`
+- `backend/src/main/java/com/nemo/pmo/RaidItemRepository.java`
+- `backend/src/main/java/com/nemo/timetracking/UserRate.java`
 
 **Modified files (2):**
-- `backend/src/main/java/com/jari/project/Project.java` — added stage, strategicScore, plannedValue, budget, budgetSpent, targetStartDate, targetEndDate fields + Stage enum
-- `backend/src/main/java/com/jari/user/User.java` — added EXECUTIVE to Role enum
+- `backend/src/main/java/com/nemo/project/Project.java` — added stage, strategicScore, plannedValue, budget, budgetSpent, targetStartDate, targetEndDate fields + Stage enum
+- `backend/src/main/java/com/nemo/user/User.java` — added EXECUTIVE to Role enum
 
 > **Status:** Implemented. RaidItem, UserRate, Project PMO fields, and EXECUTIVE role are all in the codebase.
 

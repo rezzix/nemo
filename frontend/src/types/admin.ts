@@ -1,14 +1,14 @@
-export interface IssueTypeDto {
+export interface TaskTypeDto {
   id: number;
   name: string;
 }
 
-export type IssueStatusCategory = 'TODO' | 'IN_PROGRESS' | 'DONE' | 'CLOSED';
+export type TaskStatusCategory = 'TODO' | 'IN_PROGRESS' | 'DONE' | 'CLOSED';
 
-export interface IssueStatusDto {
+export interface TaskStatusDto {
   id: number;
   name: string;
-  category: IssueStatusCategory;
+  category: TaskStatusCategory;
   isDefault: boolean;
 }
 
@@ -70,12 +70,12 @@ export interface AdminUpdateUserRequest {
   hireDate?: string;
 }
 
-export interface CreateIssueTypeRequest {
+export interface CreateTaskTypeRequest {
   name: string;
 }
 
-export interface CreateIssueStatusRequest {
+export interface CreateTaskStatusRequest {
   name: string;
-  category: IssueStatusCategory;
+  category: TaskStatusCategory;
   isDefault: boolean;
 }

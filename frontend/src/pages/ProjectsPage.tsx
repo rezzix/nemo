@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { ProjectDto, ProgramDto, UserDto, CompanyDto } from '@/types';
+import type { ProjectDto, ProgramDto, UserDto, CompanyDto, ClientDto } from '@/types';
 import { listProjects, createProject, toggleProjectFavorite } from '@/api/projects';
 import { listPrograms } from '@/api/admin';
 import { listCompanies } from '@/api/companies';
+import { listClients } from '@/api/clients';
 import Modal from '@/components/common/Modal';
 import Field from '@/components/common/Field';
 import { listAllUsers } from '@/api/users';
@@ -159,6 +160,7 @@ function StarIcon({ filled, className }: { filled?: boolean; className?: string 
 }
 
 function CreateProjectModal({ onClose }: { onClose: () => void }) {
+  const { user } = useAuth();
   const [name, setName] = useState('');
   const [key, setKey] = useState('');
   const [description, setDescription] = useState('');
@@ -173,7 +175,13 @@ function CreateProjectModal({ onClose }: { onClose: () => void }) {
   const [programs, setPrograms] = useState<ProgramDto[]>([]);
   const [users, setUsers] = useState<UserDto[]>([]);
   const [companies, setCompanies] = useState<CompanyDto[]>([]);
-  const [companyId, setCompanyId] = useState<string>('');
+  const [clients, setClients] = useState<ClientDto[]>([]);
+  const [clientId, setClientId] = useState('');
+  const isGlobalUser = !user?.companyId;
+  const [companyId, setCompanyId] = useState<string>(user?.companyId ? String(user.companyId) : '');
+  const [showCompany, setShowCompany] = useState(true);
+  const [showGlobal, setShowGlobal] = useState(false);
+  const [showExternal, setShowExternal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -183,14 +191,38 @@ function CreateProjectModal({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     listPrograms().then((res) => {
       setPrograms(res.data);
-      if (res.data.length > 0) setProgramId(String(res.data[0].id));
     }).catch(() => setLoadError('Failed to load programs. You may not have permission.'));
     listAllUsers({ active: 'true' }).then((users) => {
       setUsers(users);
-      if (users.length > 0) setManagerId(String(users[0].id));
+      if (user?.role === 'ADMIN' || user?.role === 'MANAGER') {
+        setManagerId(String(user.id));
+      }
     }).catch(() => setLoadError('Failed to load users. You may not have permission.'));
     listCompanies().then((res) => setCompanies(res.data.filter((c) => c.active))).catch(() => {});
+    listClients({ size: 200 }).then((res) => setClients(res.data)).catch(() => {});
   }, []);
+
+  const selectedCompany = companies.find((c) => String(c.id) === companyId);
+  const filteredUsers = users.filter((u) => {
+    if (!u.active) return false;
+    if (showCompany && selectedCompany && u.companyId === selectedCompany.id) return true;
+    if (showGlobal && u.companyId === null && u.role !== 'EXTERNAL') return true;
+    if (showExternal && u.role === 'EXTERNAL') return true;
+    return false;
+  });
+
+  const filteredClients = clients.filter((c) => {
+    if (!companyId) return c.companyId === null;
+    return c.companyId === null || (selectedCompany && c.companyId === selectedCompany.id);
+  });
+
+  const eligibleManagers = users.filter((u) => {
+    if (!u.active) return false;
+    if (u.role !== 'ADMIN' && u.role !== 'MANAGER') return false;
+    if (selectedCompany && u.companyId === selectedCompany.id) return true;
+    if (u.companyId === null) return true;
+    return false;
+  });
 
   const validate = (): boolean => {
     const errors: Record<string, string> = {};
@@ -223,9 +255,10 @@ function CreateProjectModal({ onClose }: { onClose: () => void }) {
         name,
         key: key.toUpperCase(),
         description: description || undefined,
-        programId: Number(programId),
+        programId: programId ? Number(programId) : undefined,
         managerId: Number(managerId),
         companyId: companyId ? Number(companyId) : null,
+        clientId: clientId ? Number(clientId) : null,
         memberIds: memberIds.length > 0 ? memberIds : undefined,
         stage: stage || undefined,
         strategicScore: strategicScore ? Number(strategicScore) : undefined,
@@ -250,8 +283,6 @@ function CreateProjectModal({ onClose }: { onClose: () => void }) {
     setMemberIds((prev) => prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]);
   };
 
-  const eligibleManagers = users.filter((u) => u.active && (u.role === 'ADMIN' || u.role === 'MANAGER'));
-
   return (
     <Modal title="Create Project" onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -262,24 +293,32 @@ function CreateProjectModal({ onClose }: { onClose: () => void }) {
           <Field label="Key" value={key} onChange={setKey} required maxLength={10} error={fieldErrors.key} />
         </div>
         <Field label="Description" value={description} onChange={setDescription} textarea />
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Program</label>
             <select value={programId} onChange={(e) => setProgramId(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+              <option value="">— None —</option>
               {programs.map((p) => <option key={p.id} value={p.id}>{p.name} ({p.key})</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
+            <select value={companyId} onChange={(e) => { setCompanyId(e.target.value); setClientId(''); }} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+              <option value="">Global</option>
+              {companies.map((c) => <option key={c.id} value={c.id}>{c.name} ({c.key})</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Client</label>
+            <select value={clientId} onChange={(e) => setClientId(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+              <option value="">— None —</option>
+              {filteredClients.map((c) => <option key={c.id} value={c.id}>{c.name}{c.companyId === null ? ' (Global)' : ''}</option>)}
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Manager</label>
             <select value={managerId} onChange={(e) => setManagerId(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-              {eligibleManagers.map((u) => <option key={u.id} value={u.id}>{u.firstName} {u.lastName} ({u.username})</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
-            <select value={companyId} onChange={(e) => setCompanyId(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <option value="">Global</option>
-              {companies.map((c) => <option key={c.id} value={c.id}>{c.name} ({c.key})</option>)}
+              {eligibleManagers.map((u) => <option key={u.id} value={u.id}>{u.firstName} {u.lastName} ({u.username}){u.companyId === null ? ' — Global' : ''}</option>)}
             </select>
           </div>
         </div>
@@ -299,7 +338,7 @@ function CreateProjectModal({ onClose }: { onClose: () => void }) {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Budget ($)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Budget</label>
               <input type="text" value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="0" className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 ${fieldErrors.budget ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-primary-500'}`} />
               {fieldErrors.budget && <p className="mt-1 text-sm text-red-600">{fieldErrors.budget}</p>}
             </div>
@@ -316,12 +355,28 @@ function CreateProjectModal({ onClose }: { onClose: () => void }) {
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Members</label>
+          <div className="flex items-center gap-3 mb-2">
+            <label className="flex items-center gap-1.5 text-sm cursor-pointer">
+              <input type="checkbox" checked={showCompany} onChange={() => setShowCompany(!showCompany)} className="rounded border-gray-300 text-primary-600" />
+              <span>Company</span>
+            </label>
+            <label className="flex items-center gap-1.5 text-sm cursor-pointer">
+              <input type="checkbox" checked={showGlobal} onChange={() => setShowGlobal(!showGlobal)} className="rounded border-gray-300 text-primary-600" />
+              <span>Global</span>
+            </label>
+            <label className="flex items-center gap-1.5 text-sm cursor-pointer">
+              <input type="checkbox" checked={showExternal} onChange={() => setShowExternal(!showExternal)} className="rounded border-gray-300 text-primary-600" />
+              <span>External</span>
+            </label>
+          </div>
           <div className="max-h-40 overflow-y-auto border border-gray-300 rounded-lg p-2 space-y-1">
-            {users.filter((u) => u.active).map((u) => (
+            {filteredUsers.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-2">No users match the selected filters</p>
+            ) : filteredUsers.map((u) => (
               <label key={u.id} className="flex items-center gap-2 text-sm py-0.5 cursor-pointer">
                 <input type="checkbox" checked={memberIds.includes(u.id)} onChange={() => toggleMember(u.id)} className="rounded border-gray-300" />
                 <span>{u.firstName} {u.lastName} ({u.username})</span>
-                <span className="text-xs text-gray-400 ml-auto">{u.role}</span>
+                <span className={`text-xs ml-auto px-1.5 py-0.5 rounded ${u.role === 'EXTERNAL' ? 'bg-gray-100 text-gray-500' : u.companyId === null ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>{u.role === 'EXTERNAL' ? 'Ext' : u.companyId === null ? 'Global' : u.role}</span>
               </label>
             ))}
           </div>

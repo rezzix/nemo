@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { IssueTypeDto, IssueStatusDto, IssueStatusCategory } from '@/types';
+import type { TaskTypeDto, TaskStatusDto, TaskStatusCategory } from '@/types';
 import Spinner from '@/components/common/Spinner';
 import {
-  listIssueTypes, createIssueType, updateIssueType, deleteIssueType,
-  listIssueStatuses, createIssueStatus, updateIssueStatus, deleteIssueStatus,
+  listTaskTypes, createTaskType, updateTaskType, deleteTaskType,
+  listTaskStatuses, createTaskStatus, updateTaskStatus, deleteTaskStatus,
 } from '@/api/admin';
 import UsersTab from './UsersTab';
 import CompaniesTab from './CompaniesTab';
-import IssueStatusesTab from './StatusesTab';
+import TaskStatusesTab from './StatusesTab';
 import ActivityTab from './ActivityTab';
 
 type Tab = 'companies' | 'users' | 'activity' | 'settings';
@@ -60,19 +60,19 @@ export default function AdminPage() {
   );
 }
 
-// ─── Issues Tab (merged Types + Statuses) ─────────────────────────────────────
+// ─── Tasks Tab (merged Types + Statuses) ─────────────────────────────────────
 
 function SettingsTab() {
   return (
     <div className="space-y-8">
-      <IssueTypesSection />
-      <IssueStatusesSection />
+      <TaskTypesSection />
+      <TaskStatusesSection />
     </div>
   );
 }
 
-function IssueTypesSection() {
-  const [types, setTypes] = useState<IssueTypeDto[]>([]);
+function TaskTypesSection() {
+  const [types, setTypes] = useState<TaskTypeDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -81,7 +81,7 @@ function IssueTypesSection() {
 
   const fetchTypes = useCallback(async () => {
     setLoading(true);
-    try { setTypes(await listIssueTypes()); } finally { setLoading(false); }
+    try { setTypes(await listTaskTypes()); } finally { setLoading(false); }
   }, []);
 
   useEffect(() => { fetchTypes(); }, [fetchTypes]);
@@ -90,7 +90,7 @@ function IssueTypesSection() {
     if (!newName.trim()) return;
     setSaving(true);
     try {
-      await createIssueType({ name: newName.trim() });
+      await createTaskType({ name: newName.trim() });
       setNewName('');
       fetchTypes();
     } finally { setSaving(false); }
@@ -98,26 +98,26 @@ function IssueTypesSection() {
 
   const handleUpdate = async (id: number) => {
     if (!editingName.trim()) return;
-    await updateIssueType(id, { name: editingName.trim() });
+    await updateTaskType(id, { name: editingName.trim() });
     setEditingId(null);
     fetchTypes();
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Delete this issue type?')) return;
-    await deleteIssueType(id);
+    if (!confirm('Delete this task type?')) return;
+    await deleteTaskType(id);
     fetchTypes();
   };
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-900">Issue Types</h3>
+      <h3 className="text-lg font-semibold text-gray-900">Task Types</h3>
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <div className="flex gap-3">
           <input
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
-            placeholder="New issue type name..."
+            placeholder="New task type name..."
             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
             onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
           />
@@ -170,7 +170,7 @@ function IssueTypesSection() {
                 </tr>
               ))}
               {types.length === 0 && (
-                <tr><td colSpan={3} className="px-4 py-8 text-center text-gray-500">No issue types found.</td></tr>
+                <tr><td colSpan={3} className="px-4 py-8 text-center text-gray-500">No task types found.</td></tr>
               )}
             </tbody>
           </table>
@@ -180,11 +180,11 @@ function IssueTypesSection() {
   );
 }
 
-function IssueStatusesSection() {
+function TaskStatusesSection() {
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-900">Issue Statuses</h3>
-      <IssueStatusesTab />
+      <h3 className="text-lg font-semibold text-gray-900">Task Statuses</h3>
+      <TaskStatusesTab />
     </div>
   );
 }

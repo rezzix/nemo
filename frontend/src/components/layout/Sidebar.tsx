@@ -45,10 +45,10 @@ export default function Sidebar() {
         ...(role === 'ADMIN' || role === 'HR'
           ? [{ to: '/assets', label: 'Assets', icon: AssetsIcon }]
           : []),
-        ...(role === 'ADMIN' || role === 'MANAGER' || role === 'EXECUTIVE' || role === 'HR'
+        ...(role === 'MANAGER' || role === 'EXECUTIVE' || role === 'HR'
           ? [{ to: '/clients', label: 'Clients', icon: ClientsIcon }]
           : []),
-        ...(role === 'ADMIN' || role === 'MANAGER' || role === 'EXECUTIVE' || role === 'HR'
+        ...(role === 'MANAGER' || role === 'EXECUTIVE' || role === 'HR'
           ? [{ to: '/presales', label: 'Pre-Sales', icon: PresalesIcon }]
           : []),
       ],

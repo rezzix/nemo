@@ -8,7 +8,7 @@ spring:
     name: nemo
 
   datasource:
-    url: jdbc:h2:file:./data/jari-db
+    url: jdbc:h2:file:./data/nemo-db
     driver-class-name: org.h2.Driver
     username: sa
     password:
@@ -45,4 +45,4 @@ storage:
 
 logging:
   level:
-    com.jari: DEBUG
+    com.nemo: DEBUG

@@ -1,23 +1,23 @@
 import { useState, useEffect, useCallback } from 'react';
-import { listProjectIssues } from '@/api/issues';
-import type { IssueDto } from '@/types';
+import { listProjectTasks } from '@/api/tasks';
+import type { TaskDto } from '@/types';
 import Spinner from '@/components/common/Spinner';
 import StatCard from './ReportStatCard';
 
 export default function WorkloadReport({ projectId }: { projectId: number | null }) {
-  const [issues, setIssues] = useState<IssueDto[]>([]);
+  const [tasks, setTasks] = useState<TaskDto[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetch = useCallback(async () => {
-    if (!projectId) { setIssues([]); return; }
+    if (!projectId) { setTasks([]); return; }
     setLoading(true);
-    try { setIssues(await listProjectIssues(projectId, { size: 200 })); } catch { setIssues([]); } finally { setLoading(false); }
+    try { setTasks(await listProjectTasks(projectId, { size: 200 })); } catch { setTasks([]); } finally { setLoading(false); }
   }, [projectId]);
 
   useEffect(() => { fetch(); }, [fetch]);
 
   const byAssignee = Object.entries(
-    issues.reduce<Record<string, { total: number; open: number; done: number }>>((acc, i) => {
+    tasks.reduce<Record<string, { total: number; open: number; done: number }>>((acc, i) => {
       const name = i.assigneeName ?? 'Unassigned';
       if (!acc[name]) acc[name] = { total: 0, open: 0, done: 0 };
       acc[name].total++;
@@ -40,7 +40,7 @@ export default function WorkloadReport({ projectId }: { projectId: number | null
         <>
           <div className="grid grid-cols-2 gap-4">
             <StatCard label="Team Members" value={byAssignee.filter((a) => a.name !== 'Unassigned').length} color="border-gray-200 bg-white" />
-            <StatCard label="Unassigned Issues" value={byAssignee.find((a) => a.name === 'Unassigned')?.total ?? 0} color="border-orange-200 bg-orange-50" />
+            <StatCard label="Unassigned Tasks" value={byAssignee.find((a) => a.name === 'Unassigned')?.total ?? 0} color="border-orange-200 bg-orange-50" />
           </div>
 
           <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
@@ -69,7 +69,7 @@ export default function WorkloadReport({ projectId }: { projectId: number | null
                     </td>
                   </tr>
                 ))}
-                {byAssignee.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">No issues</td></tr>}
+                {byAssignee.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">No tasks</td></tr>}
               </tbody>
             </table>
           </div>

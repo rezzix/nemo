@@ -2,7 +2,7 @@ plugins {
     id 'java'
 }
 
-group = 'com.jari'
+group = 'com.nemo'
 version = '0.1.0'
 
 subprojects {

@@ -8,7 +8,7 @@ export interface WikiPageDto {
   position: number;
   authorId: number;
   authorName: string;
-  linkedIssueIds: number[];
+  linkedTaskIds: number[];
   updatedAt: string;
   children: WikiPageDto[];
 }
@@ -26,14 +26,14 @@ export interface CreateWikiPageRequest {
   title: string;
   content?: string;
   parentId?: number | null;
-  linkedIssueIds?: number[];
+  linkedTaskIds?: number[];
 }
 
 export interface UpdateWikiPageRequest {
   title?: string;
   content?: string;
   parentId?: number | null;
-  linkedIssueIds?: number[];
+  linkedTaskIds?: number[];
 }
 
 export interface WikiSearchHit {

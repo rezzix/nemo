@@ -144,7 +144,7 @@ export default function TimesheetTab() {
                   <div className="flex-1 flex flex-wrap gap-2">
                     {logs.map((l) => (
                       <span key={l.id} className="text-xs bg-gray-100 rounded-full px-2 py-0.5 text-gray-700">
-                        {l.issueKey} <span className="font-medium">{l.hours}h</span>
+                        {l.taskKey} <span className="font-medium">{l.hours}h</span>
                       </span>
                     ))}
                     {logs.length === 0 && <span className="text-xs text-gray-400">No entries</span>}
@@ -158,7 +158,7 @@ export default function TimesheetTab() {
                       <div key={l.id} className="flex items-center justify-between py-1">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-primary-600">{l.issueKey}</span>
+                            <span className="text-sm font-medium text-primary-600">{l.taskKey}</span>
                             <span className="text-sm text-gray-900 font-medium">{l.hours}h</span>
                           </div>
                           {l.description && <p className="text-xs text-gray-500 truncate">{l.description}</p>}

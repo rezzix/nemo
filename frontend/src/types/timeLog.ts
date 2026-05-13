@@ -3,9 +3,9 @@ export interface TimeLogDto {
   hours: number;
   logDate: string;
   description: string | null;
-  issueId: number | null;
-  issueKey: string | null;
-  issueTitle: string | null;
+  taskId: number | null;
+  taskKey: string | null;
+  taskTitle: string | null;
   presaleId: number | null;
   presaleName: string | null;
   userId: number;
@@ -15,7 +15,7 @@ export interface TimeLogDto {
 }
 
 export interface CreateTimeLogRequest {
-  issueId?: number;
+  taskId?: number;
   presaleId?: number;
   hours: number;
   logDate: string;

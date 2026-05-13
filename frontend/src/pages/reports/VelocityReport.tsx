@@ -1,37 +1,37 @@
 import { useState, useEffect, useCallback } from 'react';
 import { listSprints } from '@/api/sprints';
-import { listProjectIssues } from '@/api/issues';
-import type { SprintDto, IssueDto } from '@/types';
+import { listProjectTasks } from '@/api/tasks';
+import type { SprintDto, TaskDto } from '@/types';
 import { formatDate } from '@/utils/format';
 import Spinner from '@/components/common/Spinner';
 
 export default function VelocityReport({ projectId }: { projectId: number | null }) {
   const [sprints, setSprints] = useState<SprintDto[]>([]);
-  const [issues, setIssues] = useState<IssueDto[]>([]);
+  const [tasks, setTasks] = useState<TaskDto[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetch = useCallback(async () => {
-    if (!projectId) { setSprints([]); setIssues([]); return; }
+    if (!projectId) { setSprints([]); setTasks([]); return; }
     setLoading(true);
     try {
-      const [sprintData, issueData] = await Promise.all([
+      const [sprintData, taskData] = await Promise.all([
         listSprints(projectId),
-        listProjectIssues(projectId, { size: 200 }),
+        listProjectTasks(projectId, { size: 200 }),
       ]);
       setSprints(sprintData);
-      setIssues(issueData);
-    } catch { setSprints([]); setIssues([]); } finally { setLoading(false); }
+      setTasks(taskData);
+    } catch { setSprints([]); setTasks([]); } finally { setLoading(false); }
   }, [projectId]);
 
   useEffect(() => { fetch(); }, [fetch]);
 
   const sprintStats = sprints.map((sprint) => {
-    const sprintIssues = issues.filter((i) => i.sprintId === sprint.id);
-    const completed = sprintIssues.filter((i) => { const st = i.statusName.toLowerCase(); return st.includes('done') || st.includes('complete'); }).length;
-    return { sprint, total: sprintIssues.length, completed, remaining: sprintIssues.length - completed };
+    const sprintTasks = tasks.filter((i) => i.sprintId === sprint.id);
+    const completed = sprintTasks.filter((i) => { const st = i.statusName.toLowerCase(); return st.includes('done') || st.includes('complete'); }).length;
+    return { sprint, total: sprintTasks.length, completed, remaining: sprintTasks.length - completed };
   });
 
-  const maxIssues = Math.max(...sprintStats.map((s) => s.total), 1);
+  const maxTasks = Math.max(...sprintStats.map((s) => s.total), 1);
 
   return (
     <div className="space-y-6">
@@ -61,10 +61,10 @@ export default function VelocityReport({ projectId }: { projectId: number | null
                     </div>
                   </div>
                   <div className="flex gap-1 h-6">
-                    <div className="bg-green-500 rounded-l-lg flex items-center justify-center text-[10px] font-bold text-white" style={{ width: `${total ? (completed / maxIssues) * 100 : 0}%`, minWidth: completed > 0 ? '20px' : '0' }}>
+                    <div className="bg-green-500 rounded-l-lg flex items-center justify-center text-[10px] font-bold text-white" style={{ width: `${total ? (completed / maxTasks) * 100 : 0}%`, minWidth: completed > 0 ? '20px' : '0' }}>
                       {completed > 0 ? completed : ''}
                     </div>
-                    <div className="bg-orange-400 rounded-r-lg flex items-center justify-center text-[10px] font-bold text-white" style={{ width: `${total ? (remaining / maxIssues) * 100 : 0}%`, minWidth: remaining > 0 ? '20px' : '0' }}>
+                    <div className="bg-orange-400 rounded-r-lg flex items-center justify-center text-[10px] font-bold text-white" style={{ width: `${total ? (remaining / maxTasks) * 100 : 0}%`, minWidth: remaining > 0 ? '20px' : '0' }}>
                       {remaining > 0 ? remaining : ''}
                     </div>
                   </div>

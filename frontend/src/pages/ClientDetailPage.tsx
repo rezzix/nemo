@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import type { ClientDto, ClientContactDto } from '@/types';
+import type { ClientDto, ClientContactDto, CompanyDto } from '@/types';
 import { getClient, updateClient, deleteClient, getClientContacts, addClientContact, updateClientContact, deleteClientContact } from '@/api/clients';
+import { listCompanies } from '@/api/companies';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDate } from '@/utils/format';
 import Spinner from '@/components/common/Spinner';
@@ -22,6 +23,8 @@ export default function ClientDetailPage() {
   const [industry, setIndustry] = useState('');
   const [website, setWebsite] = useState('');
   const [notes, setNotes] = useState('');
+  const [clientCompanyId, setClientCompanyId] = useState('');
+  const [companies, setCompanies] = useState<CompanyDto[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,13 +37,18 @@ export default function ClientDetailPage() {
     if (!id) return;
     setLoading(true);
     getClient(Number(id)).then(setClient).finally(() => setLoading(false));
+    listCompanies().then((res) => setCompanies(res.data.filter((c) => c.active))).catch(() => {});
   }, [id]);
 
   if (loading) return <div className="flex items-center justify-center h-64"><Spinner className="h-8 w-8 text-primary-600" /></div>;
   if (!client) return <div className="text-center text-gray-500 py-8">Client not found.</div>;
 
+  const isGlobalUser = !user?.companyId;
+  const availableCompanies = isGlobalUser ? companies : companies.filter((c) => c.id === user?.companyId);
+
   const openEdit = () => {
     setName(client.name); setIndustry(client.industry || ''); setWebsite(client.website || ''); setNotes(client.notes || '');
+    setClientCompanyId(client.companyId ? String(client.companyId) : '');
     setShowEditModal(true);
   };
 
@@ -48,7 +56,11 @@ export default function ClientDetailPage() {
     e.preventDefault();
     setSaving(true); setError(null);
     try {
-      const updated = await updateClient(client.id, { name: name.trim(), industry: industry || undefined, website: website || undefined, notes: notes || undefined });
+      const updated = await updateClient(client.id, {
+        name: name.trim(), industry: industry || undefined, website: website || undefined, notes: notes || undefined,
+        companyId: clientCompanyId ? Number(clientCompanyId) : null,
+        clearCompany: !clientCompanyId,
+      });
       setClient(updated);
       setShowEditModal(false);
     } catch { setError('Failed to save.'); }
@@ -110,7 +122,7 @@ export default function ClientDetailPage() {
             <h2 className="text-2xl font-bold text-gray-900">{client.name}</h2>
             {client.industry && <p className="text-gray-500 text-sm mt-1">{client.industry}</p>}
             {client.website && <a href={client.website.startsWith('http') ? client.website : `https://${client.website}`} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline text-sm">{client.website}</a>}
-            {client.companyName && <p className="text-xs text-gray-400 mt-1">Company: {client.companyName}</p>}
+            <p className="text-xs text-gray-400 mt-1">{client.companyName ? `Company: ${client.companyName}` : 'Global client'}</p>
           </div>
           {canEdit && (
             <div className="flex items-center gap-2">
@@ -169,6 +181,13 @@ export default function ClientDetailPage() {
           <form onSubmit={handleSave} className="space-y-4">
             {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-3 py-2">{error}</div>}
             <div><label className="block text-sm font-medium text-gray-700 mb-1">Name *</label><input value={name} onChange={e => setName(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" required /></div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
+              <select value={clientCompanyId} onChange={(e) => setClientCompanyId(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                <option value="">Global</option>
+                {availableCompanies.map((c) => <option key={c.id} value={c.id}>{c.name} ({c.key})</option>)}
+              </select>
+            </div>
             <div><label className="block text-sm font-medium text-gray-700 mb-1">Industry</label><input value={industry} onChange={e => setIndustry(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" /></div>
             <div><label className="block text-sm font-medium text-gray-700 mb-1">Website</label><input value={website} onChange={e => setWebsite(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" /></div>
             <div><label className="block text-sm font-medium text-gray-700 mb-1">Notes</label><textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" /></div>

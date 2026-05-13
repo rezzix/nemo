@@ -1,30 +1,30 @@
 import { useState, useEffect, useCallback } from 'react';
-import { listProjectIssues } from '@/api/issues';
-import type { IssueDto } from '@/types';
+import { listProjectTasks } from '@/api/tasks';
+import type { TaskDto } from '@/types';
 import { statusColor } from '@/utils/format';
 import Spinner from '@/components/common/Spinner';
 import StatCard from './ReportStatCard';
 
 export default function AgingReport({ projectId }: { projectId: number | null }) {
-  const [issues, setIssues] = useState<IssueDto[]>([]);
+  const [tasks, setTasks] = useState<TaskDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [sort, setSort] = useState<'age' | 'updated'>('age');
 
   const fetch = useCallback(async () => {
-    if (!projectId) { setIssues([]); return; }
+    if (!projectId) { setTasks([]); return; }
     setLoading(true);
-    try { setIssues(await listProjectIssues(projectId, { size: 200 })); } catch { setIssues([]); } finally { setLoading(false); }
+    try { setTasks(await listProjectTasks(projectId, { size: 200 })); } catch { setTasks([]); } finally { setLoading(false); }
   }, [projectId]);
 
   useEffect(() => { fetch(); }, [fetch]);
 
   const now = Date.now();
-  const openIssues = issues.filter((i) => {
+  const openTasks = tasks.filter((i) => {
     const s = i.statusName.toLowerCase();
     return !s.includes('done') && !s.includes('complete');
   });
 
-  const aged = openIssues.map((i) => ({
+  const aged = openTasks.map((i) => ({
     ...i,
     daysOld: Math.floor((now - new Date(i.createdAt).getTime()) / 86400000),
     daysSinceUpdate: Math.floor((now - new Date(i.updatedAt).getTime()) / 86400000),
@@ -53,7 +53,7 @@ export default function AgingReport({ projectId }: { projectId: number | null })
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <StatCard label="Open Issues" value={openIssues.length} color="border-gray-200 bg-white" />
+            <StatCard label="Open Tasks" value={openTasks.length} color="border-gray-200 bg-white" />
             <StatCard label="Stale (>7d no update)" value={staleCount} color="border-orange-200 bg-orange-50" />
             <StatCard label="Old (>30d)" value={oldCount} color="border-red-200 bg-red-50" />
           </div>
@@ -73,7 +73,7 @@ export default function AgingReport({ projectId }: { projectId: number | null })
               <tbody className="divide-y divide-gray-100">
                 {sorted.map((i) => (
                   <tr key={i.id} className={i.daysSinceUpdate > 7 ? 'bg-orange-50' : ''}>
-                    <td className="px-4 py-2 font-mono text-xs text-primary-600">{i.issueKey}</td>
+                    <td className="px-4 py-2 font-mono text-xs text-primary-600">{i.taskKey}</td>
                     <td className="px-4 py-2 text-gray-900 truncate max-w-[200px]">{i.title}</td>
                     <td className="px-4 py-2"><span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${statusColor(i.statusName)}`}>{i.statusName}</span></td>
                     <td className="px-4 py-2 text-gray-500">{i.assigneeName ?? 'Unassigned'}</td>
@@ -81,7 +81,7 @@ export default function AgingReport({ projectId }: { projectId: number | null })
                     <td className="px-4 py-2 text-right font-mono text-sm">{i.daysSinceUpdate}</td>
                   </tr>
                 ))}
-                {sorted.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">No open issues</td></tr>}
+                {sorted.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">No open tasks</td></tr>}
               </tbody>
             </table>
           </div>

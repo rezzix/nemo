@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import type { ClientDto } from '@/types';
+import type { ClientDto, CompanyDto } from '@/types';
 import { listClients, createClient, updateClient, deleteClient } from '@/api/clients';
+import { listCompanies } from '@/api/companies';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDate } from '@/utils/format';
 import Spinner from '@/components/common/Spinner';
@@ -18,11 +19,13 @@ export default function ClientsPage() {
   const [totalPages, setTotalPages] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [editingClient, setEditingClient] = useState<ClientDto | null>(null);
+  const [companies, setCompanies] = useState<CompanyDto[]>([]);
 
   const [name, setName] = useState('');
   const [industry, setIndustry] = useState('');
   const [website, setWebsite] = useState('');
   const [notes, setNotes] = useState('');
+  const [clientCompanyId, setClientCompanyId] = useState<string>('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,17 +41,26 @@ export default function ClientsPage() {
 
   useEffect(() => { fetchClients(); }, [page]);
 
+  useEffect(() => {
+    listCompanies().then((res) => setCompanies(res.data.filter((c) => c.active))).catch(() => {});
+  }, []);
+
   const handleSearch = () => { setPage(0); fetchClients(); };
+
+  const isGlobalUser = !user?.companyId;
+  const availableCompanies = isGlobalUser ? companies : companies.filter((c) => c.id === user?.companyId);
 
   const openCreate = () => {
     setEditingClient(null);
     setName(''); setIndustry(''); setWebsite(''); setNotes('');
+    setClientCompanyId(user?.companyId ? String(user.companyId) : '');
     setShowModal(true);
   };
 
   const openEdit = (c: ClientDto) => {
     setEditingClient(c);
     setName(c.name); setIndustry(c.industry || ''); setWebsite(c.website || ''); setNotes(c.notes || '');
+    setClientCompanyId(c.companyId ? String(c.companyId) : '');
     setShowModal(true);
   };
 
@@ -58,10 +70,14 @@ export default function ClientsPage() {
     setSaving(true); setError(null);
     try {
       if (editingClient) {
-        const updated = await updateClient(editingClient.id, { name: name.trim(), industry: industry || undefined, website: website || undefined, notes: notes || undefined });
+        const updated = await updateClient(editingClient.id, {
+          name: name.trim(), industry: industry || undefined, website: website || undefined, notes: notes || undefined,
+          companyId: clientCompanyId ? Number(clientCompanyId) : null,
+          clearCompany: !clientCompanyId,
+        });
         setClients(prev => prev.map(c => c.id === updated.id ? updated : c));
       } else {
-        const created = await createClient({ name: name.trim(), industry: industry || undefined, website: website || undefined, notes: notes || undefined });
+        const created = await createClient({ name: name.trim(), industry: industry || undefined, website: website || undefined, notes: notes || undefined, companyId: clientCompanyId ? Number(clientCompanyId) : null });
         setClients(prev => [created, ...prev]);
       }
       setShowModal(false);
@@ -98,6 +114,7 @@ export default function ClientsPage() {
           <table className="w-full text-sm">
             <thead><tr className="border-b border-gray-200 bg-gray-50">
               <th className="text-left px-4 py-3 font-medium text-gray-500">Name</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-500">Company</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500">Industry</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500">Website</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500">Contacts</th>
@@ -108,6 +125,7 @@ export default function ClientsPage() {
               {clients.map(c => (
                 <tr key={c.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 font-medium text-gray-900"><Link to={`/clients/${c.id}`} className="hover:text-primary-600">{c.name}</Link></td>
+                  <td className="px-4 py-3">{c.companyName ? <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">{c.companyName}</span> : <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700">Global</span>}</td>
                   <td className="px-4 py-3 text-gray-600">{c.industry || '—'}</td>
                   <td className="px-4 py-3 text-gray-600">{c.website ? <a href={c.website.startsWith('http') ? c.website : `https://${c.website}`} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">{c.website}</a> : '—'}</td>
                   <td className="px-4 py-3 text-gray-600">{c.contacts.length}</td>
@@ -144,6 +162,13 @@ export default function ClientsPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
               <input value={name} onChange={e => setName(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
+              <select value={clientCompanyId} onChange={(e) => setClientCompanyId(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                <option value="">Global</option>
+                {availableCompanies.map((c) => <option key={c.id} value={c.id}>{c.name} ({c.key})</option>)}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Industry</label>

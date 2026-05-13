@@ -1,4 +1,4 @@
-import type { IssuePriority } from '@/types';
+import type { TaskPriority } from '@/types';
 import { getCurrency } from '@/hooks/useVersion';
 
 export function formatDate(dateStr: string): string {
@@ -20,14 +20,14 @@ export function getInitials(firstName: string, lastName: string): string {
   return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
 }
 
-const priorityColors: Record<IssuePriority, string> = {
+const priorityColors: Record<TaskPriority, string> = {
   CRITICAL: 'bg-red-100 text-red-700',
   HIGH: 'bg-orange-100 text-orange-700',
   MEDIUM: 'bg-yellow-100 text-yellow-700',
   LOW: 'bg-blue-100 text-blue-700',
 };
 
-export function priorityColor(priority: IssuePriority): string {
+export function priorityColor(priority: TaskPriority): string {
   return priorityColors[priority] ?? 'bg-gray-100 text-gray-700';
 }
 
@@ -76,7 +76,7 @@ export function raidTypeColor(type: string): string {
   switch (type) {
     case 'RISK': return 'bg-red-50 text-red-700 border-red-200';
     case 'ASSUMPTION': return 'bg-blue-50 text-blue-700 border-blue-200';
-    case 'ISSUE': return 'bg-orange-50 text-orange-700 border-orange-200';
+    case 'TASK': return 'bg-orange-50 text-orange-700 border-orange-200';
     case 'DEPENDENCY': return 'bg-purple-50 text-purple-700 border-purple-200';
     default: return 'bg-gray-50 text-gray-700 border-gray-200';
   }

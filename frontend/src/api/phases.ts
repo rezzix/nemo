@@ -5,8 +5,13 @@ import type { ApiResponse } from '@/types';
 
 // Phases
 
-export function listPhases(projectId: number): Promise<PhaseDto[]> {
-  return apiGet(`/projects/${projectId}/phases`);
+export function listPhases(projectId: number, status?: string): Promise<PhaseDto[]> {
+  const params = status ? `?status=${status}` : '';
+  return apiGet(`/projects/${projectId}/phases${params}`);
+}
+
+export function listOpenPhases(projectId: number): Promise<PhaseDto[]> {
+  return apiGet(`/projects/${projectId}/phases?status=OPEN`);
 }
 
 export function createPhase(projectId: number, data: CreatePhaseRequest): Promise<PhaseDto> {

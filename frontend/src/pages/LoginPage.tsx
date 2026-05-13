@@ -11,7 +11,7 @@ const features = [
   { icon: '▸', label: 'Project Phases & Deliverables' },
   { icon: '▸', label: 'EVM & Budget Tracking' },
   { icon: '▸', label: 'RAID Logs & Risk Management' },
-  { icon: '▸', label: 'Issue Tracking & Kanban Boards' },
+  { icon: '▸', label: 'Task Tracking & Kanban Boards' },
   { icon: '▸', label: 'Sprint Planning' },
   { icon: '▸', label: 'Time Tracking & Timesheets' },
   { icon: '▸', label: 'Wiki Docs & Mermaid Diagrams' },

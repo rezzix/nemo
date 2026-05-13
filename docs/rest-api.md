@@ -772,7 +772,7 @@ Get a weekly timesheet view.
           {
             "id": 101,
             "issueId": 42,
-            "issueKey": "JARI-42",
+            "issueKey": "NEMO-42",
             "issueTitle": "Fix login redirect",
             "hours": 5.0,
             "description": "Fixed login redirect bug"
@@ -780,7 +780,7 @@ Get a weekly timesheet view.
           {
             "id": 102,
             "issueId": 45,
-            "issueKey": "JARI-45",
+            "issueKey": "NEMO-45",
             "issueTitle": "Add search filters",
             "hours": 3.0,
             "description": "Implemented filter dropdowns"
@@ -948,8 +948,8 @@ Time spent per issue in a date range.
 ```json
 {
   "data": [
-    { "issueId": 42, "issueKey": "JARI-42", "issueTitle": "Fix login redirect", "totalHours": 12.5 },
-    { "issueId": 45, "issueKey": "JARI-45", "issueTitle": "Add search filters", "totalHours": 8.0 }
+    { "issueId": 42, "issueKey": "NEMO-42", "issueTitle": "Fix login redirect", "totalHours": 12.5 },
+    { "issueId": 45, "issueKey": "NEMO-45", "issueTitle": "Add search filters", "totalHours": 8.0 }
   ]
 }
 ```
@@ -988,7 +988,7 @@ When an issue's status, assignee, or position changes:
 {
   "type": "ISSUE_UPDATED",
   "issueId": 42,
-  "issueKey": "JARI-42",
+  "issueKey": "NEMO-42",
   "field": "statusId",
   "oldValue": 1,
   "newValue": 2,

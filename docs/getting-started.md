@@ -9,9 +9,9 @@
 ## Project Structure
 
 ```
-jari/
+nemo/
 ├── backend/                  # Spring Boot application
-│   ├── src/main/java/com/jari/
+│   ├── src/main/java/com/nemo/
 │   │   ├── config/            # Security, WebSocket, Organization, IssueConfig, DataSeeder
 │   │   ├── company/           # Company CRUD (multi-tenant)
 │   │   ├── security/          # AuthController, CustomUserDetailsService, SecurityConfig, DevModeAuthenticationProvider
@@ -100,7 +100,7 @@ Access the H2 database console at **http://localhost:8080/h2-console**:
 
 | Field | Value |
 |-------|-------|
-| JDBC URL | `jdbc:h2:file:./data/jari-db` |
+| JDBC URL | `jdbc:h2:file:./data/nemo-db` |
 | Username | `sa` |
 | Password | _(leave empty)_ |
 
@@ -109,7 +109,7 @@ Access the H2 database console at **http://localhost:8080/h2-console**:
 Delete the H2 file to force a clean rebuild on next startup:
 
 ```bash
-rm -f backend/data/jari-db.mv.db
+rm -f backend/data/nemo-db.mv.db
 ```
 
 ## Running the Frontend
@@ -276,9 +276,9 @@ To run with PostgreSQL instead of H2:
 
 ```bash
 # Set environment variables
-export JARI_DB_URL=jdbc:postgresql://localhost:5432/nemo
-export JARI_DB_USERNAME=nemo_user
-export JARI_DB_PASSWORD=your_password
+export NEMO_DB_URL=jdbc:postgresql://localhost:5432/nemo
+export NEMO_DB_USERNAME=nemo_user
+export NEMO_DB_PASSWORD=your_password
 
 # Run with prod profile
 ./gradlew :backend:bootRun --args='--spring.profiles.active=prod'

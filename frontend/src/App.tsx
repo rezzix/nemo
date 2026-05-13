@@ -15,7 +15,7 @@ import ProjectsPage from '@/pages/ProjectsPage';
 import ProgramDetailPage from '@/pages/ProgramDetailPage';
 import ProgramsPage from '@/pages/ProgramsPage';
 import ProjectDetailPage from '@/pages/project-detail';
-import IssueDetailPage from '@/pages/IssueDetailPage';
+import TaskDetailPage from '@/pages/TaskDetailPage';
 import MyTimePage from '@/pages/MyTimePage';
 import TimesheetsPage from '@/pages/TimesheetsPage';
 import PeoplePage from '@/pages/PeoplePage';
@@ -73,7 +73,7 @@ export default function App() {
           <Route path="/programs/:id" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR']}><ProgramDetailPage /></RoleGuard>} />
           <Route path="/projects" element={<ProjectsPage />} />
           <Route path="/projects/:id" element={<ProjectDetailPage />} />
-          <Route path="/projects/:projectId/issues/:issueId" element={<IssueDetailPage />} />
+          <Route path="/projects/:projectId/tasks/:taskId" element={<TaskDetailPage />} />
           <Route path="/my-time" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'CONTRIBUTOR']}><MyTimePage /></RoleGuard>} />
           <Route path="/timesheets" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'HR']}><TimesheetsPage /></RoleGuard>} />
           <Route path="/people" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'HR']}><PeoplePage /></RoleGuard>} />

@@ -3,6 +3,7 @@ import type { UserDto, AdminUpdateUserRequest, CompanyDto, UserRateDto, ProjectD
 import Modal from '@/components/common/Modal';
 import Field from '@/components/common/Field';
 import Spinner from '@/components/common/Spinner';
+import { formatCurrency } from '@/utils/format';
 import {
   listUsers, createUser, adminUpdateUser, deactivateUser,
 } from '@/api/admin';
@@ -401,7 +402,7 @@ function UserRowFragment({
           }`}>{user.role}</span>
         </td>
         <td className="px-4 py-3 text-gray-600">
-          {currentRate ? `$${currentRate.hourlyRate.toFixed(2)}` : '—'}
+          {currentRate ? formatCurrency(currentRate.hourlyRate) : '—'}
         </td>
         <td className="px-4 py-3">
           <div className="flex gap-2">

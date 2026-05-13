@@ -1,16 +1,16 @@
 import { useAuth } from '@/hooks/useAuth';
-import { useMyIssues } from '@/hooks/useMyIssues';
+import { useMyTasks } from '@/hooks/useMyTasks';
 import { listTimeLogs } from '@/api/timeLogs';
 import { priorityColor, statusColor, formatDate } from '@/utils/format';
 import { currentWeekRange } from './dashboardUtils';
-import type { IssuePriority, TimeLogDto } from '@/types';
+import type { TaskPriority, TimeLogDto } from '@/types';
 import Spinner from '@/components/common/Spinner';
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
 export default function ContributorDashboard() {
   const { user } = useAuth();
-  const { projects, myIssues, isLoading } = useMyIssues();
+  const { projects, myTasks, isLoading } = useMyTasks();
   const [weekHours, setWeekHours] = useState<number | null>(null);
   const [lastLogDaysAgo, setLastLogDaysAgo] = useState<number | null>(null);
   const [lastLogDate, setLastLogDate] = useState<string | null>(null);
@@ -37,16 +37,16 @@ export default function ContributorDashboard() {
       .catch(() => {});
   }, [user]);
 
-  // Group issues by project
-  const issuesByProject = useMemo(() => {
-    const map = new Map<number, typeof myIssues>();
-    for (const issue of myIssues) {
-      const list = map.get(issue.projectId) || [];
-      list.push(issue);
-      map.set(issue.projectId, list);
+  // Group tasks by project
+  const tasksByProject = useMemo(() => {
+    const map = new Map<number, typeof myTasks>();
+    for (const task of myTasks) {
+      const list = map.get(task.projectId) || [];
+      list.push(task);
+      map.set(task.projectId, list);
     }
     return map;
-  }, [myIssues]);
+  }, [myTasks]);
 
   if (isLoading) {
     return (
@@ -56,15 +56,15 @@ export default function ContributorDashboard() {
     );
   }
 
-  const todoCount = myIssues.filter(
+  const todoCount = myTasks.filter(
     (i) => i.statusName.toLowerCase().includes('todo') || i.statusName.toLowerCase().includes('open'),
   ).length;
-  const inProgressCount = myIssues.filter(
+  const inProgressCount = myTasks.filter(
     (i) => i.statusName.toLowerCase().includes('progress') || i.statusName.toLowerCase().includes('active'),
   ).length;
 
   const stats = [
-    { label: 'Assigned to me', value: myIssues.length, color: 'bg-primary-50 text-primary-700' },
+    { label: 'Assigned to me', value: myTasks.length, color: 'bg-primary-50 text-primary-700' },
     { label: 'In progress', value: inProgressCount, color: 'bg-blue-50 text-blue-700' },
     { label: 'To do', value: todoCount, color: 'bg-gray-50 text-gray-700' },
     { label: 'Projects', value: projects.length, color: 'bg-green-50 text-green-700' },
@@ -123,11 +123,11 @@ export default function ContributorDashboard() {
         ) : (
           <div className="space-y-4">
             {projects.map((project) => {
-              const projectIssues = issuesByProject.get(project.id) || [];
-              const projectInProgress = projectIssues.filter(
+              const projectTasks = tasksByProject.get(project.id) || [];
+              const projectInProgress = projectTasks.filter(
                 (i) => i.statusName.toLowerCase().includes('progress') || i.statusName.toLowerCase().includes('active'),
               );
-              const projectTodo = projectIssues.filter(
+              const projectTodo = projectTasks.filter(
                 (i) => i.statusName.toLowerCase().includes('todo') || i.statusName.toLowerCase().includes('open'),
               );
               return (
@@ -140,9 +140,9 @@ export default function ContributorDashboard() {
                         <h4 className="font-semibold text-gray-900">{project.name}</h4>
                       </div>
                       <div className="flex items-center gap-3 text-xs text-gray-500">
-                        {projectIssues.length > 0 && (
+                        {projectTasks.length > 0 && (
                           <>
-                            <span>{projectIssues.length} issue{projectIssues.length !== 1 ? 's' : ''}</span>
+                            <span>{projectTasks.length} task{projectTasks.length !== 1 ? 's' : ''}</span>
                             {projectInProgress.length > 0 && <span className="text-blue-600">{projectInProgress.length} in progress</span>}
                             {projectTodo.length > 0 && <span>{projectTodo.length} to do</span>}
                           </>
@@ -154,28 +154,28 @@ export default function ContributorDashboard() {
                     )}
                   </Link>
 
-                  {/* Issues under this project */}
-                  {projectIssues.length > 0 && (
+                  {/* Tasks under this project */}
+                  {projectTasks.length > 0 && (
                     <div className="border-t border-gray-100 divide-y divide-gray-50">
-                      {projectIssues.map((issue) => {
-                        const isProgress = issue.statusName.toLowerCase().includes('progress') || issue.statusName.toLowerCase().includes('active');
+                      {projectTasks.map((task) => {
+                        const isProgress = task.statusName.toLowerCase().includes('progress') || task.statusName.toLowerCase().includes('active');
                         return (
                           <Link
-                            key={issue.id}
-                            to={`/projects/${issue.projectId}/issues/${issue.id}`}
+                            key={task.id}
+                            to={`/projects/${task.projectId}/tasks/${task.id}`}
                             className="flex items-center justify-between px-5 py-2.5 hover:bg-gray-50"
                           >
                             <div className="flex items-center gap-3 min-w-0">
                               <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${isProgress ? 'bg-blue-500' : 'bg-gray-300'}`} />
-                              <span className="font-mono text-xs text-gray-400">{issue.issueKey}</span>
-                              <span className="text-sm text-gray-900 truncate">{issue.title}</span>
+                              <span className="font-mono text-xs text-gray-400">{task.taskKey}</span>
+                              <span className="text-sm text-gray-900 truncate">{task.title}</span>
                             </div>
                             <div className="flex items-center gap-2 shrink-0 ml-3">
-                              <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${priorityColor(issue.priority as IssuePriority)}`}>
-                                {issue.priority}
+                              <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${priorityColor(task.priority as TaskPriority)}`}>
+                                {task.priority}
                               </span>
-                              <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${statusColor(issue.statusName)}`}>
-                                {issue.statusName}
+                              <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${statusColor(task.statusName)}`}>
+                                {task.statusName}
                               </span>
                             </div>
                           </Link>
@@ -184,8 +184,8 @@ export default function ContributorDashboard() {
                     </div>
                   )}
 
-                  {projectIssues.length === 0 && (
-                    <div className="px-5 py-3 border-t border-gray-100 text-sm text-gray-400">No assigned issues</div>
+                  {projectTasks.length === 0 && (
+                    <div className="px-5 py-3 border-t border-gray-100 text-sm text-gray-400">No assigned tasks</div>
                   )}
                 </div>
               );
