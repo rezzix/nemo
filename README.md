@@ -83,21 +83,6 @@ npm run dev
 
 The frontend starts at `http://localhost:5173` and proxies API calls to the backend.
 
-### Default Users
-
-The data seeder creates these test accounts (all passwords: `password123`):
-
-| Username | Role | Company |
-|----------|------|---------|
-| admin | ADMIN | Global |
-| majid | MANAGER | Netopia |
-| ismail | CONTRIBUTOR | Netopia |
-| hanane | CONTRIBUTOR | Netopia |
-| karima | MANAGER | Harmony |
-| wadii | CONTRIBUTOR | Harmony |
-| ahmed | CONTRIBUTOR | Harmony |
-| salim | EXECUTIVE | Global |
-| bassamat | EXTERNAL | Netopia (FSE project) |
 
 ## API Overview
 
