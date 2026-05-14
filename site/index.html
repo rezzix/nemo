@@ -146,12 +146,22 @@
       position: relative;
       overflow: hidden;
     }
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('images/hero-bg.jpg');
+      background-size: cover;
+      background-position: center;
+      opacity: 0.15;
+      filter: blur(1px);
+    }
     .hero::before {
       content: '';
       position: absolute;
       inset: 0;
-      background: radial-gradient(ellipse at 30% 20%, rgba(134, 59, 255, 0.15) 0%, transparent 60%),
-                  radial-gradient(ellipse at 70% 80%, rgba(71, 191, 255, 0.1) 0%, transparent 50%);
+      background: radial-gradient(ellipse at 30% 20%, rgba(134, 59, 255, 0.2) 0%, transparent 60%),
+                  radial-gradient(ellipse at 70% 80%, rgba(71, 191, 255, 0.15) 0%, transparent 50%),
+                  linear-gradient(180deg, rgba(15, 23, 42, 0.3) 0%, rgba(15, 23, 42, 0.6) 100%);
       animation: gradientShift 12s ease infinite;
       background-size: 200% 200%;
     }
@@ -246,6 +256,32 @@
       filter: drop-shadow(0 0 30px rgba(134, 59, 255, 0.4));
     }
 
+    /* ── Showcase ── */
+    .showcase {
+      padding: 0 24px 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .showcase-frame {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      box-shadow: 0 25px 80px rgba(99, 102, 241, 0.15), 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+    .showcase-frame img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .showcase-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(134, 59, 255, 0.08));
+      pointer-events: none;
+    }
+
     /* ── Section base ── */
     section {
       padding: 100px 24px;
@@ -286,10 +322,20 @@
       background: var(--bg-card);
       border: 1px solid rgba(255, 255, 255, 0.06);
       border-radius: 16px;
-      padding: 32px;
+      padding: 0;
       transition: all 0.3s;
       position: relative;
       overflow: hidden;
+    }
+    .highlight-card-img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      display: block;
+      filter: brightness(0.7) saturate(1.2);
+    }
+    .highlight-card-body {
+      padding: 28px 32px 32px;
     }
     .highlight-card::before {
       content: '';
@@ -301,6 +347,7 @@
       background: linear-gradient(90deg, var(--primary-500), var(--accent-blue));
       opacity: 0;
       transition: opacity 0.3s;
+      z-index: 1;
     }
     .highlight-card:hover {
       border-color: rgba(99, 102, 241, 0.3);
@@ -308,6 +355,9 @@
       box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
     }
     .highlight-card:hover::before { opacity: 1; }
+    .highlight-card:hover .highlight-card-img {
+      filter: brightness(0.8) saturate(1.3);
+    }
     .highlight-icon {
       width: 48px;
       height: 48px;
@@ -373,6 +423,49 @@
       font-size: 0.82rem;
       color: var(--text-muted);
       line-height: 1.5;
+    }
+
+    /* ── Visual Banner ── */
+    .visual-banner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px 100px;
+      position: relative;
+    }
+    .visual-banner-inner {
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+    }
+    .visual-banner-inner img {
+      width: 100%;
+      height: 400px;
+      object-fit: cover;
+      display: block;
+      filter: brightness(0.5) saturate(1.3);
+    }
+    .visual-banner-content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      padding: 40px;
+    }
+    .visual-banner-content h2 {
+      font-size: clamp(1.5rem, 3vw, 2.25rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+      text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+    }
+    .visual-banner-content p {
+      font-size: 1.05rem;
+      color: rgba(255, 255, 255, 0.85);
+      max-width: 500px;
+      text-shadow: 0 1px 10px rgba(0, 0, 0, 0.5);
     }
 
     /* ── Roles ── */
@@ -518,6 +611,7 @@
     @media (max-width: 1024px) {
       .features-grid { grid-template-columns: repeat(2, 1fr); }
       .roles-grid { grid-template-columns: repeat(2, 1fr); }
+      .visual-banner-inner img { height: 300px; }
     }
 
     @media (max-width: 768px) {
@@ -539,6 +633,10 @@
       .features-grid { grid-template-columns: 1fr; }
       .roles-grid { grid-template-columns: 1fr; }
       .hero h1 { font-size: 2.2rem; }
+      .highlight-card-img { height: 140px; }
+      .visual-banner-inner img { height: 240px; }
+      .visual-banner-content h2 { font-size: 1.3rem; }
+      .visual-banner-content p { font-size: 0.9rem; }
       .cta-box { padding: 40px 24px; }
       section { padding: 64px 16px; }
     }
@@ -568,6 +666,7 @@
 
   <!-- Hero -->
   <section class="hero">
+    <div class="hero-bg"></div>
     <div class="hero-content">
       <div class="hero-badge reveal"><span></span> Open Source &middot; Self-Hosted</div>
       <h1 class="reveal">Project Management.<br><span class="gradient-text">Reimagined.</span></h1>
@@ -585,6 +684,14 @@
     </div>
   </section>
 
+  <!-- Showcase -->
+  <div class="showcase reveal">
+    <div class="showcase-frame">
+      <img src="images/dashboard.jpg" alt="Nemo dashboard showing project overview, kanban board, and analytics">
+      <div class="showcase-overlay"></div>
+    </div>
+  </div>
+
   <!-- Highlights -->
   <section class="highlights" id="highlights">
     <div class="section-label reveal">Why Nemo</div>
@@ -593,35 +700,47 @@
 
     <div class="highlights-grid">
       <div class="highlight-card reveal reveal-delay-1">
-        <div class="highlight-icon icon-allinone">
-          <svg fill="none" stroke="#818cf8" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <img class="highlight-card-img" src="images/analytics.jpg" alt="All-in-one platform dashboard">
+        <div class="highlight-card-body">
+          <div class="highlight-icon icon-allinone">
+            <svg fill="none" stroke="#818cf8" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          </div>
+          <h3>All-in-One Platform</h3>
+          <p>Replace your patchwork of tools. Tasks, time tracking, wiki docs, CRM, leave management, and reporting &mdash; natively integrated, no plugins required.</p>
         </div>
-        <h3>All-in-One Platform</h3>
-        <p>Replace your patchwork of tools. Tasks, time tracking, wiki docs, CRM, leave management, and reporting &mdash; natively integrated, no plugins required.</p>
       </div>
 
       <div class="highlight-card reveal reveal-delay-2">
-        <div class="highlight-icon icon-pmo">
-          <svg fill="none" stroke="#c084fc" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18"/><path stroke-linecap="round" stroke-linejoin="round" d="M7 16l4-4 4 2 4-6"/></svg>
+        <img class="highlight-card-img" src="images/analytics.jpg" alt="PMO portfolio analytics">
+        <div class="highlight-card-body">
+          <div class="highlight-icon icon-pmo">
+            <svg fill="none" stroke="#c084fc" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18"/><path stroke-linecap="round" stroke-linejoin="round" d="M7 16l4-4 4 2 4-6"/></svg>
+          </div>
+          <h3>PMO &amp; Portfolio</h3>
+          <p>Built-in Earned Value Management, RAID logs, phase tracking with deliverables and payments, and portfolio-level KPIs across all your projects.</p>
         </div>
-        <h3>PMO &amp; Portfolio</h3>
-        <p>Built-in Earned Value Management, RAID logs, phase tracking with deliverables and payments, and portfolio-level KPIs across all your projects.</p>
       </div>
 
       <div class="highlight-card reveal reveal-delay-3">
-        <div class="highlight-icon icon-pm">
-          <svg fill="none" stroke="#47bfff" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+        <img class="highlight-card-img" src="images/planning.jpg" alt="Project planning and collaboration">
+        <div class="highlight-card-body">
+          <div class="highlight-icon icon-pm">
+            <svg fill="none" stroke="#47bfff" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+          </div>
+          <h3>Project Management</h3>
+          <p>Real-time Kanban boards via WebSocket, sprint planning, backlog management, task types &amp; priorities, labels, and drag-and-drop organization.</p>
         </div>
-        <h3>Project Management</h3>
-        <p>Real-time Kanban boards via WebSocket, sprint planning, backlog management, task types &amp; priorities, labels, and drag-and-drop organization.</p>
       </div>
 
       <div class="highlight-card reveal reveal-delay-4">
-        <div class="highlight-icon icon-enterprise">
-          <svg fill="none" stroke="#34d399" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        <img class="highlight-card-img" src="images/security.jpg" alt="Enterprise security and governance">
+        <div class="highlight-card-body">
+          <div class="highlight-icon icon-enterprise">
+            <svg fill="none" stroke="#34d399" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          </div>
+          <h3>Enterprise &amp; Governance</h3>
+          <p>Multi-company architecture with fine-grained role-based access. Six distinct roles ensure each user sees only what they should &mdash; including restricted external stakeholder access.</p>
         </div>
-        <h3>Enterprise &amp; Governance</h3>
-        <p>Multi-company architecture with fine-grained role-based access. Six distinct roles ensure each user sees only what they should &mdash; including restricted external stakeholder access.</p>
       </div>
     </div>
   </section>
@@ -695,6 +814,17 @@
       </div>
     </div>
   </section>
+
+  <!-- Visual Banner -->
+  <div class="visual-banner reveal">
+    <div class="visual-banner-inner">
+      <img src="images/team.jpg" alt="Team collaboration around a project dashboard">
+      <div class="visual-banner-content">
+        <h2>Built for teams that ship</h2>
+        <p>From sprint boards to C-suite dashboards &mdash; every role, one platform.</p>
+      </div>
+    </div>
+  </div>
 
   <!-- Roles -->
   <section class="roles" id="roles">
@@ -828,7 +958,7 @@
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="23" fill="none" viewBox="0 0 48 46"><path fill="#863bff" d="M25.946 44.938c-.664.845-2.021.375-2.021-.698V33.937a2.26 2.26 0 0 0-2.262-2.262H10.287c-.92 0-1.456-1.04-.92-1.788l7.48-10.471c1.07-1.497 0-3.578-1.842-3.578H1.237c-.92 0-1.456-1.04-.92-1.788L10.013.474c.214-.297.556-.474.92-.474h28.894c.92 0 1.456 1.04.92 1.788l-7.48 10.471c-1.07 1.498 0 3.579 1.842 3.579h11.377c.943 0 1.473 1.088.89 1.83L25.947 44.94z"/></svg>
       <span style="font-weight: 700; font-size: 1rem;">Nemo</span>
     </div>
-    <p>&copy; 2024 Nemo. Open source project management.</p>
+    <p>&copy; 2025 Nemo. Open source project management.</p>
   </footer>
 
   <script>
