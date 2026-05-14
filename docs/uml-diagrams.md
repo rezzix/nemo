@@ -63,23 +63,23 @@ classDiagram
         +Long id
     }
 
-    class Issue {
+    class Task {
         +Long id
         +String title
         +String description
-        +String issueKey
+        +String taskKey
         +Priority priority
         +int position
     }
 
-    class IssueStatus {
+    class TaskStatus {
         +Long id
         +String name
-        +StatusCategory category
+        +Category category
         +boolean isDefault
     }
 
-    class IssueType {
+    class TaskType {
         +Long id
         +String name
     }
@@ -132,10 +132,6 @@ classDiagram
         +int position
     }
 
-    class WikiPageIssueLink {
-        +Long id
-    }
-
     class AuditLog {
         +Long id
         +String entityType
@@ -167,16 +163,79 @@ classDiagram
         +Long id
     }
 
+    class Phase {
+        +Long id
+        +String name
+        +int position
+        +BigDecimal plannedAmount
+        +LocalDate startDate
+        +LocalDate endDate
+    }
+
+    class Deliverable {
+        +Long id
+        +String name
+        +DeliverableState state
+    }
+
+    class PhasePayment {
+        +Long id
+        +BigDecimal amount
+        +LocalDate paymentDate
+        +boolean paid
+    }
+
+    class Client {
+        +Long id
+        +String name
+        +String industry
+        +String website
+    }
+
+    class ClientContact {
+        +Long id
+        +String name
+        +String email
+        +String phone
+        +String role
+    }
+
+    class PreSale {
+        +Long id
+        +String title
+        +PreSaleStatus status
+    }
+
+    class LeaveRequest {
+        +Long id
+        +LocalDate startDate
+        +LocalDate endDate
+        +LeaveType leaveType
+        +LeaveStatus status
+    }
+
+    class Asset {
+        +Long id
+        +String name
+        +String serialNumber
+    }
+
+    class Location {
+        +Long id
+        +String name
+        +String address
+    }
+
     Company "1" --> "*" User : employs
     Company "1" --> "*" Program : owns
     Company "1" --> "*" Project : owns
     Company "1" --> "0..1" OrganizationConfig : configures
-    OrganizationConfig "1" --> "*" IssueType : defines
-    OrganizationConfig "1" --> "*" IssueStatus : defines
+    OrganizationConfig "1" --> "*" TaskType : defines
+    OrganizationConfig "1" --> "*" TaskStatus : defines
     User "1" --> "*" Program : manages
     User "1" --> "*" Project : manages
-    User "1" --> "*" Issue : reports
-    User "1" --> "*" Issue : assigned to
+    User "1" --> "*" Task : reports
+    User "1" --> "*" Task : assigned to
     User "1" --> "*" TimeLog : logs
     User "1" --> "*" Comment : writes
     User "1" --> "*" WikiPage : authors
@@ -186,91 +245,169 @@ classDiagram
     User "*" --> "*" Project : member of
     User "*" --> "*" Project : favorite of
     Program "1" --> "*" Project : contains
-    Project "1" --> "*" Issue : contains
+    Project "1" --> "*" Task : contains
     Project "1" --> "*" Label : defines
     Project "1" --> "*" Sprint : has
     Project "1" --> "*" BoardColumn : configures
     Project "1" --> "*" WikiPage : contains
     Project "1" --> "*" RaidItem : has
-    Issue --> IssueStatus : has
-    Issue --> IssueType : has
-    Issue --> Sprint : belongs to
-    Issue "*" --> "*" Label : tagged with
-    Issue "1" --> "*" Comment : has
-    Issue "1" --> "*" Attachment : has
-    Issue "1" --> "*" TimeLog : tracked by
+    Project "1" --> "*" Phase : has
+    Project "1" --> "0..1" Client : for
+    Task --> TaskStatus : has
+    Task --> TaskType : has
+    Task --> Sprint : belongs to
+    Task "*" --> "*" Label : tagged with
+    Task "1" --> "*" Comment : has
+    Task "1" --> "*" Attachment : has
+    Task "1" --> "*" TimeLog : tracked by
     WikiPage "1" --> "*" WikiPage : parent of
-    WikiPage "*" --> "*" Issue : linked to
+    WikiPage "*" --> "*" Task : linked to
+    Phase "1" --> "*" Deliverable : has
+    Phase "1" --> "*" PhasePayment : has
+    Client "1" --> "*" ClientContact : has
+    Client "1" --> "*" PreSale : for
+    User "1" --> "*" LeaveRequest : requests
+    Location "1" --> "*" Asset : contains
 ```
 
 ---
 
-## 2. Use Case Diagram
+## 2. Use Case Diagrams
 
-What each role can do.
+### 2.1 Admin Use Cases
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Admin
-        A1[Manage users CRUD]
-        A2[Manage organization config]
-        A3[Manage companies]
-        A4[Manage issue types & statuses]
-        A5[Manage programs & projects]
-        A6[All Manager & Contributor actions]
+        direction TB
+        A1[Manage users<br/>CRUD / deactivate]
+        A2[Manage companies<br/>CRUD / delete]
+        A3[Manage organization<br/>config & branding]
+        A4[Manage task types<br/>& statuses]
+        A5[View audit &<br/>activity logs]
+        A6[Manage user rates<br/>& billing]
+        A7[Delete projects,<br/>tasks, sprints]
+        A8[All Manager &<br/>Contributor actions]
     end
+```
 
-    subgraph Executive
-        E1[View company projects & programs]
-        E2[View company timesheets & reports]
-        E3[Read Kanban boards]
-    end
+### 2.2 Manager Use Cases
 
+```mermaid
+flowchart LR
     subgraph Manager
+        direction TB
         M1[Create & edit projects]
-        M2[Assign contributors to projects]
-        M3[Create & edit issues]
-        M4[Manage sprints & backlog]
-        M5[Configure Kanban board]
-        M6[View team timesheets]
-        M7[Manage wiki pages]
+        M2[Assign members<br/>to projects]
+        M3[Create & edit tasks]
+        M4[Manage sprints<br/>& backlog]
+        M5[Configure Kanban<br/>board columns]
+        M6[View team<br/>timesheets]
+        M7[Manage wiki pages<br/>& notes]
+        M8[Manage RAID items]
+        M9[View PMO &<br/>portfolio data]
+        M10[Manage phases,<br/>deliverables & payments]
+        M11[Approve / reject<br/>leave requests]
+        M12[Manage clients<br/>& contacts]
+        M13[Manage pre-sales]
+        M14[Manage programs]
+        M15[Manage project<br/>instructions & labels]
+        M16[Log time &<br/>edit own time logs]
+        M17[Delete tasks &<br/>comments]
     end
+```
 
+### 2.3 Executive Use Cases
+
+```mermaid
+flowchart LR
+    subgraph Executive
+        direction TB
+        E1[View company projects<br/>& programs]
+        E2[View portfolio KPIs,<br/>EVM & budget]
+        E3[Read Kanban boards]
+        E4[View reports &<br/>timesheets]
+        E5[View & edit RAID items]
+        E6[View & manage<br/>project instructions]
+        E7[View & edit<br/>clients & pre-sales]
+        E8[Create & cancel<br/>leave requests]
+    end
+```
+
+### 2.4 HR Use Cases
+
+```mermaid
+flowchart LR
+    subgraph HR
+        direction TB
+        H1[View people<br/>directory]
+        H2[View user<br/>detail pages]
+        H3[Approve / reject<br/>leave requests]
+        H4[Manage public<br/>holidays]
+        H5[View & assign<br/>assets]
+        H6[View reports<br/>& timesheets]
+        H7[Manage companies<br/>CRUD]
+        H8[Create & cancel<br/>leave requests]
+    end
+```
+
+### 2.5 Contributor Use Cases
+
+```mermaid
+flowchart LR
     subgraph Contributor
-        C1[Create & edit assigned issues]
-        C2[Log time on assigned issues]
-        C3[View own timesheet]
-        C4[Add comments]
-        C5[Manage wiki pages]
+        direction TB
+        C1[Create & edit<br/>assigned tasks]
+        C2[Log time on<br/>assigned tasks]
+        C3[View own timesheet<br/>& time logs]
+        C4[Add comments<br/>on tasks]
+        C5[Edit wiki pages]
         C6[Upload attachments]
+        C7[Move tasks on<br/>Kanban board]
+        C8[Create & cancel<br/>leave requests]
     end
+```
 
-    subgraph System
+### 2.6 External User Use Cases
+
+```mermaid
+flowchart LR
+    subgraph External
+        direction TB
+        X1[View assigned<br/>project only]
+        X2[View & edit<br/>external tasks only]
+        X3[Add comments on<br/>external tasks]
+        X4[View project wiki]
+        X5[Create & cancel<br/>leave requests]
+    end
+```
+
+### 2.7 Common Use Cases (All Authenticated Roles)
+
+```mermaid
+flowchart LR
+    subgraph AllRoles
+        direction TB
         S1[Login / Logout]
         S2[View Kanban board]
-        S3[Search & filter issues]
+        S3[Search & filter tasks]
         S4[View project documentation]
         S5[Edit own profile]
+        S6[Toggle project<br/>favorites]
     end
-
-    A1 & A2 & A3 & A4 & A5 --> A6
-    E1 & E2 & E3
-    M1 & M2 & M3 & M4 & M5 & M6 & M7
-    C1 & C2 & C3 & C4 & C5 & C6
-    S1 & S2 & S3 & S4 & S5
 ```
 
 ---
 
-## 3. Issue Lifecycle (State Diagram)
+## 3. Task Lifecycle (State Diagram)
 
-How an issue moves through statuses.
+How a task moves through statuses.
 
 ```mermaid
 stateDiagram-v2
     direction LR
 
-    [*] --> ToDo : Issue created
+    [*] --> ToDo : Task created
 
     ToDo --> InProgress : Assign & start
     InProgress --> ToDo : Reopen / send back
@@ -282,6 +419,8 @@ stateDiagram-v2
     Review --> Done : Approve
 
     ToDo --> Done : Quick close
+    Done --> Closed : Close permanently
+    Done --> InProgress : Reopen
 
     state ToDo {
         [*] --> Backlog
@@ -292,8 +431,6 @@ stateDiagram-v2
     note right of Review : Optional status\nadded by admin
     note right of Done : Only status in\nDONE category
 ```
-
-> Note: "Review" is an example of a custom status. The core statuses are To Do → In Progress → Done, but admins can add intermediate ones via `issue_status` configuration.
 
 ---
 
@@ -326,7 +463,7 @@ sequenceDiagram
 
     Note over Browser,SecurityFilter: Subsequent requests
 
-    Browser->>SecurityFilter: GET /api/issues (with JSESSIONID)
+    Browser->>SecurityFilter: GET /api/projects/1/tasks (with JSESSIONID)
     SecurityFilter->>SessionManager: validateSession(JSESSIONID)
     SessionManager-->>SecurityFilter: CustomUserDetails (with companyId)
     SecurityFilter->>SecurityFilter: Check role + company visibility
@@ -349,20 +486,20 @@ sequenceDiagram
 
     Note over UserA,UserB: Both viewing Kanban for Project X
 
-    UserA->>Server: Drag issue NEMO-42 from "To Do" to "In Progress"
-    Server->>DB: UPDATE issue SET status_id=? WHERE id=42
+    UserA->>Server: Drag task NEMO-42 from "To Do" to "In Progress"
+    Server->>DB: UPDATE task SET status_id=? WHERE id=42
     DB-->>Server: OK
     Server->>Server: Publish to /topic/kanban/{projectId}
-    Server-->>UserA: STOMP message: {issueId:42, newStatus:"IN_PROGRESS"}
-    Server-->>UserB: STOMP message: {issueId:42, newStatus:"IN_PROGRESS"}
+    Server-->>UserA: STOMP message: {taskId:42, newStatus:"IN_PROGRESS"}
+    Server-->>UserB: STOMP message: {taskId:42, newStatus:"IN_PROGRESS"}
     UserB->>UserB: Board updates instantly
 
-    UserB->>Server: Drag issue NEMO-15 from "In Progress" to "Done"
-    Server->>DB: UPDATE issue SET status_id=? WHERE id=15
+    UserB->>Server: Drag task NEMO-15 from "In Progress" to "Done"
+    Server->>DB: UPDATE task SET status_id=? WHERE id=15
     DB-->>Server: OK
     Server->>Server: Publish to /topic/kanban/{projectId}
-    Server-->>UserA: STOMP message: {issueId:15, newStatus:"DONE"}
-    Server-->>UserB: STOMP message: {issueId:15, newStatus:"DONE"}
+    Server-->>UserA: STOMP message: {taskId:15, newStatus:"DONE"}
+    Server-->>UserB: STOMP message: {taskId:15, newStatus:"DONE"}
     UserA->>UserA: Board updates instantly
 ```
 
@@ -387,6 +524,7 @@ flowchart TB
             WEBSOCKET[WebSocketConfig]
             CORS[CORS Config]
             SEEDER[DataSeeder]
+            TASK_CFG[TaskConfigController<br/>TaskStatus / TaskType]
         end
 
         subgraph security
@@ -419,10 +557,10 @@ flowchart TB
             PJR[ProjectRepository]
         end
 
-        subgraph issue
-            IC[IssueController]
-            IS[IssueService]
-            IR[IssueRepository]
+        subgraph task
+            TC[TaskController]
+            TS[TaskService]
+            TR[TaskRepository]
         end
 
         subgraph sprint
@@ -432,9 +570,9 @@ flowchart TB
         end
 
         subgraph timetracking
-            TC[TimeLogController]
-            TS[TimeLogService]
-            TR[TimeLogRepository]
+            TLC[TimeLogController]
+            TLS[TimeLogService]
+            TLR[TimeLogRepository]
         end
 
         subgraph documentation
@@ -454,12 +592,44 @@ flowchart TB
             AS[AttachmentService]
             AR[AttachmentRepository]
         end
+
+        subgraph client
+            CLC[ClientController]
+            CLS[ClientService]
+            CLR[ClientRepository]
+        end
+
+        subgraph presale
+            PSC[PreSaleController]
+            PSS[PreSaleService]
+            PSR[PreSaleRepository]
+        end
+
+        subgraph phase
+            PHC[PhaseController]
+            PHS[PhaseService]
+            PHR[PhaseRepository]
+        end
+
+        subgraph leave
+            LC[LeaveRequestController]
+            LS[LeaveRequestService]
+            LR[LeaveRequestRepository]
+        end
+
+        subgraph asset
+            ALC[AssetController]
+            ALS[AssetService]
+            ALR[AssetRepository]
+            LOCLC[LocationController]
+            LOCS[LocationService]
+        end
     end
 
     STORAGE -.-> AS
-    AUDIT -.-> IS
     AUDIT -.-> TS
-    EXC -.-> IC & TC & WC
+    AUDIT -.-> TLS
+    EXC -.-> TC & TLC & WC
     AUTH_HELPER -.-> PJS & PS & US
 ```
 
@@ -472,14 +642,14 @@ sequenceDiagram
     actor Contributor
     participant API
     participant TimeLogService
-    participant IssueService
+    participant TaskService
     participant DB
 
-    Contributor->>API: POST /api/time-logs<br/>{issueId: 42, hours: 3.5, date: "2026-04-24", description: "Fixed login bug"}
+    Contributor->>API: POST /api/time-logs<br/>{taskId: 42, hours: 3.5, date: "2026-04-24", description: "Fixed login bug"}
     API->>API: Validate input
     API->>TimeLogService: createTimeLog(userId, dto)
-    TimeLogService->>IssueService: verifyIssueAccessible(userId, 42)
-    IssueService-->>TimeLogService: Issue found & user has access
+    TimeLogService->>TaskService: verifyTaskAccessible(userId, 42)
+    TaskService-->>TimeLogService: Task found & user has access
     TimeLogService->>DB: INSERT time_log
     DB-->>TimeLogService: Saved
     TimeLogService-->>API: TimeLogDTO
@@ -493,4 +663,52 @@ sequenceDiagram
     DB-->>TimeLogService: List of time logs
     TimeLogService-->>API: WeeklyTimesheetDTO
     API-->>Contributor: 200 OK + timesheet data
+```
+
+---
+
+## 8. Role-Based Access Overview
+
+Summary of which roles can access which modules.
+
+```mermaid
+flowchart TB
+    subgraph Roles
+        ADMIN[ADMIN]
+        MANAGER[MANAGER]
+        EXECUTIVE[EXECUTIVE]
+        HR[HR]
+        CONTRIBUTOR[CONTRIBUTOR]
+        EXTERNAL[EXTERNAL]
+    end
+
+    subgraph Modules
+        direction TB
+        AUTH[Authentication]
+        DASH[Dashboards]
+        PROJ[Projects & Tasks]
+        SPRINT[Sprints]
+        PHASE[Phases & Payments]
+        RAID[RAID Items]
+        PMO[PMO / Portfolio]
+        CLIENTS[Clients]
+        PRESALE[Pre-Sales]
+        PROGS[Programs]
+        PEOPLE[People]
+        TIME[Time Tracking]
+        TSHEETS[Timesheets]
+        REPORTS[Reports]
+        LEAVE[Leave]
+        HOLIDAYS[Holidays]
+        ASSETS[Assets]
+        WIKI[Wiki Pages]
+        ADMIN_CFG[Admin Config]
+    end
+
+    ADMIN --> AUTH & DASH & PROJ & SPRINT & PHASE & RAID & PMO & CLIENTS & PRESALE & PROGS & PEOPLE & TIME & TSHEETS & REPORTS & LEAVE & HOLIDAYS & ASSETS & WIKI & ADMIN_CFG
+    MANAGER --> AUTH & DASH & PROJ & SPRINT & PHASE & RAID & PMO & CLIENTS & PRESALE & PROGS & PEOPLE & TIME & TSHEETS & REPORTS & LEAVE & WIKI
+    EXECUTIVE --> AUTH & DASH & PROJ & RAID & PMO & CLIENTS & PRESALE & TIME & REPORTS & LEAVE & WIKI
+    HR --> AUTH & DASH & PROJ & PEOPLE & TSHEETS & REPORTS & LEAVE & HOLIDAYS & ASSETS & CLIENTS & PRESALE & WIKI
+    CONTRIBUTOR --> AUTH & DASH & PROJ & TIME & LEAVE & WIKI
+    EXTERNAL --> AUTH & DASH & PROJ & LEAVE & WIKI
 ```
