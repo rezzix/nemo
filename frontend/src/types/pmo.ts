@@ -57,8 +57,8 @@ export interface EvmMetrics {
   pvToday: number;
   costVariance: number;
   scheduleVariance: number;
-  cpi: number;
-  spi: number;
+  cpi: number | null;
+  spi: number | null;
   budget: number;
   laborCost: number;
   stage: string | null;

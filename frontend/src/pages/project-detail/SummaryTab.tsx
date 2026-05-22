@@ -89,8 +89,8 @@ export default function SummaryTab({ project, projectId, managerId, onNavigate }
   const fmt = (v: number | null) => formatCurrency(v);
   const cvColor = evm && evm.costVariance >= 0 ? 'text-green-600' : 'text-red-600';
   const svColor = evm && evm.scheduleVariance >= 0 ? 'text-green-600' : 'text-red-600';
-  const cpiColor = evm ? (evm.cpi >= 1 ? 'text-green-600' : evm.cpi >= 0.9 ? 'text-yellow-600' : 'text-red-600') : '';
-  const spiColor = evm ? (evm.spi >= 1 ? 'text-green-600' : evm.spi >= 0.9 ? 'text-yellow-600' : 'text-red-600') : '';
+  const cpiColor = evm ? (evm.cpi == null ? 'text-gray-400' : evm.cpi >= 1 ? 'text-green-600' : evm.cpi >= 0.9 ? 'text-yellow-600' : 'text-red-600') : '';
+  const spiColor = evm ? (evm.spi == null ? 'text-gray-400' : evm.spi >= 1 ? 'text-green-600' : evm.spi >= 0.9 ? 'text-yellow-600' : 'text-red-600') : '';
 
   const handleDeleteInstruction = async (inst: InstructionDto) => {
     if (!confirm('Delete this instruction?')) return;
@@ -186,11 +186,11 @@ export default function SummaryTab({ project, projectId, managerId, onNavigate }
                 </div>
                 <div className="text-center">
                   <div className="text-xs text-gray-500 font-medium">CPI</div>
-                  <div className={`text-lg font-bold ${cpiColor}`}>{evm.cpi.toFixed(2)}</div>
+                  <div className={`text-lg font-bold ${cpiColor}`}>{evm.cpi != null ? evm.cpi.toFixed(2) : 'N/A'}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-xs text-gray-500 font-medium">SPI</div>
-                  <div className={`text-lg font-bold ${spiColor}`}>{evm.spi.toFixed(2)}</div>
+                  <div className={`text-lg font-bold ${spiColor}`}>{evm.spi != null ? evm.spi.toFixed(2) : 'N/A'}</div>
                 </div>
               </div>
             </div>

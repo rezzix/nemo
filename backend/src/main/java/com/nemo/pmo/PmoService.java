@@ -117,15 +117,15 @@ public class PmoService {
         BigDecimal pvToday = computePlannedValueToday(project, plannedValue);
         BigDecimal scheduleVariance = earnedValue.subtract(pvToday).setScale(2, RoundingMode.HALF_UP);
 
-        // CPI = EV / AC
+        // CPI = EV / AC (null when AC = 0 — no costs recorded yet)
         BigDecimal cpi = actualCost.compareTo(BigDecimal.ZERO) > 0
                 ? earnedValue.divide(actualCost, 2, RoundingMode.HALF_UP)
-                : BigDecimal.ZERO;
+                : null;
 
-        // SPI = EV / PV
+        // SPI = EV / PV (null when PV = 0 — no planned value yet)
         BigDecimal spi = pvToday.compareTo(BigDecimal.ZERO) > 0
                 ? earnedValue.divide(pvToday, 2, RoundingMode.HALF_UP)
-                : BigDecimal.ZERO;
+                : null;
 
         // Risk summary
         long openRisks = raidItemRepository.countByProjectIdAndStatus(projectId, RaidItem.RaidStatus.OPEN);
