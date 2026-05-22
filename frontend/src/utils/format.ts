@@ -92,7 +92,8 @@ export function raidStatusBadge(status: string): string {
   }
 }
 
-export function eviColor(value: number): string {
+export function eviColor(value: number | null): string {
+  if (value == null) return 'text-gray-400';
   if (value >= 1) return 'text-green-600';
   if (value >= 0.9) return 'text-yellow-600';
   return 'text-red-600';

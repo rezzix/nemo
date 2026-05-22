@@ -31,14 +31,14 @@ function computeAlerts(
     const maxRisk = projectRisks.length > 0 ? Math.max(...projectRisks.map((r) => r.riskScore)) : 0;
 
     if (evm) {
-      if (evm.cpi < 0.9) {
+      if (evm.cpi != null && evm.cpi < 0.9) {
         alerts.push({
           projectId: project.id, projectKey: project.key, projectName: project.name,
           type: 'cpi', message: 'Cost performance below threshold',
           value: `CPI ${evm.cpi.toFixed(2)}`, severity: evm.cpi < 0.8 ? 'red' : 'yellow',
         });
       }
-      if (evm.spi < 0.9) {
+      if (evm.spi != null && evm.spi < 0.9) {
         alerts.push({
           projectId: project.id, projectKey: project.key, projectName: project.name,
           type: 'spi', message: 'Schedule performance below threshold',
@@ -194,8 +194,8 @@ export default function ExecutiveDashboard() {
     // If a specific company is selected, use CompanyPortfolioSummary
     if (selectedCompanySummary) {
       const cs = selectedCompanySummary;
-      const totalEarnedValue = Object.values(filteredEvmMap).reduce((s, e) => s + e.earnedValue, 0);
-      const totalActualCost = Object.values(filteredEvmMap).reduce((s, e) => s + e.actualCost, 0);
+      const totalEarnedValue = Object.values(filteredEvmMap).filter(e => e.actualCost > 0).reduce((s, e) => s + e.earnedValue, 0);
+      const totalActualCost = Object.values(filteredEvmMap).filter(e => e.actualCost > 0).reduce((s, e) => s + e.actualCost, 0);
       const totalPlannedValue = Object.values(filteredEvmMap).reduce((s, e) => s + e.plannedValue, 0);
       const cv = totalEarnedValue - totalActualCost;
       const sv = totalEarnedValue - totalPlannedValue;
@@ -490,15 +490,15 @@ export default function ExecutiveDashboard() {
                         <td className="px-3 py-3 text-center text-gray-700">{completionPct}</td>
                         <td className="px-3 py-3 text-center">
                           {evm ? (
-                            <span className={evm.cpi >= 1 ? 'text-green-600' : evm.cpi >= 0.9 ? 'text-yellow-600' : 'text-red-600'}>
-                              {evm.cpi.toFixed(2)}
+                            <span className={evm.cpi == null ? 'text-gray-400' : evm.cpi >= 1 ? 'text-green-600' : evm.cpi >= 0.9 ? 'text-yellow-600' : 'text-red-600'}>
+                              {evm.cpi != null ? evm.cpi.toFixed(2) : 'N/A'}
                             </span>
                           ) : '—'}
                         </td>
                         <td className="px-3 py-3 text-center">
                           {evm ? (
-                            <span className={evm.spi >= 1 ? 'text-green-600' : evm.spi >= 0.9 ? 'text-yellow-600' : 'text-red-600'}>
-                              {evm.spi.toFixed(2)}
+                            <span className={evm.spi == null ? 'text-gray-400' : evm.spi >= 1 ? 'text-green-600' : evm.spi >= 0.9 ? 'text-yellow-600' : 'text-red-600'}>
+                              {evm.spi != null ? evm.spi.toFixed(2) : 'N/A'}
                             </span>
                           ) : '—'}
                         </td>
@@ -594,8 +594,8 @@ export default function ExecutiveDashboard() {
                       <span className="text-xs font-semibold text-gray-700">{(evm.completionPct * 100).toFixed(0)}%</span>
                     </div>
                     <div className="flex gap-4 text-xs">
-                      <span>CPI: <span className={evm.cpi >= 1 ? 'text-green-600' : evm.cpi >= 0.9 ? 'text-yellow-600' : 'text-red-600'}>{evm.cpi.toFixed(2)}</span></span>
-                      <span>SPI: <span className={evm.spi >= 1 ? 'text-green-600' : evm.spi >= 0.9 ? 'text-yellow-600' : 'text-red-600'}>{evm.spi.toFixed(2)}</span></span>
+                      <span>CPI: <span className={evm.cpi == null ? 'text-gray-400' : evm.cpi >= 1 ? 'text-green-600' : evm.cpi >= 0.9 ? 'text-yellow-600' : 'text-red-600'}>{evm.cpi != null ? evm.cpi.toFixed(2) : 'N/A'}</span></span>
+                      <span>SPI: <span className={evm.spi == null ? 'text-gray-400' : evm.spi >= 1 ? 'text-green-600' : evm.spi >= 0.9 ? 'text-yellow-600' : 'text-red-600'}>{evm.spi != null ? evm.spi.toFixed(2) : 'N/A'}</span></span>
                     </div>
                   </div>
                 )}

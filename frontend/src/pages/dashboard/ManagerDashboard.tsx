@@ -146,10 +146,10 @@ export default function ManagerDashboard() {
                       </div>
                       <div className="flex gap-4 text-xs">
                         <span>
-                          CPI: <span className={evm.cpi >= 1 ? 'text-green-600' : evm.cpi >= 0.9 ? 'text-yellow-600' : 'text-red-600'}>{evm.cpi.toFixed(2)}</span>
+                          CPI: <span className={evm.cpi == null ? 'text-gray-400' : evm.cpi >= 1 ? 'text-green-600' : evm.cpi >= 0.9 ? 'text-yellow-600' : 'text-red-600'}>{evm.cpi != null ? evm.cpi.toFixed(2) : 'N/A'}</span>
                         </span>
                         <span>
-                          SPI: <span className={evm.spi >= 1 ? 'text-green-600' : evm.spi >= 0.9 ? 'text-yellow-600' : 'text-red-600'}>{evm.spi.toFixed(2)}</span>
+                          SPI: <span className={evm.spi == null ? 'text-gray-400' : evm.spi >= 1 ? 'text-green-600' : evm.spi >= 0.9 ? 'text-yellow-600' : 'text-red-600'}>{evm.spi != null ? evm.spi.toFixed(2) : 'N/A'}</span>
                         </span>
                       </div>
                     </div>
