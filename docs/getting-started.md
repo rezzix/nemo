@@ -14,7 +14,7 @@ nemo/
 │   ├── src/main/java/com/nemo/
 │   │   ├── config/            # Security, WebSocket, Organization, IssueConfig, DataSeeder
 │   │   ├── company/           # Company CRUD (multi-tenant)
-│   │   ├── security/          # AuthController, CustomUserDetailsService, SecurityConfig, DevModeAuthenticationProvider
+│   │   ├── security/          # AuthController, CustomUserDetailsService, SecurityConfig
 │   │   ├── common/            # DTOs, exceptions, audit, storage
 │   │   ├── user/              # User CRUD
 │   │   ├── program/           # Program CRUD
@@ -26,9 +26,8 @@ nemo/
 │   │   ├── pmo/               # RAID logs, EVM metrics
 │   │   └── attachment/        # File uploads
 │   └── src/main/resources/
-│       ├── application.yml        # H2 dev config
-│       ├── application-prod.yml   # Postgres prod config
-│       └── data.sql               # Seed data
+│       ├── application.yml        # H2 dev config (nemo.mode=dev)
+│       ├── application-prod.yml   # Postgres prod config (nemo.mode=prod)
 ├── frontend/                 # React + TypeScript + Tailwind CSS v4
 ├── postman/                  # API test collection
 │   └── nemo-api-collection.json
@@ -52,21 +51,34 @@ nemo/
 
 The application starts on **http://localhost:8080**.
 
-### Development mode (DevMode)
+### Run modes (nemo.mode)
 
-DevMode allows you to log in with **any password** for existing users. This is useful for local development when you don't want to remember seed passwords.
+The application supports three modes controlled by `nemo.mode`:
+
+| Mode | Seeded Data | Auth | Use Case |
+|------|------------|------|----------|
+| `dev` | Dev company names (SIGroup, Sione, Partion, Sportfull, Medocode) | Relaxed (any password, no captcha) | Local development |
+| `demo` | Prod company names (Netopia, Harmony, MyTeam, medERP) | Relaxed (any password, no captcha) | Demonstrations |
+| `prod` | No seed data | Strict (password + captcha required) | Production |
 
 ```bash
-./gradlew :backend:bootRun --args='--nemo.devmode=true'
+# Development mode (default)
+./gradlew :backend:bootRun
+
+# Demo mode
+./gradlew :backend:bootRun --args='--nemo.mode=demo'
+
+# Production mode
+./gradlew :backend:bootRun --args='--nemo.mode=prod'
 ```
 
-When DevMode is active:
-- The login page displays a **DEVMODE** badge and the password field accepts any input
+When dev or demo mode is active:
+- The login page displays a **DevMode** or **DemoMode** badge and the password field accepts any input
 - The `AuthController` bypasses password verification, authenticating by username only
-- The main app top bar also shows a **DEVMODE** badge
-- The public config endpoint (`/api/organization/public`) returns `devmode: true`
+- The main app top bar also shows the corresponding mode badge
+- The public config endpoint (`/api/organization/public`) returns `"mode": "dev"` or `"mode": "demo"`
 
-**Important:** DevMode is always `false` in the production profile (`application-prod.yml`). Never use DevMode in production.
+**Important:** In `prod` mode, no seed data is created and strict authentication is enforced.
 
 ### Version and Build Timestamp
 
@@ -81,7 +93,7 @@ To change the version, update `nemo.version` in `backend/src/main/resources/appl
 
 ### Default seed data
 
-On startup (when the database is empty), the `DataSeeder` populates:
+On startup (when the database is empty and mode is `dev` or `demo`), the `DataSeeder` populates:
 
 | Resource | Defaults |
 |----------|----------|
@@ -145,7 +157,7 @@ curl -s -b cookies.txt http://localhost:8080/api/auth/me
 | POST | `/api/auth/login` | Login |
 | POST | `/api/auth/logout` | Logout |
 | GET | `/api/auth/me` | Current user |
-| GET | `/api/organization/public` | Public config (version, devmode, org info) — no auth required |
+| GET | `/api/organization/public` | Public config (version, mode, org info) — no auth required |
 | GET/PUT | `/api/organization` | Organization config (Admin) |
 | GET/POST | `/api/users` | User management (Admin) |
 | GET/POST | `/api/companies` | Company management (Admin) |
@@ -284,7 +296,7 @@ export NEMO_DB_PASSWORD=your_password
 ./gradlew :backend:bootRun --args='--spring.profiles.active=prod'
 ```
 
-The prod profile disables H2 console, DevMode, and SQL seed data; switches to PostgreSQL; and uses `ddl-auto=validate` (no auto-schema creation — use migration tools like Flyway).
+The prod profile disables H2 console, enforces strict authentication, and skips seed data; switches to PostgreSQL; and uses `ddl-auto=validate` (no auto-schema creation — use migration tools like Flyway).
 
 ## Design Documents
 

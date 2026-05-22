@@ -32,7 +32,7 @@ testImplementation 'org.testcontainers:junit-jupiter:1.21.0'
 **`src/test/resources/application-test.yml`:**
 ```yaml
 nemo:
-  devmode: false
+  mode: test
   version: 0.0.0-test
   build: test
 
@@ -175,20 +175,22 @@ Test each mapper in isolation with `@SpringBootTest` to inject the mapper bean.
 | AUTH-12 | POST | `/api/auth/logout` | Authenticated session | 200 | "Logged out" |
 | AUTH-13 | POST | `/api/auth/logout` | No session | 200 | "Logged out" (idempotent) |
 
-### 4.2 DevMode Authentication
+### 4.2 Run Mode Authentication
 
-| ID | Method | Request | DevMode | Expected |
-|----|--------|---------|---------|----------|
-| DM-1 | POST `/api/auth/login` | `{username:"admin", password:"anything"}` | true | 200, login succeeds without captcha |
-| DM-2 | POST `/api/auth/login` | `{username:"admin"}` (missing password) | true | 422, password is @NotBlank |
-| DM-3 | GET `/api/organization/public` | — | true | `{devmode: true, ...}` |
-| DM-4 | GET `/api/organization/public` | — | false | `{devmode: false, ...}` |
+| ID | Method | Request | Mode | Expected |
+|----|--------|---------|------|----------|
+| DM-1 | POST `/api/auth/login` | `{username:"admin", password:"anything"}` | dev | 200, login succeeds without captcha |
+| DM-2 | POST `/api/auth/login` | `{username:"admin"}` (missing password) | dev | 422, password is @NotBlank |
+| DM-3 | GET `/api/organization/public` | — | dev | `{mode: "dev", ...}` |
+| DM-4 | GET `/api/organization/public` | — | prod | `{mode: "prod", ...}` |
+| DM-5 | POST `/api/auth/login` | `{username:"admin", password:"anything"}` | demo | 200, login succeeds without captcha |
+| DM-6 | GET `/api/organization/public` | — | demo | `{mode: "demo", ...}` |
 
 ### 4.3 Organization Config Endpoints
 
 | ID | Method | Endpoint | Auth | Expected Status | Notes |
 |----|--------|----------|------|-----------------|-------|
-| ORG-1 | GET | `/api/organization/public` | None | 200 | Returns org config, devmode, version, build |
+| ORG-1 | GET | `/api/organization/public` | None | 200 | Returns org config, mode, version, build |
 | ORG-2 | GET | `/api/organization` | Authenticated | 200 | Returns config for user's company |
 | ORG-3 | PUT | `/api/organization` | ADMIN | 200 | Updates org config |
 | ORG-4 | PUT | `/api/organization` | MANAGER | 403 | Forbidden |
@@ -398,7 +400,7 @@ The existing Postman collection at `postman/nemo-api-collection.json` covers the
 | Area | Additional Tests |
 |------|-----------------|
 | Auth | Captcha flow: GET captcha → login with correct answer → login with wrong answer → login without captcha |
-| Auth | DevMode: login with any password, no captcha |
+| Auth | Dev/demo mode: login with any password, no captcha |
 | Auth | Session expiry: login → wait → request → 401 |
 | RBAC | CONTRIBUTOR tries admin endpoints → 403 |
 | RBAC | EXTERNAL tries to view non-external issue → 403 |
@@ -469,7 +471,7 @@ Add script to `package.json`:
 
 | ID | Test Case | Expected |
 |----|-----------|----------|
-| FH-1 | `useVersion` fetches on first call, returns version+devmode | version = "0.9.0+build", devmode = true/false |
+| FH-1 | `useVersion` fetches on first call, returns version+mode | version = "0.9.0+build", mode = "dev"/"demo"/"prod" |
 | FH-2 | `useVersion` caches result, no duplicate fetch | API called once on second render |
 
 ### 6.3 Frontend Component Tests
@@ -492,14 +494,14 @@ Add script to `package.json`:
 | ID | Test Case | Setup | Expected |
 |----|-----------|-------|----------|
 | FL-1 | Renders username and password fields | — | Both fields visible |
-| FL-2 | Renders captcha in normal mode | devMode=false | Question + answer input visible |
-| FL-3 | Hides captcha in devMode | devMode=true | No captcha field, devmode hint shown |
+| FL-2 | Renders captcha in prod mode | mode="prod" | Question + answer input visible |
+| FL-3 | Hides captcha in dev/demo mode | mode="dev" | No captcha field, mode hint shown |
 | FL-4 | Shows error on failed login | Mock API to throw | Error banner visible |
-| FL-5 | Calls login with captcha in normal mode | Fill form, submit | login(username, password, captchaAnswer) called |
-| FL-6 | Calls login without captcha in devMode | Fill form, submit | login(username, password, undefined) called |
+| FL-5 | Calls login with captcha in prod mode | Fill form, submit | login(username, password, captchaAnswer) called |
+| FL-6 | Calls login without captcha in dev/demo mode | Fill form, submit | login(username, password, undefined) called |
 | FL-7 | Refreshes captcha after failed login | Mock API to throw | getCaptcha called again |
 | FL-8 | Shows version in header | version="0.9.0", build="26050316" | "v0.9.0+26050316" visible |
-| FL-9 | Shows DevMode badge | devMode=true | Amber badge with pulsing dot visible |
+| FL-9 | Shows mode badge | mode="dev" | Amber badge with pulsing dot visible |
 
 #### Sidebar
 
@@ -519,8 +521,8 @@ Add script to `package.json`:
 | ID | Test Case | Expected |
 |----|-----------|----------|
 | FTB-1 | Shows title with version | "Nemo 0.9.0+26050316" visible |
-| FTB-2 | Shows DevMode badge when devmode=true | Amber badge visible |
-| FTB-3 | Hides DevMode badge when devmode=false | No badge |
+| FTB-2 | Shows mode badge when mode="dev" | Amber badge visible |
+| FTB-3 | Hides mode badge when mode="prod" | No badge |
 | FTB-4 | Shows company badge for company user | Blue badge with company name |
 | FTB-5 | Shows Global badge for admin without company | Purple "Global" badge |
 
@@ -552,7 +554,7 @@ Add script to `package.json`:
 |----|------|-------|---------------|
 | E2E-1 | Normal login | 1. Load login page 2. Verify captcha appears 3. Enter correct answer 4. Enter credentials 5. Submit | Logged in, redirected to dashboard |
 | E2E-2 | Login with wrong captcha | 1. Enter wrong captcha answer 2. Submit | Error shown, new captcha generated |
-| E2E-3 | DevMode login | 1. Start with devmode=true 2. Verify no captcha shown 3. Enter any password 4. Submit | Logged in, DevMode badge visible |
+| E2E-3 | Dev/demo mode login | 1. Start with nemo.mode=dev or demo 2. Verify no captcha shown 3. Enter any password 4. Submit | Logged in, mode badge visible |
 | E2E-4 | Session persistence | 1. Login 2. Close tab 3. Reopen app | Still logged in |
 | E2E-5 | Session expiry | 1. Login 2. Wait for session timeout 3. Navigate | Redirected to login page |
 | E2E-6 | Logout | 1. Login 2. Click logout | Redirected to login page |
@@ -630,7 +632,7 @@ Add script to `package.json`:
 | P1 | Frontend guard tests (FG-1 to FG-8) | 0.5 day | Catches routing/auth bugs |
 | P2 | Service layer unit tests (PS-1 to AA-1) | 2 days | Catches business logic bugs |
 | P2 | Mapper unit tests | 1 day | Catches DTO mapping errors |
-| P2 | LoginPage component tests (FL-1 to FL-9) | 1 day | Catches captcha/devmode UI bugs |
+| P2 | LoginPage component tests (FL-1 to FL-9) | 1 day | Catches captcha/mode UI bugs |
 | P2 | Sidebar component tests (FSB-1 to FSB-8) | 0.5 day | Catches role-based nav bugs |
 | P3 | All remaining integration tests | 3 days | Full endpoint coverage |
 | P3 | Newman collection extensions | 1 day | API contract coverage |

@@ -60,8 +60,8 @@ nemo/
 │   │   ├── pmo/               # RAID items, EVM metrics, portfolio summary
 │   │   └── attachment/        # File uploads
 │   └── src/main/resources/
-│       ├── application.yml        # H2 dev config, nemo.devmode/version/build
-│       ├── application-prod.yml   # PostgreSQL config, devmode forced false
+│       ├── application.yml        # H2 dev config, nemo.mode/version/build
+│       ├── application-prod.yml   # PostgreSQL config, nemo.mode=prod
 │       └── data.sql               # Seed issue types and statuses
 ├── frontend/
 │   ├── src/
@@ -99,7 +99,7 @@ include 'backend'
 **Backend `application.yml`:**
 ```yaml
 nemo:
-  devmode: false
+  mode: dev
   version: 0.9.0
   build: ''
 spring:
@@ -125,7 +125,7 @@ logging.level.com.nemo: DEBUG
 **Backend `application-prod.yml`:**
 ```yaml
 nemo:
-  devmode: false
+  mode: prod
 spring:
   datasource.url: ${NEMO_DB_URL}
   datasource.driver-class-name: org.postgresql.Driver
@@ -278,7 +278,7 @@ Create Spring Data JPA Repository interfaces for each entity. Key custom queries
 - `canAccessUser(targetUser)` — ADMIN always yes; global user can see all; otherwise company match
 - `requireSelfOrAdmin(userId)` — only ADMIN or same userId
 
-**AuthController** — `POST /api/auth/login` with `LoginRequest(username, password, captcha)`. If devMode (injected via `@Value("${nemo.devmode:false}")`), bypass password check and authenticate by username only. If NOT devMode, verify captcha answer from session first, then authenticate via AuthenticationManager. `GET /api/auth/captcha` generates a math challenge stored in session. `POST /api/auth/logout` clears SecurityContext. `GET /api/auth/me` returns current user DTO.
+**AuthController** — `POST /api/auth/login` with `LoginRequest(username, password, captcha)`. If mode is `dev` or `demo` (injected via `@Value("${nemo.mode:prod}")`), bypass password check and authenticate by username only. If mode is `prod`, verify captcha answer from session first, then authenticate via AuthenticationManager. `GET /api/auth/captcha` generates a math challenge stored in session. `POST /api/auth/logout` clears SecurityContext. `GET /api/auth/me` returns current user DTO.
 
 **CaptchaService** — generates random math challenges (operands 1-20, operators +/−/×), stores answer in HTTP session under key `CAPTCHA_ANSWER`, verifies and clears after use (single-use).
 
@@ -324,9 +324,9 @@ Create REST controllers for each module. All controllers return DTOs wrapped in 
 
 ### Step 9: Data Seeder and SQL Init
 
-**DataSeeder** — `@Component @Order(1) CommandLineRunner`. Only runs if `userRepository.count() > 1` (skips if already populated).
+**DataSeeder** — `@Component @Order(1) CommandLineRunner`. Only runs if `userRepository.count() > 1` and mode is not `prod` (skips in production). In `dev` mode, company names use dev aliases (SIGroup, Sione, Partion, Sportfull, Medocode). In `demo` mode, company names use production names (Netopia Group, Netopia, Harmony, MyTeam, medERP).
 
-Seed data:
+Seed data (dev/demo modes only):
 - **Companies**: Netopia (NTO, order 1), Harmony (HRM, order 2), MyTeam (MTM, order 3), medERP (MER, order 4)
 - **OrganizationConfig**: "Netopia Group" (global, company=null), address "Av Annakhil, Rabat"
 - **Users** (all passwords: `password123`): admin (ADMIN, global), majid (MANAGER, Netopia), ismail (CONTRIBUTOR, Netopia), hanane (CONTRIBUTOR, Netopia), wadii (EXECUTIVE, Harmony), ahmed (CONTRIBUTOR, Harmony), karima (MANAGER, Harmony), salim (EXECUTIVE, global), bassamat (EXTERNAL, assigned to project), younes (CONTRIBUTOR, medERP)
@@ -340,7 +340,7 @@ Seed data:
 
 ### Step 10: Frontend — Foundation
 
-**Types** (`src/types/`): Define all TypeScript interfaces matching the backend DTOs. Key types: `UserDto`, `UserRole`, `LoginRequest` (username, password, optional captcha), `ProjectDto`, `IssueDto`, `CompanyDto`, `ProgramDto`, `OrganizationConfig`, `PublicConfigResponse` (organization, devmode, version, build), `ApiResponse<T>`, `PaginatedResponse<T>`, plus all Create/Update request types.
+**Types** (`src/types/`): Define all TypeScript interfaces matching the backend DTOs. Key types: `UserDto`, `UserRole`, `LoginRequest` (username, password, optional captcha), `ProjectDto`, `IssueDto`, `CompanyDto`, `ProgramDto`, `OrganizationConfig`, `PublicConfigResponse` (organization, mode, version, build), `ApiResponse<T>`, `PaginatedResponse<T>`, plus all Create/Update request types.
 
 **API Client** (`src/api/client.ts`): Axios instance with `baseURL: '/api'`, `withCredentials: true`. 401 interceptor calls `useAuthStore.getState().sessionExpired()`. Helper functions: `apiGet<T>`, `apiGetPaginated<T>`, `apiPost<T>`, `apiPut<T>`, `apiDelete`, `extractValidationErrors`.
 
@@ -352,12 +352,12 @@ Seed data:
 
 **Hooks**:
 - `useAuth`: Thin wrapper around authStore selectors
-- `useVersion`: Fetches `getPublicOrganization()` once, caches version (version+build) and devmode flag in module-level variables
+- `useVersion`: Fetches `getPublicOrganization()` once, caches version (version+build) and mode string in module-level variables
 - `useMyIssues`: Fetches all projects and issues for the current user
 
 ### Step 11: Frontend — Layout and Navigation
 
-**AppLayout**: Flex layout with Sidebar + main area. Uses `useVersion()` to get version and devmode, passes to TopBar as `title={`Nemo ${version}`}` and `devmode={devmode}`.
+**AppLayout**: Flex layout with Sidebar + main area. Uses `useVersion()` to get version and mode, passes to TopBar as `title={`Nemo ${version}`}` and `mode={mode}`.
 
 **Sidebar**: Dark sidebar (`bg-sidebar`), collapsible (w-16 collapsed, w-60 expanded). Role-based navigation:
 - ADMIN: Dashboard, Admin, Programs
@@ -368,7 +368,7 @@ Seed data:
 
 Shows user avatar (initials), name, role, profile link, logout button. "Nemo" logo + version number in header.
 
-**TopBar**: Hamburger toggle, title with version, DevMode badge (amber, pulsing dot), user info on right (company badge or "Global" for admins, name, avatar).
+**TopBar**: Hamburger toggle, title with version, mode badge ("Dev" or "Demo" when not prod, amber, pulsing dot), user info on right (company badge or "Global" for admins, name, avatar).
 
 ### Step 12: Frontend — Guards and Routing
 
@@ -401,11 +401,11 @@ Session check on mount + re-check on browser `visibilitychange` (tab focus).
 
 Split layout: left branded panel (org logo, name, feature list), right form panel.
 
-- Fetches `getPublicOrganization()` on mount to get org config, devmode flag, version, build
-- If NOT devMode: fetches captcha via `getCaptcha()`, shows math question + answer input between password and submit button
-- If devMode: hides captcha, shows amber hint "DevMode active — any password is accepted"
-- After failed login: re-fetches captcha
-- Header shows "Nemo" + version (e.g., `v0.9.0+26050315`) + DevMode badge if applicable
+- Fetches `getPublicOrganization()` on mount to get org config, mode, version, build
+- If mode is `prod`: fetches captcha via `getCaptcha()`, shows math question + answer input between password and submit button
+- If mode is `dev` or `demo`: hides captcha, shows amber hint "DevMode/DemoMode active — any password is accepted"
+- After failed login (in prod mode): re-fetches captcha
+- Header shows "Nemo" + version (e.g., `v0.9.0+26050315`) + Dev/Demo badge if applicable
 - Footer shows org name, address, website
 
 ### Step 14: Frontend — Dashboard
@@ -473,8 +473,8 @@ Personal info edit form (first/last name, email), password change form (current 
 5. **Soft deletes for users/companies** — `active` flag instead of hard delete, preserving referential integrity
 6. **Audit via AOP** — `@Audited` annotation captures who/what/action/values
 7. **Reserved word escaping** — explicit `@Column(name = "xxx_")` for key, order, role, type, action; table overrides for user→app_user, comment→issue_comment
-8. **DevMode** — activated by `--nemo.devmode=true` flag, bypasses password and captcha on login
-9. **Math captcha on login** — simple arithmetic challenge stored in HTTP session, single-use, skipped in DevMode
+8. **Run modes** — `nemo.mode` property: `dev` (dev names, relaxed auth), `demo` (prod names, relaxed auth), `prod` (no seed data, strict auth)
+9. **Math captcha on login** — simple arithmetic challenge stored in HTTP session, single-use, skipped in dev/demo modes
 10. **Version + build timestamp** — `nemo.version` from application.yml, `nemo.build` from JVM system property generated at build time, displayed as `v0.9.0+26050315`
 11. **Role-based frontend navigation** — Sidebar items and project detail tabs change based on user role
 12. **Role-based project detail tabs** — different tabs visible per role (ADMIN, MANAGER, EXECUTIVE, CONTRIBUTOR, EXTERNAL)
@@ -491,7 +491,7 @@ After generating the full application, verify:
 3. **Frontend compiles**: `npx tsc --noEmit` succeeds
 4. **Frontend starts**: `npm run dev` starts on port 5173
 5. **Login works**: Login with `admin`/`password123` succeeds
-6. **DevMode works**: Login with `--nemo.devmode=true`, any password accepted, captcha skipped
+6. **Dev/demo mode works**: Login with `--nemo.mode=dev` or `--nemo.mode=demo`, any password accepted, captcha skipped
 7. **Captcha works**: Normal mode shows captcha, wrong answer rejected, correct answer allows login
 8. **RBAC works**: ADMIN sees Admin tab, MANAGER sees all project tabs, EXTERNAL sees limited tabs
 9. **CRUD works**: Create/update/delete for projects, issues, sprints, RAID items, wiki pages
