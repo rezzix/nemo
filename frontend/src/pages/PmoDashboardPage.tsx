@@ -128,8 +128,8 @@ export default function PmoDashboardPage() {
                     <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(evm.plannedValue)}</td>
                     <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(evm.earnedValue)}</td>
                     <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(evm.actualCost)}</td>
-                    <td className={`px-3 py-3 text-right font-semibold ${eviColor(evm.cpi)}`}>{evm.cpi != null ? evm.cpi.toFixed(2) : 'N/A'}</td>
-                    <td className={`px-3 py-3 text-right font-semibold ${eviColor(evm.spi)}`}>{evm.spi != null ? evm.spi.toFixed(2) : 'N/A'}</td>
+                    <td className={`px-3 py-3 text-right font-semibold ${evm.cpi != null ? eviColor(evm.cpi) : ''}`}>{evm.cpi != null ? evm.cpi.toFixed(2) : '—'}</td>
+                    <td className={`px-3 py-3 text-right font-semibold ${evm.spi != null ? eviColor(evm.spi) : ''}`}>{evm.spi != null ? evm.spi.toFixed(2) : '—'}</td>
                     <td className={`px-3 py-3 text-right ${evm.costVariance >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(evm.costVariance)}</td>
                     <td className={`px-3 py-3 text-right ${evm.scheduleVariance >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(evm.scheduleVariance)}</td>
                     <td className="px-3 py-3 text-right">

@@ -489,16 +489,16 @@ export default function ExecutiveDashboard() {
                         </td>
                         <td className="px-3 py-3 text-center text-gray-700">{completionPct}</td>
                         <td className="px-3 py-3 text-center">
-                          {evm ? (
-                            <span className={evm.cpi == null ? 'text-gray-400' : evm.cpi >= 1 ? 'text-green-600' : evm.cpi >= 0.9 ? 'text-yellow-600' : 'text-red-600'}>
-                              {evm.cpi != null ? evm.cpi.toFixed(2) : 'N/A'}
+                          {evm && evm.cpi != null ? (
+                            <span className={evm.cpi >= 1 ? 'text-green-600' : evm.cpi >= 0.9 ? 'text-yellow-600' : 'text-red-600'}>
+                              {evm.cpi.toFixed(2)}
                             </span>
                           ) : '—'}
                         </td>
                         <td className="px-3 py-3 text-center">
-                          {evm ? (
-                            <span className={evm.spi == null ? 'text-gray-400' : evm.spi >= 1 ? 'text-green-600' : evm.spi >= 0.9 ? 'text-yellow-600' : 'text-red-600'}>
-                              {evm.spi != null ? evm.spi.toFixed(2) : 'N/A'}
+                          {evm && evm.spi != null ? (
+                            <span className={evm.spi >= 1 ? 'text-green-600' : evm.spi >= 0.9 ? 'text-yellow-600' : 'text-red-600'}>
+                              {evm.spi.toFixed(2)}
                             </span>
                           ) : '—'}
                         </td>
@@ -594,8 +594,8 @@ export default function ExecutiveDashboard() {
                       <span className="text-xs font-semibold text-gray-700">{(evm.completionPct * 100).toFixed(0)}%</span>
                     </div>
                     <div className="flex gap-4 text-xs">
-                      <span>CPI: <span className={evm.cpi == null ? 'text-gray-400' : evm.cpi >= 1 ? 'text-green-600' : evm.cpi >= 0.9 ? 'text-yellow-600' : 'text-red-600'}>{evm.cpi != null ? evm.cpi.toFixed(2) : 'N/A'}</span></span>
-                      <span>SPI: <span className={evm.spi == null ? 'text-gray-400' : evm.spi >= 1 ? 'text-green-600' : evm.spi >= 0.9 ? 'text-yellow-600' : 'text-red-600'}>{evm.spi != null ? evm.spi.toFixed(2) : 'N/A'}</span></span>
+                      <span>CPI: <span className={evm.cpi != null ? (evm.cpi >= 1 ? 'text-green-600' : evm.cpi >= 0.9 ? 'text-yellow-600' : 'text-red-600') : ''}>{evm.cpi != null ? evm.cpi.toFixed(2) : '—'}</span></span>
+                      <span>SPI: <span className={evm.spi != null ? (evm.spi >= 1 ? 'text-green-600' : evm.spi >= 0.9 ? 'text-yellow-600' : 'text-red-600') : ''}>{evm.spi != null ? evm.spi.toFixed(2) : '—'}</span></span>
                     </div>
                   </div>
                 )}

@@ -132,13 +132,14 @@ export default function PortfolioReport() {
                   <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(Number(p.budget || 0))}</td>
                   <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(spent)}</td>
                   <td className="px-3 py-3 text-right">
-                    <span className={evm.cpi == null ? 'text-gray-400 font-semibold' : evm.cpi >= 1 ? 'text-green-600 font-semibold' : evm.cpi >= 0.9 ? 'text-yellow-600 font-semibold' : 'text-red-600 font-semibold'}>
-                      {evm.cpi != null ? evm.cpi.toFixed(2) : 'N/A'}
+                    <span className={evm.cpi != null ? (evm.cpi >= 1 ? 'text-green-600 font-semibold' : evm.cpi >= 0.9 ? 'text-yellow-600 font-semibold' : 'text-red-600 font-semibold') : ''}>
+                      {evm.cpi != null ? evm.cpi.toFixed(2) : '—'}
                     </span>
                   </td>
                   <td className="px-3 py-3 text-right">
-                    <span className={evm.spi == null ? 'text-gray-400 font-semibold' : evm.spi >= 1 ? 'text-green-600 font-semibold' : evm.spi >= 0.9 ? 'text-yellow-600 font-semibold' : 'text-red-600 font-semibold'}>
-                      {evm.spi != null ? evm.spi.toFixed(2) : 'N/A'}
+                    <span className={evm.spi != null ? (evm.spi >= 1 ? 'text-green-600 font-semibold' : evm.spi >= 0.9 ? 'text-yellow-600 font-semibold' : 'text-red-600 font-semibold') : ''}>
+                      {evm.spi != null ? evm.spi.toFixed(2) : '—'}
+                    </span>
                     </span>
                   </td>
                   <td className="px-3 py-3 text-right">
