@@ -29,17 +29,17 @@ public class AuthController {
     private final UserMapper userMapper;
     private final CustomUserDetailsService userDetailsService;
     private final CaptchaService captchaService;
-    private final boolean devMode;
+    private final String mode;
 
     public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository, UserMapper userMapper,
                           CustomUserDetailsService userDetailsService, CaptchaService captchaService,
-                          @Value("${nemo.devmode:false}") boolean devMode) {
+                          @Value("${nemo.mode:prod}") String mode) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.userDetailsService = userDetailsService;
         this.captchaService = captchaService;
-        this.devMode = devMode;
+        this.mode = mode;
     }
 
     public record LoginRequest(
@@ -58,7 +58,8 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<UserDto>> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
-        if (!devMode) {
+        boolean relaxedAuth = "dev".equals(mode) || "demo".equals(mode);
+        if (!relaxedAuth) {
             String captchaAnswer = request.captcha();
             if (captchaAnswer == null || !captchaService.verify(httpRequest.getSession(false), captchaAnswer)) {
                 throw new BadRequestException("Invalid captcha answer");
@@ -67,7 +68,7 @@ public class AuthController {
 
         Authentication authentication;
 
-        if (devMode) {
+        if (relaxedAuth) {
             // DevMode: authenticate by username only, skip password check
             CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(request.username());
             authentication = new UsernamePasswordAuthenticationToken(

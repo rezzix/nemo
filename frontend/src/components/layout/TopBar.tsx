@@ -2,7 +2,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useUIStore } from '@/stores/uiStore';
 import { getInitials } from '@/utils/format';
 
-export default function TopBar({ title, version, devmode }: { title: string; version?: string; devmode?: boolean }) {
+export default function TopBar({ title, version, mode }: { title: string; version?: string; mode?: string }) {
   const user = useAuthStore((s) => s.user);
   const isMobile = useUIStore((s) => s.isMobile);
   const openMobileSidebar = useUIStore((s) => s.openMobileSidebar);
@@ -24,10 +24,10 @@ export default function TopBar({ title, version, devmode }: { title: string; ver
           {title}
           {version && <span className="text-xs text-gray-400 font-mono hidden sm:inline">{version}</span>}
         </h1>
-        {devmode && (
+        {mode && mode !== 'prod' && (
           <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-            DevMode
+            {mode === 'dev' ? 'Dev' : 'Demo'}Mode
           </span>
         )}
       </div>

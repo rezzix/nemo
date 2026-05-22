@@ -1,5 +1,5 @@
 nemo:
-  devmode: false
+  mode: prod
 
 spring:
   datasource:

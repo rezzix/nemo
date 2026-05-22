@@ -24,7 +24,7 @@ export default function LoginPage() {
   const [captchaAnswer, setCaptchaAnswer] = useState('');
   const [captchaQuestion, setCaptchaQuestion] = useState('');
   const [org, setOrg] = useState<OrganizationConfig | null>(null);
-  const [devMode, setDevMode] = useState(false);
+  const [mode, setMode] = useState('prod');
   const [version, setVersion] = useState('');
   const [build, setBuild] = useState('');
   const { login, error, clearError, isLoading } = useAuth();
@@ -43,10 +43,10 @@ export default function LoginPage() {
     getPublicOrganization().then((res) => {
       if (res) {
         setOrg(res.organization);
-        setDevMode(res.devmode);
+        setMode(res.mode || 'prod');
         setVersion(res.version);
         setBuild(res.build);
-        if (!res.devmode) fetchCaptcha();
+        if (res.mode === 'prod') fetchCaptcha();
       }
     });
   }, []);
@@ -54,10 +54,11 @@ export default function LoginPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     try {
-      await login(username, password, devMode ? undefined : captchaAnswer);
+      const relaxedAuth = mode !== 'prod';
+      await login(username, password, relaxedAuth ? undefined : captchaAnswer);
       navigate(from, { replace: true });
     } catch {
-      if (!devMode) fetchCaptcha();
+      if (mode === 'prod') fetchCaptcha();
     }
   };
 
@@ -74,10 +75,10 @@ export default function LoginPage() {
               </span>
             )}
           </div>
-          {devMode && (
+          {mode !== 'prod' && (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-              DevMode
+              {mode === 'dev' ? 'Dev' : 'Demo'}Mode
             </span>
           )}
         </div>
@@ -165,20 +166,20 @@ export default function LoginPage() {
                   type="password"
                   value={password}
                   onChange={(e) => { setPassword(e.target.value); clearError(); }}
-                  required={!devMode}
-                  minLength={devMode ? undefined : 6}
+                  required={mode === 'prod'}
+                  minLength={mode !== 'prod' ? undefined : 6}
                   autoComplete="current-password"
                   className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-shadow"
-                  placeholder={devMode ? 'Any password works in dev mode' : 'Enter your password'}
+                  placeholder={mode !== 'prod' ? `Any password works in ${mode} mode` : 'Enter your password'}
                 />
-                {devMode && (
+                {mode !== 'prod' && (
                   <p className="mt-1.5 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
-                    DevMode active — any password is accepted for existing users.
+                    {mode === 'dev' ? 'Dev' : 'Demo'}Mode active — any password is accepted for existing users.
                   </p>
                 )}
               </div>
 
-              {!devMode && captchaQuestion && (
+              {mode === 'prod' && captchaQuestion && (
                 <div>
                   <label htmlFor="captcha" className="block text-sm font-medium text-gray-700 mb-1.5">
                     Verify: {captchaQuestion} = ?

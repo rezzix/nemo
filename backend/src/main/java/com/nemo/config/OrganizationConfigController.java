@@ -19,18 +19,18 @@ public class OrganizationConfigController {
     private final OrganizationConfigRepository repository;
     private final CompanyRepository companyRepository;
     private final AuthHelper authHelper;
-    private final boolean devMode;
+    private final String mode;
     private final String version;
     private final String build;
 
     public OrganizationConfigController(OrganizationConfigRepository repository, CompanyRepository companyRepository, AuthHelper authHelper,
-                                        @Value("${nemo.devmode:false}") boolean devMode,
+                                        @Value("${nemo.mode:prod}") String mode,
                                         @Value("${nemo.version:0.9.0}") String version,
                                         @Value("${nemo.build:}") String build) {
         this.repository = repository;
         this.companyRepository = companyRepository;
         this.authHelper = authHelper;
-        this.devMode = devMode;
+        this.mode = mode;
         this.version = version;
         this.build = build;
     }
@@ -40,7 +40,7 @@ public class OrganizationConfigController {
         OrganizationConfig config = repository.findByCompanyIdIsNull()
                 .orElse(null);
         String currency = config != null ? config.getCurrency() : "DH";
-        return ResponseEntity.ok(ApiResponse.of(new PublicConfigDto(config, devMode, version, build, currency)));
+        return ResponseEntity.ok(ApiResponse.of(new PublicConfigDto(config, mode, version, build, currency)));
     }
 
     @GetMapping

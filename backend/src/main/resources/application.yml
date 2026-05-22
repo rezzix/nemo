@@ -1,5 +1,5 @@
 nemo:
-  devmode: false
+  mode: dev
   version: 0.9.0
   build: ''
 

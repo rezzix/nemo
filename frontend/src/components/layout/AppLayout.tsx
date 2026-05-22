@@ -6,7 +6,7 @@ import { useVersion } from '@/hooks/useVersion';
 import { useUIStore } from '@/stores/uiStore';
 
 export default function AppLayout() {
-  const { version, devmode } = useVersion();
+  const { version, mode } = useVersion();
   const isMobile = useUIStore((s) => s.isMobile);
   const sidebarOpen = useUIStore((s) => s.sidebarOpen);
   const closeMobileSidebar = useUIStore((s) => s.closeMobileSidebar);
@@ -36,11 +36,11 @@ export default function AppLayout() {
         <Sidebar />
       )}
       <div className="flex-1 flex flex-col min-w-0">
-        <TopBar title="Nemo" version={version} devmode={devmode} />
-        {devmode && showDevWarning && (
+        <TopBar title="Nemo" version={version} mode={mode} />
+        {mode !== 'prod' && showDevWarning && (
           <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 flex items-center justify-between">
             <p className="text-sm text-amber-800">
-              <span className="font-medium">Dev Mode:</span> Data may be reinitialized after each deployment.
+              <span className="font-medium">{mode === 'dev' ? 'Dev' : 'Demo'} Mode:</span> Data may be reinitialized after each deployment.
             </p>
             <button onClick={() => setShowDevWarning(false)} className="text-amber-600 hover:text-amber-800 ml-4" aria-label="Dismiss">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

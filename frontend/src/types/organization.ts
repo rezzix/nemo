@@ -11,7 +11,7 @@ export interface OrganizationConfig {
 
 export interface PublicConfigResponse {
   organization: OrganizationConfig | null;
-  devmode: boolean;
+  mode: string;
   version: string;
   build: string;
   currency: string;

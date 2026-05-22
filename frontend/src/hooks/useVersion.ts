@@ -2,22 +2,22 @@ import { useState, useEffect } from 'react';
 import { getPublicOrganization } from '@/api/organization';
 
 let cachedVersion = '';
-let cachedDevmode = false;
+let cachedMode = 'prod';
 let cachedCurrency = 'DH';
 
 export function getCurrency(): string {
   return cachedCurrency;
 }
 
-export function useVersion(): { version: string; devmode: boolean; currency: string } {
+export function useVersion(): { version: string; mode: string; currency: string } {
   const [version, setVersion] = useState(cachedVersion);
-  const [devmode, setDevmode] = useState(cachedDevmode);
+  const [mode, setMode] = useState(cachedMode);
   const [currency, setCurrency] = useState(cachedCurrency);
 
   useEffect(() => {
     if (cachedVersion) {
       setVersion(cachedVersion);
-      setDevmode(cachedDevmode);
+      setMode(cachedMode);
       setCurrency(cachedCurrency);
       return;
     }
@@ -26,14 +26,14 @@ export function useVersion(): { version: string; devmode: boolean; currency: str
         const v = res.version || '';
         const b = res.build || '';
         cachedVersion = v + (b ? `+${b}` : '');
-        cachedDevmode = res.devmode;
+        cachedMode = res.mode || 'prod';
         cachedCurrency = res.currency || 'DH';
         setVersion(cachedVersion);
-        setDevmode(cachedDevmode);
+        setMode(cachedMode);
         setCurrency(cachedCurrency);
       }
     });
   }, []);
 
-  return { version, devmode, currency };
+  return { version, mode, currency };
 }

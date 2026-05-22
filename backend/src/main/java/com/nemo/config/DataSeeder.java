@@ -56,8 +56,8 @@ import java.util.List;
 @Order(1)
 public class DataSeeder implements CommandLineRunner {
 
-    @Value("${nemo.devmode:false}")
-    private boolean devMode;
+    @Value("${nemo.mode:prod}")
+    private String mode;
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -141,26 +141,26 @@ public class DataSeeder implements CommandLineRunner {
         LocalDate today = LocalDate.now();
 
         // Companies
-        String gName = devMode ? "SIGroup" : "Netopia Group";
-        String c1Name = devMode ? "Sione" : "Netopia";
-        String c1Key = devMode ? "SIO" : "NTO";
-        String c1Site = devMode ? "http://www.sione.ma" : "http://www.netopia.ma";
-        String c1Addr = devMode ? "45 Avenue Mohammed V, Casablanca" : "Imb hightech, av Ennakhil, Hay Riad, Rabat";
+        String gName = "dev".equals(mode) ? "SIGroup" : "Netopia Group";
+        String c1Name = "dev".equals(mode) ? "Sione" : "Netopia";
+        String c1Key = "dev".equals(mode) ? "SIO" : "NTO";
+        String c1Site = "dev".equals(mode) ? "http://www.sione.ma" : "http://www.netopia.ma";
+        String c1Addr = "dev".equals(mode) ? "45 Avenue Mohammed V, Casablanca" : "Imb hightech, av Ennakhil, Hay Riad, Rabat";
         String c1Logo = "https://mederp.net/downloads/nemo/" + c1Name.toLowerCase() + ".jpg";
-        String c2Name = devMode ? "Partion" : "Harmony";
-        String c2Key = devMode ? "PAR" : "HRM";
-        String c2Addr = devMode ? "78 Boulevard Zerktouni, Casablanca" : "14 Rue Annasim, Hay Riad, Rabat";
-        String c2Site = devMode ? "http://www.partion.ma" : "http://www.harmony.ma";
+        String c2Name = "dev".equals(mode) ? "Partion" : "Harmony";
+        String c2Key = "dev".equals(mode) ? "PAR" : "HRM";
+        String c2Addr = "dev".equals(mode) ? "78 Boulevard Zerktouni, Casablanca" : "14 Rue Annasim, Hay Riad, Rabat";
+        String c2Site = "dev".equals(mode) ? "http://www.partion.ma" : "http://www.harmony.ma";
         String c2Logo = "https://mederp.net/downloads/nemo/" + c2Name.toLowerCase() + ".jpg";
-        String c3Name = devMode ? "Sportfull" : "MyTeam";
-        String c3Key = devMode ? "SPO" : "MTM";
-        String c3Addr = devMode ? "12 Rue Ibn Sina, Marrakech" : "Imb 5, Bouskoura, Casablanca";
-        String c3Site = devMode ? "http://www.sportfull.ma" : "http://www.myteam.ma";
+        String c3Name = "dev".equals(mode) ? "Sportfull" : "MyTeam";
+        String c3Key = "dev".equals(mode) ? "SPO" : "MTM";
+        String c3Addr = "dev".equals(mode) ? "12 Rue Ibn Sina, Marrakech" : "Imb 5, Bouskoura, Casablanca";
+        String c3Site = "dev".equals(mode) ? "http://www.sportfull.ma" : "http://www.myteam.ma";
         String c3Logo = "https://mederp.net/downloads/nemo/" + c3Name.toLowerCase() + ".jpg";
-        String c4Name = devMode ? "Medocode" : "medERP";
-        String c4Key = devMode ? "MDC" : "MER";
-        String c4Addr = devMode ? "33 Avenue Hassan II, Tanger" : "601, technopark, Rabat";
-        String c4Site = devMode ? "http://www.medocode.ma" : "http://www.mederp.ma";
+        String c4Name = "dev".equals(mode) ? "Medocode" : "medERP";
+        String c4Key = "dev".equals(mode) ? "MDC" : "MER";
+        String c4Addr = "dev".equals(mode) ? "33 Avenue Hassan II, Tanger" : "601, technopark, Rabat";
+        String c4Site = "dev".equals(mode) ? "http://www.medocode.ma" : "http://www.mederp.ma";
         String c4Logo = "https://mederp.net/downloads/nemo/" + c4Name.toLowerCase() + ".jpg";
 
         Company company1 = createCompany(c1Name, c1Key, "Digital innovation and technology solutions",
@@ -177,10 +177,10 @@ public class DataSeeder implements CommandLineRunner {
                 c1Addr, c1Site, "https://mederp.net/downloads/nemo/" + gName.split(" ")[0].toLowerCase() + ".jpg");
 
         // Users
-        String c1Domain = devMode ? "sione.ma" : "netopia.ma";
-        String c2Domain = devMode ? "partion.ma" : "harmony.ma";
-        String c3Domain = devMode ? "sportfull.ma" : "myteam.ma";
-        String c4Domain = devMode ? "medocode.ma" : "mederp.net";
+        String c1Domain = "dev".equals(mode) ? "sione.ma" : "netopia.ma";
+        String c2Domain = "dev".equals(mode) ? "partion.ma" : "harmony.ma";
+        String c3Domain = "dev".equals(mode) ? "sportfull.ma" : "myteam.ma";
+        String c4Domain = "dev".equals(mode) ? "medocode.ma" : "mederp.net";
 
         User admin = createUser("admin", "admin@" + c1Domain, "Admin", "User", User.Role.ADMIN, null,
                 "System Administrator", "IT", "+212 600 000 001", LocalDate.of(2023, 1, 15));
@@ -398,7 +398,7 @@ public class DataSeeder implements CommandLineRunner {
         createWikiPage("Getting Started", "getting-started", mobileApp, dev3,
                 "# Getting Started\n\n## Setup\n\n1. Clone the repository\n2. Run `npm install`\n3. Configure environment variables\n4. Start with `npm run dev`\n\n## Development Workflow\n\n```mermaid\ngraph TD\n    A[Feature Branch] --> B[Local Testing]\n    B --> C[Pull Request]\n    C --> D[Code Review]\n    D --> |Approved| E[Merge to Main]\n    D --> |Changes Needed| A\n    E --> F[CI/CD Pipeline]\n    F --> G[Deploy to Staging]\n    G --> H[QA Testing]\n    H --> |Pass| I[Deploy to Production]\n    H --> |Fail| A\n```\n\n## Mobile App Architecture\n\n```mermaid\ngraph TD\n    App[React Native App] --> API[Backend API]\n    App --> Push[Push Notifications]\n    App --> Cache[Local Storage]\n    API --> DB[(Database)]\n    API --> Auth[OAuth Provider]\n```");
 
-        String c4DisplayName = devMode ? "Medocode" : "medERP";
+        String c4DisplayName = "dev".equals(mode) ? "Medocode" : "medERP";
         createWikiPage(c4DisplayName + " Roadmap", "roadmap", erpProject, younes,
                 "# " + c4DisplayName + " Roadmap\n\n## 2025 Milestones\n\n```mermaid\ngantt\n    title " + c4DisplayName + " 2025 Roadmap\n    dateFormat YYYY-MM-DD\n    section Q1\n    Patient Management  :done, q1a, 2025-01-01, 2025-03-31\n    section Q2\n    Billing Module      :active, q2a, 2025-04-01, 2025-06-30\n    section Q3\n    Lab Integration     :q3a, 2025-07-01, 2025-09-30\n    section Q4\n    Pharmacy Module     :q4a, 2025-10-01, 2025-12-31\n```\n\n## Module Dependencies\n\n```mermaid\ngraph TD\n    Patient[Patient Module] --> Billing[Billing Module]\n    Patient --> Lab[Lab Integration]\n    Billing --> Insurance[Insurance Claims]\n    Lab --> Pharmacy[Pharmacy Module]\n    Insurance --> Reports[Reporting]\n```\n\n## Integration Points\n\n```mermaid\ngraph LR\n    HIS[Hospital Info System] --> API[" + c4DisplayName + " API]\n    LIS[Lab Info System] --> API\n    PIS[Pharmacy System] --> API\n    API --> DW[Data Warehouse]\n    API --> Portal[Patient Portal]\n```");
 
