@@ -199,7 +199,7 @@ public class DataSeeder implements CommandLineRunner {
                 "Delivery Manager", "Operations", "+212 600 000 007", LocalDate.of(2023, 6, 1));
         User salim = createUser("salim", "salim@" + c1Domain, "Salim", "Rachidi", User.Role.EXECUTIVE, null,
                 "CEO", "Executive", "+212 600 000 008", LocalDate.of(2022, 1, 1));
-        User bassamat = createUser("bassamat", "bassamat@" + c1Domain, "Bassamat", "Tayeb", User.Role.EXTERNAL, null,
+        User basma = createUser("basma", "basma@" + c1Domain, "Basma", "Tayeb", User.Role.EXTERNAL, null,
                 "Consultant", null, null, LocalDate.of(2025, 1, 10));
         User younes = createUser("younes", "younes@" + c4Domain, "Younes", "Alami", User.Role.CONTRIBUTOR, company4,
                 "DevOps Engineer", "Infrastructure", "+212 600 000 010", LocalDate.of(2024, 7, 1));
@@ -313,9 +313,9 @@ public class DataSeeder implements CommandLineRunner {
         addMember(footballTeam, dev1);
 
         // External user assigned to FSE
-        bassamat.setAssignedProject(fse);
-        userRepository.save(bassamat);
-        addMember(fse, bassamat);
+        basma.setAssignedProject(fse);
+        userRepository.save(basma);
+        addMember(fse, basma);
 
         // Favorites (per-user) — each user favorites 1-2 projects from their company (or any if global)
         addFavorite(admin, fse);
@@ -503,7 +503,7 @@ public class DataSeeder implements CommandLineRunner {
         createTask("AG-3", "Load balancer config", apiGateway, todo, Task.Priority.MEDIUM, dev, null, majid, null, 2);
 
         // External tasks (visible only to EXTERNAL users)
-        Task extTask = createTask("FSE-8", "Client feedback on login flow", fse, todo, Task.Priority.MEDIUM, dev, bassamat, bassamat, null, 7);
+        Task extTask = createTask("FSE-8", "Client feedback on login flow", fse, todo, Task.Priority.MEDIUM, dev, basma, basma, null, 7);
         extTask.setExternal(true);
         taskRepository.save(extTask);
 
