@@ -140,7 +140,6 @@ export default function PortfolioReport() {
                     <span className={evm.spi != null ? (evm.spi >= 1 ? 'text-green-600 font-semibold' : evm.spi >= 0.9 ? 'text-yellow-600 font-semibold' : 'text-red-600 font-semibold') : ''}>
                       {evm.spi != null ? evm.spi.toFixed(2) : '—'}
                     </span>
-                    </span>
                   </td>
                   <td className="px-3 py-3 text-right">
                     <div className="flex items-center gap-2 justify-end">
