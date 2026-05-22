@@ -137,6 +137,7 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) {
         if (userRepository.count() > 1) return;
+        if ("prod".equals(mode)) return;
 
         LocalDate today = LocalDate.now();
 
