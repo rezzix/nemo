@@ -63,7 +63,7 @@ export default function PortfolioReport() {
             <p className="text-xl font-bold text-gray-900">{portfolio.totalTasks > 0 ? ((portfolio.totalCompleted / portfolio.totalTasks) * 100).toFixed(0) + '%' : '-'}</p>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <p className="text-xs text-gray-500">Open Risks</p>
+            <p className="text-xs text-gray-500">Active Risks</p>
             <p className="text-xl font-bold text-gray-900">{portfolio.totalOpenRisks + portfolio.totalMitigatingRisks}</p>
           </div>
         </div>
