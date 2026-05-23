@@ -157,7 +157,7 @@ export default function ManagerDashboard() {
                   {project.budget && (
                     <div className="flex justify-between text-xs text-gray-500 mt-2 pt-2 border-t border-gray-100">
                       <span>Budget: {formatCurrency(Number(project.budget))}</span>
-                      <span>Spent: {formatCurrency(Number(project.budgetSpent || 0) + (evm?.actualCost || 0))}</span>
+                      <span>Spent: {formatCurrency(evm?.actualCost || 0)}</span>
                     </div>
                   )}
                 </Link>

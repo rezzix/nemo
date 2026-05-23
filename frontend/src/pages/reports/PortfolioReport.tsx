@@ -121,7 +121,7 @@ export default function PortfolioReport() {
             {projects.map((p) => {
               const evm = evmMap[p.id];
               if (!evm) return null;
-              const spent = Number(p.budgetSpent || 0) + evm.actualCost;
+              const spent = evm.actualCost;
               const completionPct = Math.round(evm.completionPct * 100);
               return (
                 <tr key={p.id} className="hover:bg-gray-50">
