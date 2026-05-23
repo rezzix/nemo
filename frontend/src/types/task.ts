@@ -26,6 +26,7 @@ export interface TaskDto {
   external: boolean;
   labelIds: number[];
   labelNames: string[];
+  dueDate: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -39,6 +40,7 @@ export interface CreateTaskRequest {
   phaseId?: number | null;
   labelIds?: number[];
   external?: boolean;
+  dueDate?: string | null;
 }
 
 export interface UpdateTaskRequest {
@@ -52,6 +54,7 @@ export interface UpdateTaskRequest {
   phaseId?: number | null;
   labelIds?: number[];
   external?: boolean;
+  dueDate?: string | null;
 }
 
 export interface CommentDto {

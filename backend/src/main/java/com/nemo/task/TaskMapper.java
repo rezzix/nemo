@@ -26,6 +26,7 @@ public interface TaskMapper {
     @Mapping(target = "labelNames", expression = "java(task.getLabels().stream().map(l -> l.getName()).toList())")
     @Mapping(target = "createdAt", source = "createdAt", dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     @Mapping(target = "updatedAt", source = "updatedAt", dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'")
+    @Mapping(target = "dueDate", source = "dueDate", dateFormat = "yyyy-MM-dd")
     TaskDto toDto(Task task);
 
     List<TaskDto> toDtoList(List<Task> tasks);

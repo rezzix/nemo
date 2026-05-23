@@ -84,7 +84,7 @@ public class TaskController {
         Long userId = authHelper.getCurrentUserId(currentUser);
         if (authHelper.isExternal(currentUser)) {
             request = new TaskDto.CreateRequest(request.title(), request.description(),
-                    request.priority(), request.typeId(), request.assigneeId(), request.phaseId(), request.labelIds(), true);
+                    request.priority(), request.typeId(), request.assigneeId(), request.phaseId(), request.labelIds(), true, request.dueDate());
         }
         Task created = taskService.create(projectId, request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.of(taskMapper.toDto(created)));
