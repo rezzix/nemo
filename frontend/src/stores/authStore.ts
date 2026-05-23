@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import axios from 'axios';
 import type { UserDto } from '@/types';
 import * as authApi from '@/api/auth';
 
@@ -27,8 +28,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const user = await authApi.login({ username, password, captcha });
       set({ user, isAuthenticated: true, isLoading: false });
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : 'Login failed. Please check your credentials.';
+      let message = 'An error occurred. Please try again.';
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        if (!err.response) {
+          message = 'Unable to connect. Please check your connection.';
+        } else if (status === 400 || status === 401 || status === 422) {
+          message = 'Invalid username or password. Please try again.';
+        }
+      }
       set({ error: message, isLoading: false });
       throw err;
     }
