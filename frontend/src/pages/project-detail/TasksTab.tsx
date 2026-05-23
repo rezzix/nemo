@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import type { TaskDto, TaskStatusDto } from '@/types';
 import { listProjectTasks } from '@/api/tasks';
 import { listTaskStatuses } from '@/api/admin';
-import { priorityColor, statusColor, formatDate } from '@/utils/format';
+import { priorityColor, statusColor, formatDate, deadlineBadge, deadlineLabel } from '@/utils/format';
 import Spinner from '@/components/common/Spinner';
 import CreateTaskModal from './CreateTaskModal';
 
@@ -76,6 +76,7 @@ export default function TasksTab({ projectId, projectKey, canEdit, isExternal }:
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Assignee</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Type</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Phase</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-500">Due Date</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Updated</th>
               </tr>
             </thead>
@@ -96,11 +97,19 @@ export default function TasksTab({ projectId, projectKey, canEdit, isExternal }:
                   <td className="px-4 py-3 text-gray-500">{task.assigneeName ?? 'Unassigned'}</td>
                   <td className="px-4 py-3 text-gray-500">{task.typeName}</td>
                   <td className="px-4 py-3">{task.phaseName ? <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">{task.phaseName}</span> : <span className="text-gray-400">--</span>}</td>
+                  <td className="px-4 py-3">
+                    {task.dueDate ? (
+                      <span className="flex items-center gap-1.5">
+                        <span className={deadlineBadge(task.dueDate) || 'text-gray-500'}>{formatDate(task.dueDate)}</span>
+                        {deadlineLabel(task.dueDate) && <span className={`inline-block px-1.5 py-0.5 rounded-full text-xs font-medium ${deadlineBadge(task.dueDate)}`}>{deadlineLabel(task.dueDate)}</span>}
+                      </span>
+                    ) : <span className="text-gray-400">--</span>}
+                  </td>
                   <td className="px-4 py-3 text-gray-500">{formatDate(task.updatedAt)}</td>
                 </tr>
               ))}
               {tasks.length === 0 && (
-                <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-500">No tasks found.</td></tr>
+                <tr><td colSpan={9} className="px-4 py-8 text-center text-gray-500">No tasks found.</td></tr>
               )}
             </tbody>
           </table>

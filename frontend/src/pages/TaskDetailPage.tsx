@@ -7,7 +7,7 @@ import { getComments, addComment } from '@/api/tasks';
 import { listTimeLogs, createTimeLog, deleteTimeLog } from '@/api/timeLogs';
 import { listOpenPhases } from '@/api/phases';
 import { listTaskStatuses, listTaskTypes } from '@/api/admin';
-import { priorityColor, statusColor, formatDate } from '@/utils/format';
+import { priorityColor, statusColor, formatDate, deadlineBadge, deadlineLabel } from '@/utils/format';
 import { useAuth } from '@/hooks/useAuth';
 import Spinner from '@/components/common/Spinner';
 
@@ -27,6 +27,7 @@ export default function TaskDetailPage() {
   const [assigneeId, setAssigneeId] = useState('');
   const [phaseId, setPhaseId] = useState('');
   const [selectedLabels, setSelectedLabels] = useState<number[]>([]);
+  const [dueDate, setDueDate] = useState('');
 
   // Dropdown options
   const [statuses, setStatuses] = useState<TaskStatusDto[]>([]);
@@ -57,6 +58,7 @@ export default function TaskDetailPage() {
       setAssigneeId(data.assigneeId != null ? String(data.assigneeId) : '');
       setPhaseId(data.phaseId != null ? String(data.phaseId) : '');
       setSelectedLabels(data.labelIds);
+      setDueDate(data.dueDate ?? '');
     } finally {
       setLoading(false);
     }
@@ -87,6 +89,7 @@ export default function TaskDetailPage() {
         assigneeId: assigneeId ? Number(assigneeId) : null,
         phaseId: phaseId ? Number(phaseId) : null,
         labelIds: selectedLabels,
+        dueDate: dueDate || null,
       };
       const updated = await updateTask(Number(projectId), Number(taskId), req);
       setTask(updated);
@@ -176,6 +179,11 @@ export default function TaskDetailPage() {
                     ))
                     : 'None'
                 } />
+                <DetailRow label="Due Date" value={
+                  task.dueDate
+                    ? <>{formatDate(task.dueDate)}{deadlineLabel(task.dueDate) && <span className={`inline-block ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${deadlineBadge(task.dueDate)}`}>{deadlineLabel(task.dueDate)}</span>}</>
+                    : 'None'
+                } />
                 <DetailRow label="Sprint" value={task.sprintId ? `Sprint ${task.sprintId}` : 'Backlog'} />
                 <DetailRow label="Created" value={formatDate(task.createdAt)} />
                 <DetailRow label="Updated" value={formatDate(task.updatedAt)} />
@@ -229,6 +237,10 @@ export default function TaskDetailPage() {
                       </label>
                     ))}
                   </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                  <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
                 </div>
                 </>
                 )}

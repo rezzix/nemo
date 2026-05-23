@@ -121,6 +121,10 @@ public class TaskService {
             task.setExternal(true);
         }
 
+        if (request.dueDate() != null) {
+            task.setDueDate(java.time.LocalDate.parse(request.dueDate()));
+        }
+
         return taskRepository.save(task);
     }
 
@@ -165,6 +169,10 @@ public class TaskService {
             }
         }
         if (request.external() != null) task.setExternal(request.external());
+
+        if (request.dueDate() != null) {
+            task.setDueDate(java.time.LocalDate.parse(request.dueDate()));
+        }
 
         return taskRepository.save(task);
     }
