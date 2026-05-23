@@ -159,6 +159,8 @@ public class TaskService {
             Phase phase = phaseRepository.findById(request.phaseId())
                     .orElseThrow(() -> new EntityNotFoundException("Phase", request.phaseId()));
             task.setPhase(phase);
+        } else {
+            task.setPhase(null);
         }
         if (request.labelIds() != null) {
             task.getLabels().clear();
