@@ -482,42 +482,42 @@ public class DataSeeder implements CommandLineRunner {
         TaskType mgmt = taskTypeRepository.findById(1L).orElse(null);
         TaskType test = taskTypeRepository.findById(6L).orElse(null);
 
-        createTask("FSE-1", "User authentication flow", fse, done, Task.Priority.HIGH, dev, dev1, admin, sprint1, 0);
-        createTask("FSE-2", "Dashboard layout", fse, done, Task.Priority.HIGH, dev, dev2, admin, sprint1, 1);
-        createTask("FSE-3", "Profile management", fse, inProgress, Task.Priority.MEDIUM, dev, dev1, admin, sprint1, 2);
-        createTask("FSE-4", "Search functionality", fse, inProgress, Task.Priority.MEDIUM, dev, dev2, admin, sprint2, 3);
-        createTask("FSE-5", "Notification system", fse, todo, Task.Priority.LOW, dev, null, admin, sprint2, 4);
-        createTask("FSE-6", "Payment integration", fse, todo, Task.Priority.HIGH, dev, null, admin, null, 5);
-        createTask("FSE-7", "Analytics reporting", fse, todo, Task.Priority.MEDIUM, dev, null, majid, null, 6);
+        createTask("FSE-1", "User authentication flow", fse, done, Task.Priority.HIGH, dev, dev1, admin, sprint1, 0, LocalDate.of(2025, 3, 15));
+        createTask("FSE-2", "Dashboard layout", fse, done, Task.Priority.HIGH, dev, dev2, admin, sprint1, 1, LocalDate.of(2025, 4, 1));
+        createTask("FSE-3", "Profile management", fse, inProgress, Task.Priority.MEDIUM, dev, dev1, admin, sprint1, 2, LocalDate.of(2025, 6, 30));
+        createTask("FSE-4", "Search functionality", fse, inProgress, Task.Priority.MEDIUM, dev, dev2, admin, sprint2, 3, LocalDate.of(2025, 7, 31));
+        createTask("FSE-5", "Notification system", fse, todo, Task.Priority.LOW, dev, null, admin, sprint2, 4, LocalDate.of(2025, 8, 31));
+        createTask("FSE-6", "Payment integration", fse, todo, Task.Priority.HIGH, dev, null, admin, null, 5, LocalDate.of(2025, 9, 15));
+        createTask("FSE-7", "Analytics reporting", fse, todo, Task.Priority.MEDIUM, dev, null, majid, null, 6, null);
 
         // Tasks for Mobile App
-        createTask("MA-1", "Login screen", mobileApp, done, Task.Priority.HIGH, dev, dev3, pmHarmony, sprintM1, 0);
-        createTask("MA-2", "Navigation framework", mobileApp, done, Task.Priority.HIGH, dev, dev4, pmHarmony, sprintM1, 1);
-        createTask("MA-3", "Push notifications", mobileApp, inProgress, Task.Priority.MEDIUM, dev, dev3, pmHarmony, sprintM1, 2);
-        createTask("MA-4", "Offline mode", mobileApp, todo, Task.Priority.HIGH, dev, null, pmHarmony, null, 3);
-        createTask("MA-5", "Camera integration", mobileApp, todo, Task.Priority.LOW, dev, null, pmHarmony, null, 4);
+        createTask("MA-1", "Login screen", mobileApp, done, Task.Priority.HIGH, dev, dev3, pmHarmony, sprintM1, 0, LocalDate.of(2025, 4, 15));
+        createTask("MA-2", "Navigation framework", mobileApp, done, Task.Priority.HIGH, dev, dev4, pmHarmony, sprintM1, 1, LocalDate.of(2025, 5, 1));
+        createTask("MA-3", "Push notifications", mobileApp, inProgress, Task.Priority.MEDIUM, dev, dev3, pmHarmony, sprintM1, 2, LocalDate.of(2025, 9, 30));
+        createTask("MA-4", "Offline mode", mobileApp, todo, Task.Priority.HIGH, dev, null, pmHarmony, null, 3, LocalDate.of(2025, 10, 15));
+        createTask("MA-5", "Camera integration", mobileApp, todo, Task.Priority.LOW, dev, null, pmHarmony, null, 4, null);
 
         // Tasks for API Gateway
-        createTask("AG-1", "Rate limiting module", apiGateway, inProgress, Task.Priority.HIGH, dev, dev1, majid, null, 0);
-        createTask("AG-2", "Service discovery", apiGateway, todo, Task.Priority.HIGH, dev, null, majid, null, 1);
-        createTask("AG-3", "Load balancer config", apiGateway, todo, Task.Priority.MEDIUM, dev, null, majid, null, 2);
+        createTask("AG-1", "Rate limiting module", apiGateway, inProgress, Task.Priority.HIGH, dev, dev1, majid, null, 0, LocalDate.of(2026, 6, 30));
+        createTask("AG-2", "Service discovery", apiGateway, todo, Task.Priority.HIGH, dev, null, majid, null, 1, LocalDate.of(2026, 9, 30));
+        createTask("AG-3", "Load balancer config", apiGateway, todo, Task.Priority.MEDIUM, dev, null, majid, null, 2, LocalDate.of(2026, 11, 15));
 
         // External tasks (visible only to EXTERNAL users)
-        Task extTask = createTask("FSE-8", "Client feedback on login flow", fse, todo, Task.Priority.MEDIUM, dev, basma, basma, null, 7);
+        Task extTask = createTask("FSE-8", "Client feedback on login flow", fse, todo, Task.Priority.MEDIUM, dev, basma, basma, null, 7, LocalDate.of(2025, 8, 15));
         extTask.setExternal(true);
         taskRepository.save(extTask);
 
         // Tasks for medERP
-        createTask("MER-1", "Amelioration design", erpProject, inProgress, Task.Priority.HIGH, dev, younes, younes, null, 0);
-        createTask("MER-2", "Homologation FSE", erpProject, todo, Task.Priority.HIGH, dev, younes, younes, null, 1);
+        createTask("MER-1", "Amelioration design", erpProject, inProgress, Task.Priority.HIGH, dev, younes, younes, null, 0, LocalDate.of(2025, 9, 30));
+        createTask("MER-2", "Homologation FSE", erpProject, todo, Task.Priority.HIGH, dev, younes, younes, null, 1, LocalDate.of(2025, 12, 31));
 
         // Tasks for Football Team Manager
-        createTask("FTM-1", "Player registration module", footballTeam, done, Task.Priority.HIGH, dev, walid, youssef, null, 0);
-        createTask("FTM-2", "Match scheduling system", footballTeam, inProgress, Task.Priority.HIGH, dev, walid, youssef, null, 1);
-        createTask("FTM-3", "Training session planner", footballTeam, inProgress, Task.Priority.MEDIUM, dev, dev1, youssef, null, 2);
-        createTask("FTM-4", "Player statistics dashboard", footballTeam, todo, Task.Priority.HIGH, dev, null, youssef, null, 3);
-        createTask("FTM-5", "Team lineup builder", footballTeam, todo, Task.Priority.MEDIUM, dev, null, youssef, null, 4);
-        createTask("FTM-6", "Injury tracking", footballTeam, todo, Task.Priority.MEDIUM, dev, null, youssef, null, 5);
+        createTask("FTM-1", "Player registration module", footballTeam, done, Task.Priority.HIGH, dev, walid, youssef, null, 0, LocalDate.of(2025, 5, 31));
+        createTask("FTM-2", "Match scheduling system", footballTeam, inProgress, Task.Priority.HIGH, dev, walid, youssef, null, 1, LocalDate.of(2025, 10, 31));
+        createTask("FTM-3", "Training session planner", footballTeam, inProgress, Task.Priority.MEDIUM, dev, dev1, youssef, null, 2, LocalDate.of(2025, 11, 15));
+        createTask("FTM-4", "Player statistics dashboard", footballTeam, todo, Task.Priority.HIGH, dev, null, youssef, null, 3, LocalDate.of(2025, 11, 30));
+        createTask("FTM-5", "Team lineup builder", footballTeam, todo, Task.Priority.MEDIUM, dev, null, youssef, null, 4, null);
+        createTask("FTM-6", "Injury tracking", footballTeam, todo, Task.Priority.MEDIUM, dev, null, youssef, null, 5, LocalDate.of(2026, 1, 31));
 
         // Labels
         createLabel(fse, "Frontend", "#3B82F6");
@@ -785,7 +785,7 @@ public class DataSeeder implements CommandLineRunner {
 
     private Task createTask(String taskKey, String title, Project project, TaskStatus status,
                              Task.Priority priority, TaskType type, User assignee, User reporter,
-                             Sprint sprint, int position) {
+                             Sprint sprint, int position, LocalDate dueDate) {
         Task task = new Task();
         task.setTaskKey(taskKey);
         task.setTitle(title);
@@ -797,6 +797,7 @@ public class DataSeeder implements CommandLineRunner {
         task.setReporter(reporter);
         task.setSprint(sprint);
         task.setPosition(position);
+        task.setDueDate(dueDate);
         return taskRepository.save(task);
     }
 
