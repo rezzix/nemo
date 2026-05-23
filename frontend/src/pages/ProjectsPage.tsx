@@ -10,7 +10,7 @@ import Field from '@/components/common/Field';
 import { listAllUsers } from '@/api/users';
 import { extractValidationErrors } from '@/api/client';
 import { useAuth } from '@/hooks/useAuth';
-import { formatDate, stageBadge } from '@/utils/format';
+import { formatDate, stageBadge, deadlineBadge, deadlineLabel } from '@/utils/format';
 import Spinner from '@/components/common/Spinner';
 
 export default function ProjectsPage() {
@@ -83,6 +83,7 @@ export default function ProjectsPage() {
                     <div className="flex items-center gap-2 mb-2">
                       <span className="font-mono text-xs text-primary-600 bg-primary-50 px-1.5 py-0.5 rounded">{p.key}</span>
                       {p.stage && <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${stageBadge(p.stage)}`}>{p.stage}</span>}
+                      {p.targetEndDate && deadlineLabel(p.targetEndDate) && <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${deadlineBadge(p.targetEndDate)}`}>{deadlineLabel(p.targetEndDate)}</span>}
                     </div>
                     <h4 className="text-base font-semibold text-gray-900 mb-1">{p.name}</h4>
                     {p.description && <p className="text-xs text-gray-500 line-clamp-2 mb-3">{p.description}</p>}
@@ -90,6 +91,7 @@ export default function ProjectsPage() {
                       <span>{p.programName ?? '—'}</span>
                       <span>{p.companyName ?? 'Global'}</span>
                       <span>{p.managerName}</span>
+                      {p.targetEndDate && <span className={deadlineBadge(p.targetEndDate) || 'text-gray-400'}>{formatDate(p.targetEndDate)}</span>}
                     </div>
                   </div>
                 ))}
@@ -107,6 +109,7 @@ export default function ProjectsPage() {
                   <th className="text-left px-2 py-3 font-medium text-gray-500">Program</th>
                   <th className="text-left px-2 py-3 font-medium text-gray-500">Company</th>
                   <th className="text-left px-2 py-3 font-medium text-gray-500">Manager</th>
+                  <th className="text-left px-2 py-3 font-medium text-gray-500">End Date</th>
                   <th className="text-left px-2 py-3 font-medium text-gray-500">Created</th>
                 </tr>
               </thead>
@@ -131,14 +134,22 @@ export default function ProjectsPage() {
                     <td className="px-2 py-3 text-gray-500">{p.programName ?? '—'}</td>
                     <td className="px-2 py-3">{p.companyName ? <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">{p.companyName}</span> : <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700">Global</span>}</td>
                     <td className="px-2 py-3 text-gray-500">{p.managerName}</td>
+                    <td className="px-2 py-3">
+                      {p.targetEndDate ? (
+                        <span className="inline-flex items-center gap-1.5">
+                          <span className={deadlineBadge(p.targetEndDate) || 'text-gray-500'}>{formatDate(p.targetEndDate)}</span>
+                          {deadlineLabel(p.targetEndDate) && <span className={`inline-block px-1.5 py-0.5 rounded-full text-xs font-medium ${deadlineBadge(p.targetEndDate)}`}>{deadlineLabel(p.targetEndDate)}</span>}
+                        </span>
+                      ) : <span className="text-gray-400">—</span>}
+                    </td>
                     <td className="px-2 py-3 text-gray-500">{formatDate(p.createdAt)}</td>
                   </tr>
                 ))}
                 {others.length === 0 && favorites.length === 0 && (
-                  <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">No projects found.</td></tr>
+                  <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-500">No projects found.</td></tr>
                 )}
                 {others.length === 0 && favorites.length > 0 && (
-                  <tr><td colSpan={6} className="px-4 py-6 text-center text-gray-400 text-xs">All projects are favorites</td></tr>
+                  <tr><td colSpan={8} className="px-4 py-6 text-center text-gray-400 text-xs">All projects are favorites</td></tr>
                 )}
               </tbody>
             </table>

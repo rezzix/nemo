@@ -170,6 +170,30 @@ export function preSaleStageLabel(stage: string): string {
   }
 }
 
+export function deadlineBadge(endDate: string | null): string {
+  if (!endDate) return '';
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const end = new Date(endDate);
+  end.setHours(0, 0, 0, 0);
+  const diffDays = (end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+  if (diffDays < 0) return 'bg-red-100 text-red-700';
+  if (diffDays <= 14) return 'bg-amber-100 text-amber-700';
+  return '';
+}
+
+export function deadlineLabel(endDate: string | null): string | null {
+  if (!endDate) return null;
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const end = new Date(endDate);
+  end.setHours(0, 0, 0, 0);
+  if (end < now) return 'Overdue';
+  const diffDays = (end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+  if (diffDays <= 14) return 'Due soon';
+  return null;
+}
+
 export function preSaleStageBadge(stage: string): string {
   switch (stage) {
     case 'LEAD': return 'bg-gray-100 text-gray-700';
