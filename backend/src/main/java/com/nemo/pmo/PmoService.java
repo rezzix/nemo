@@ -93,11 +93,12 @@ public class PmoService {
         // Earned Value (EV) = completion% × plannedValue
         BigDecimal earnedValue = completionPct.multiply(plannedValue).setScale(2, RoundingMode.HALF_UP);
 
-        // Actual Cost (AC) = labor cost only (internal cost from time logs × rates)
+        // Actual Cost (AC) = labor cost + project budget spent (external costs)
         LocalDate projectStart = project.getTargetStartDate();
         LocalDate projectEnd = project.getTargetEndDate();
         BigDecimal laborCost = computeLaborCost(projectId, projectStart, projectEnd);
-        BigDecimal actualCost = laborCost.setScale(2, RoundingMode.HALF_UP);
+        BigDecimal budgetSpent = project.getBudgetSpent() != null ? project.getBudgetSpent() : BigDecimal.ZERO;
+        BigDecimal actualCost = laborCost.add(budgetSpent).setScale(2, RoundingMode.HALF_UP);
 
         // Total paid by client (sum of phase payments)
         List<Long> phaseIds = phases.stream().map(Phase::getId).toList();
@@ -233,7 +234,19 @@ public class PmoService {
             totalTasks += projTotal;
             totalCompleted += projCompleted;
 
-            if (project.getPlannedValue() != null) totalPlannedValue = totalPlannedValue.add(project.getPlannedValue());
+            // Per-project EVM aggregation
+            BigDecimal projPv = project.getPlannedValue() != null ? project.getPlannedValue() : BigDecimal.ZERO;
+            totalPlannedValue = totalPlannedValue.add(projPv);
+
+            BigDecimal projCompletion = projTotal > 0
+                    ? BigDecimal.valueOf(projCompleted).divide(BigDecimal.valueOf(projTotal), 4, RoundingMode.HALF_UP)
+                    : BigDecimal.ZERO;
+            totalEarnedValue = totalEarnedValue.add(projCompletion.multiply(projPv).setScale(2, RoundingMode.HALF_UP));
+
+            BigDecimal projLaborCost = computeLaborCost(project.getId(), project.getTargetStartDate(), project.getTargetEndDate());
+            BigDecimal projBudgetSpent = project.getBudgetSpent() != null ? project.getBudgetSpent() : BigDecimal.ZERO;
+            totalActualCost = totalActualCost.add(projLaborCost.add(projBudgetSpent).setScale(2, RoundingMode.HALF_UP));
+
             if (project.getBudget() != null) totalBudget = totalBudget.add(project.getBudget());
             if (project.getBudgetSpent() != null) totalBudgetSpent = totalBudgetSpent.add(project.getBudgetSpent());
 

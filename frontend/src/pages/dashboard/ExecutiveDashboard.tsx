@@ -46,7 +46,7 @@ function computeAlerts(
         });
       }
       if (project.budget && Number(project.budget) > 0) {
-        const spentRatio = (Number(project.budgetSpent || 0) + evm.actualCost) / Number(project.budget);
+        const spentRatio = evm.actualCost / Number(project.budget);
         if (spentRatio > 0.8) {
           alerts.push({
             projectId: project.id, projectKey: project.key, projectName: project.name,
@@ -248,7 +248,7 @@ export default function ExecutiveDashboard() {
     .filter((p) => p.budget)
     .map((p) => {
       const evm = filteredEvmMap[p.id];
-      const spent = Number(p.budgetSpent || 0) + (evm?.actualCost || 0);
+      const spent = evm?.actualCost || 0;
       const over = spent > Number(p.budget);
       return {
         label: p.key,
@@ -461,7 +461,7 @@ export default function ExecutiveDashboard() {
                   .map((project) => {
                     const evm = filteredEvmMap[project.id];
                     const budget = Number(project.budget || 0);
-                    const spent = Number(project.budgetSpent || 0) + (evm?.actualCost || 0);
+                    const spent = evm?.actualCost || 0;
                     const completionPct = evm ? (evm.completionPct * 100).toFixed(0) + '%' : '—';
                     return (
                       <tr key={project.id} className="hover:bg-gray-50">
@@ -515,7 +515,7 @@ export default function ExecutiveDashboard() {
               const tier = score >= 7 ? 'High (7-10)' : score >= 4 ? 'Medium (4-6)' : 'Low (1-3)';
               if (!acc[tier]) acc[tier] = { budget: 0, spent: 0, count: 0 };
               acc[tier].budget += Number(p.budget || 0);
-              acc[tier].spent += Number(p.budgetSpent || 0) + (filteredEvmMap[p.id]?.actualCost || 0);
+              acc[tier].spent += filteredEvmMap[p.id]?.actualCost || 0;
               acc[tier].count += 1;
               return acc;
             }, {} as Record<string, { budget: number; spent: number; count: number }>);
