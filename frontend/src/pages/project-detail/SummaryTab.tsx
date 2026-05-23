@@ -3,7 +3,7 @@ import type { ProjectDto, PhaseDto, DeliverableDto, MemberDto, InstructionDto, N
 import { listPhases, listDeliverables } from '@/api/phases';
 import { getMembers, listInstructions, createInstruction, updateInstruction, deleteInstruction, listNotes, createNote, updateNote, deleteNote } from '@/api/projects';
 import { getEvmMetrics } from '@/api/pmo';
-import { formatDate, formatCurrency, stageLabel } from '@/utils/format';
+import { formatDate, formatCurrency, stageLabel, deadlineBadge, deadlineLabel } from '@/utils/format';
 import { useAuth } from '@/hooks/useAuth';
 import MarkdownRenderer from '@/components/common/MarkdownRenderer';
 import Spinner from '@/components/common/Spinner';
@@ -72,7 +72,17 @@ export default function SummaryTab({ project, projectId, managerId, onNavigate }
     if (now <= start) return 0;
     return Math.round(((now - start) / (end - start)) * 100);
   })();
-  const timelineColor = timelinePct != null ? (timelinePct >= 100 ? 'bg-amber-500' : 'bg-blue-500') : '';
+  const timelineColor = timelinePct != null ? (timelinePct >= 100 ? 'bg-red-500' : 'bg-blue-500') : '';
+  const overdueLabel = (() => {
+    if (!project.targetEndDate) return null;
+    const now = new Date(); now.setHours(0, 0, 0, 0);
+    const end = new Date(project.targetEndDate); end.setHours(0, 0, 0, 0);
+    if (end < now) {
+      const days = Math.ceil((now.getTime() - end.getTime()) / (1000 * 60 * 60 * 24));
+      return `${days} day${days !== 1 ? 's' : ''} overdue`;
+    }
+    return null;
+  })();
   const durationLabel = (() => {
     if (!project.targetStartDate || !project.targetEndDate) return null;
     const start = new Date(project.targetStartDate);
@@ -142,9 +152,16 @@ export default function SummaryTab({ project, projectId, managerId, onNavigate }
               <span className="text-gray-900 font-medium">{project.programName || '—'}</span>
               <span className="text-gray-500">Timeline</span>
               <span className="text-gray-900 font-medium">
-                {project.targetStartDate && project.targetEndDate
-                  ? `${formatDate(project.targetStartDate)} → ${formatDate(project.targetEndDate)}`
-                  : '—'}
+                {project.targetStartDate && project.targetEndDate ? (
+                  <>
+                    <span className="text-gray-900">{formatDate(project.targetStartDate)}</span>
+                    <span className="text-gray-400 mx-1">→</span>
+                    <span className={deadlineBadge(project.targetEndDate) || 'text-gray-900'}>{formatDate(project.targetEndDate)}</span>
+                    {project.targetEndDate && deadlineLabel(project.targetEndDate) && (
+                      <span className={`ml-2 inline-block px-2 py-0.5 rounded-full text-xs font-medium ${deadlineBadge(project.targetEndDate)}`}>{deadlineLabel(project.targetEndDate)}</span>
+                    )}
+                  </>
+                ) : '—'}
               </span>
             </div>
             {timelinePct != null && (
@@ -155,7 +172,11 @@ export default function SummaryTab({ project, projectId, managerId, onNavigate }
                   </div>
                   <span className="text-xs text-gray-500">{timelinePct}%</span>
                 </div>
-                {durationLabel && <span className="text-xs text-gray-400">{durationLabel}</span>}
+                {overdueLabel ? (
+                  <span className="text-xs font-medium text-red-600">{overdueLabel}</span>
+                ) : durationLabel ? (
+                  <span className="text-xs text-gray-400">{durationLabel}</span>
+                ) : null}
               </div>
             )}
           </div>
