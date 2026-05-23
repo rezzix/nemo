@@ -246,7 +246,7 @@ public class DataSeeder implements CommandLineRunner {
         Project apiGateway = createProject("API Gateway", "AG", "Central API gateway and service mesh",
                 ehealth, majid, Project.Stage.PLANNING, 6,
                 new BigDecimal("80000"), new BigDecimal("80000"), new BigDecimal("3500"),
-                LocalDate.of(2025, 3, 1), LocalDate.of(2025, 12, 15), company1);
+                LocalDate.of(2025, 3, 1), LocalDate.of(2026, 12, 15), company1);
 
         Project mobileApp = createProject("Mobile App", "MA", "Cross-platform mobile application",
                 mobilePlatform, pmHarmony, Project.Stage.EXECUTION, 7,
@@ -263,13 +263,13 @@ public class DataSeeder implements CommandLineRunner {
         Project eHealthPortal = createProject("Patient Portal", "PP", "Patient-facing health information portal",
                 ehealth, majid, Project.Stage.INITIATION, 6,
                 new BigDecimal("95000"), new BigDecimal("95000"), BigDecimal.ZERO,
-                LocalDate.of(2025, 7, 1), LocalDate.of(2026, 3, 31), company1);
+                LocalDate.of(2025, 7, 1), LocalDate.of(2027, 3, 31), company1);
         eHealthPortal.setClient(msps); eHealthPortal = projectRepository.save(eHealthPortal);
 
         Project mobilePay = createProject("Mobile Payments", "MP", "In-app payment and billing integration",
                 mobilePlatform, pmHarmony, Project.Stage.PLANNING, 7,
                 new BigDecimal("120000"), new BigDecimal("120000"), new BigDecimal("5000"),
-                LocalDate.of(2025, 5, 1), LocalDate.of(2025, 12, 31), company2);
+                LocalDate.of(2025, 5, 1), LocalDate.of(2026, 12, 31), company2);
         mobilePay.setClient(iam); mobilePay = projectRepository.save(mobilePay);
 
         Project dataWarehouse = createProject("Data Warehouse", "DW", "Enterprise data warehouse and analytics platform",
