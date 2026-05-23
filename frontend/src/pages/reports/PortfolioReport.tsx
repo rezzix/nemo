@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getPortfolioByCompany, getEvmMetrics, getPortfolioSummary } from '@/api/pmo';
 import { listProjects } from '@/api/projects';
-import { formatCurrency } from '@/utils/format';
+import { formatCurrency, stageBadge, deadlineBadge, deadlineLabel } from '@/utils/format';
 import type { CompanyPortfolioSummary, EvmMetrics, PortfolioSummary, ProjectDto } from '@/types';
 import Spinner from '@/components/common/Spinner';
 
@@ -127,7 +127,8 @@ export default function PortfolioReport() {
                 <tr key={p.id} className="hover:bg-gray-50">
                   <td className="px-5 py-3 font-medium text-gray-900">{p.name}</td>
                   <td className="px-3 py-3">
-                    {p.stage ? <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${stageBadgeLocal(p.stage)}`}>{p.stage}</span> : '-'}
+                    {p.stage ? <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${stageBadge(p.stage)}`}>{p.stage}</span> : '-'}
+                    {p.targetEndDate && deadlineLabel(p.targetEndDate) && <span className={`inline-block ml-1 px-2 py-0.5 rounded-full text-xs font-medium ${deadlineBadge(p.targetEndDate)}`}>{deadlineLabel(p.targetEndDate)}</span>}
                   </td>
                   <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(Number(p.budget || 0))}</td>
                   <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(spent)}</td>
@@ -157,14 +158,4 @@ export default function PortfolioReport() {
       </div>
     </div>
   );
-}
-
-function stageBadgeLocal(stage: string): string {
-  switch (stage) {
-    case 'INITIATION': return 'bg-blue-100 text-blue-800';
-    case 'PLANNING': return 'bg-purple-100 text-purple-800';
-    case 'EXECUTION': return 'bg-amber-100 text-amber-800';
-    case 'CLOSING': return 'bg-green-100 text-green-800';
-    default: return 'bg-gray-100 text-gray-800';
-  }
 }

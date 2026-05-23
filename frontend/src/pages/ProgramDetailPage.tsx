@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import type { ProgramDto, ProjectDto } from '@/types';
 import { getProgram } from '@/api/programs';
 import { listProjects } from '@/api/projects';
-import { stageBadge, stageLabel, formatCurrency, formatDate } from '@/utils/format';
+import { stageBadge, stageLabel, formatCurrency, formatDate, deadlineBadge, deadlineLabel } from '@/utils/format';
 import Spinner from '@/components/common/Spinner';
 
 export default function ProgramDetailPage() {
@@ -91,6 +91,11 @@ function ProjectCard({ project, onClick }: { project: ProjectDto; onClick: () =>
               {stageLabel(project.stage)}
             </span>
           )}
+          {project.targetEndDate && deadlineLabel(project.targetEndDate) && (
+            <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${deadlineBadge(project.targetEndDate)}`}>
+              {deadlineLabel(project.targetEndDate)}
+            </span>
+          )}
         </div>
       </div>
 
@@ -99,10 +104,10 @@ function ProjectCard({ project, onClick }: { project: ProjectDto; onClick: () =>
 
       {/* Dates */}
       {(project.targetStartDate || project.targetEndDate) && (
-        <div className="text-xs text-gray-500 mb-3">
-          {project.targetStartDate && <span>{formatDate(project.targetStartDate)}</span>}
-          {project.targetStartDate && project.targetEndDate && <span> → </span>}
-          {project.targetEndDate && <span>{formatDate(project.targetEndDate)}</span>}
+        <div className="text-xs mb-3">
+          {project.targetStartDate && <span className="text-gray-500">{formatDate(project.targetStartDate)}</span>}
+          {project.targetStartDate && project.targetEndDate && <span className="text-gray-500"> → </span>}
+          {project.targetEndDate && <span className={deadlineBadge(project.targetEndDate) || 'text-gray-500'}>{formatDate(project.targetEndDate)}</span>}
         </div>
       )}
 

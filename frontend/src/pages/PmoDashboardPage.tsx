@@ -5,7 +5,7 @@ import { getPortfolioSummary, getEvmMetrics, listPortfolioRaidItems } from '@/ap
 import { listProjects } from '@/api/projects';
 import type { PortfolioSummary, EvmMetrics, RaidItemDto, ProjectDto } from '@/types';
 import Spinner from '@/components/common/Spinner';
-import { riskColor, riskLabel, stageBadge, formatCurrency, eviColor } from '@/utils/format';
+import { riskColor, riskLabel, stageBadge, formatCurrency, eviColor, deadlineBadge, deadlineLabel } from '@/utils/format';
 
 export default function PmoDashboardPage() {
   const user = useAuthStore((s) => s.user);
@@ -123,7 +123,10 @@ export default function PmoDashboardPage() {
                 return (
                   <tr key={p.id} className="hover:bg-gray-50">
                     <td className="px-5 py-3 font-medium"><Link to={`/projects/${p.id}`} className="text-primary-600 hover:text-primary-800">{p.name}</Link></td>
-                    <td className="px-3 py-3"><span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${stageBadge(evm.stage)}`}>{evm.stage}</span></td>
+                    <td className="px-3 py-3">
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${stageBadge(evm.stage)}`}>{evm.stage}</span>
+                      {p.targetEndDate && deadlineLabel(p.targetEndDate) && <span className={`inline-block ml-1 px-2 py-0.5 rounded-full text-xs font-medium ${deadlineBadge(p.targetEndDate)}`}>{deadlineLabel(p.targetEndDate)}</span>}
+                    </td>
                     <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(evm.budget)}</td>
                     <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(evm.plannedValue)}</td>
                     <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(evm.earnedValue)}</td>
