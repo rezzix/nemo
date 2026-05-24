@@ -26,6 +26,9 @@ public interface TimeLogRepository extends JpaRepository<TimeLog, Long> {
     @Query("SELECT tl FROM TimeLog tl WHERE tl.task.project.id = :projectId AND tl.logDate BETWEEN :startDate AND :endDate")
     List<TimeLog> findByProjectIdAndDateRange(Long projectId, LocalDate startDate, LocalDate endDate);
 
+    @Query("SELECT tl FROM TimeLog tl WHERE tl.task.project.id = :projectId")
+    List<TimeLog> findByProjectId(Long projectId);
+
     @Query("SELECT tl FROM TimeLog tl WHERE tl.user.id = :userId AND tl.logDate BETWEEN :startDate AND :endDate")
     List<TimeLog> findByUserIdAndDateRange(Long userId, LocalDate startDate, LocalDate endDate);
 
