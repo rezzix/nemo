@@ -94,9 +94,7 @@ public class PmoService {
         BigDecimal earnedValue = completionPct.multiply(plannedValue).setScale(2, RoundingMode.HALF_UP);
 
         // Actual Cost (AC) = labor cost + project budget spent (external costs)
-        LocalDate projectStart = project.getTargetStartDate();
-        LocalDate projectEnd = project.getTargetEndDate();
-        BigDecimal laborCost = computeLaborCost(projectId, projectStart, projectEnd);
+        BigDecimal laborCost = computeLaborCost(projectId);
         BigDecimal budgetSpent = project.getBudgetSpent() != null ? project.getBudgetSpent() : BigDecimal.ZERO;
         BigDecimal actualCost = laborCost.add(budgetSpent).setScale(2, RoundingMode.HALF_UP);
 
@@ -152,14 +150,8 @@ public class PmoService {
         );
     }
 
-    private BigDecimal computeLaborCost(Long projectId, LocalDate startDate, LocalDate endDate) {
-        if (startDate == null || endDate == null) {
-            // If no date range, use all time logs for the project
-            List<TimeLog> logs = timeLogRepository.findByProjectIdAndDateRange(
-                    projectId, LocalDate.of(2000, 1, 1), LocalDate.now());
-            return sumLaborCost(logs);
-        }
-        List<TimeLog> logs = timeLogRepository.findByProjectIdAndDateRange(projectId, startDate, endDate);
+    private BigDecimal computeLaborCost(Long projectId) {
+        List<TimeLog> logs = timeLogRepository.findByProjectId(projectId);
         return sumLaborCost(logs);
     }
 
@@ -243,7 +235,7 @@ public class PmoService {
                     : BigDecimal.ZERO;
             totalEarnedValue = totalEarnedValue.add(projCompletion.multiply(projPv).setScale(2, RoundingMode.HALF_UP));
 
-            BigDecimal projLaborCost = computeLaborCost(project.getId(), project.getTargetStartDate(), project.getTargetEndDate());
+            BigDecimal projLaborCost = computeLaborCost(project.getId());
             BigDecimal projBudgetSpent = project.getBudgetSpent() != null ? project.getBudgetSpent() : BigDecimal.ZERO;
             totalActualCost = totalActualCost.add(projLaborCost.add(projBudgetSpent).setScale(2, RoundingMode.HALF_UP));
 
