@@ -100,8 +100,8 @@ export default function TasksTab({ projectId, projectKey, canEdit, isExternal }:
                   <td className="px-4 py-3">
                     {task.dueDate ? (
                       <span className="flex items-center gap-1.5">
-                        <span className={deadlineBadge(task.dueDate) || 'text-gray-500'}>{formatDate(task.dueDate)}</span>
-                        {deadlineLabel(task.dueDate) && <span className={`inline-block px-1.5 py-0.5 rounded-full text-xs font-medium ${deadlineBadge(task.dueDate)}`}>{deadlineLabel(task.dueDate)}</span>}
+                        <span className={deadlineBadge(task.dueDate, task.statusCategory) || 'text-gray-500'}>{formatDate(task.dueDate)}</span>
+                        {deadlineLabel(task.dueDate, task.statusCategory) && <span className={`inline-block px-1.5 py-0.5 rounded-full text-xs font-medium ${deadlineBadge(task.dueDate, task.statusCategory)}`}>{deadlineLabel(task.dueDate, task.statusCategory)}</span>}
                       </span>
                     ) : <span className="text-gray-400">--</span>}
                   </td>

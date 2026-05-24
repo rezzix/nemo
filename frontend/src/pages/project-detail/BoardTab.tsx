@@ -137,8 +137,8 @@ export default function BoardTab({ projectId, projectKey, isExternal }: { projec
                     <span className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{task.typeName}</span>
                     {task.phaseName && <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">{task.phaseName}</span>}
                     {task.assigneeName && <span>{task.assigneeName}</span>}
-                    {task.dueDate && <span className={deadlineBadge(task.dueDate) || 'text-gray-400'}>{formatDate(task.dueDate)}</span>}
-                    {task.dueDate && deadlineLabel(task.dueDate) && <span className={`px-1 py-0.5 rounded text-[10px] font-medium ${deadlineBadge(task.dueDate)}`}>{deadlineLabel(task.dueDate)}</span>}
+                    {task.dueDate && <span className={deadlineBadge(task.dueDate, task.statusCategory) || 'text-gray-400'}>{formatDate(task.dueDate)}</span>}
+                    {task.dueDate && deadlineLabel(task.dueDate, task.statusCategory) && <span className={`px-1 py-0.5 rounded text-[10px] font-medium ${deadlineBadge(task.dueDate, task.statusCategory)}`}>{deadlineLabel(task.dueDate, task.statusCategory)}</span>}
                   </div>
                 </div>
               ))}
