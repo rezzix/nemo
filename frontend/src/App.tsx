@@ -76,8 +76,8 @@ export default function App() {
           <Route path="/projects/:projectId/tasks/:taskId" element={<TaskDetailPage />} />
           <Route path="/my-time" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'CONTRIBUTOR']}><MyTimePage /></RoleGuard>} />
           <Route path="/timesheets" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'HR']}><TimesheetsPage /></RoleGuard>} />
-          <Route path="/people" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'HR']}><PeoplePage /></RoleGuard>} />
-          <Route path="/people/:id" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'HR', 'EXECUTIVE']}><UserDetailPage /></RoleGuard>} />
+          <Route path="/people" element={<RoleGuard roles={['HR', 'EXECUTIVE']}><PeoplePage /></RoleGuard>} />
+          <Route path="/people/:id" element={<RoleGuard roles={['HR', 'EXECUTIVE']}><UserDetailPage /></RoleGuard>} />
           <Route path="/holidays" element={<RoleGuard roles={['HR', 'ADMIN']}><HolidaysPage /></RoleGuard>} />
           <Route path="/leave" element={<LeavePage />} />
           <Route path="/reports" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR']}><TimeReportsPage /></RoleGuard>} />
