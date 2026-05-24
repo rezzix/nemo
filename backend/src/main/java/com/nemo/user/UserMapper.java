@@ -27,5 +27,6 @@ public interface UserMapper {
     @Mapping(target = "avatarUrl", ignore = true)
     @Mapping(target = "company", ignore = true)
     @Mapping(target = "assignedProject", ignore = true)
+    @Mapping(target = "weeklyCapacity", ignore = true)
     User toEntity(UserDto.CreateRequest request);
 }

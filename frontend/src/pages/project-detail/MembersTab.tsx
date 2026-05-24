@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { MemberDto, UserDto } from '@/types';
-import { getMembers, addMembers, removeMember, updateMemberScore } from '@/api/projects';
-import { listAllUsers } from '@/api/users';
+import type { MemberDto, UserDto, AllocationSummaryDto } from '@/types';
+import { getMembers, addMembers, removeMember, updateMemberScore, updateMemberAllocation } from '@/api/projects';
+import { listAllUsers, getUserAllocationSummary } from '@/api/users';
 import { scoreLabel, scoreColor } from '@/utils/format';
 import Spinner from '@/components/common/Spinner';
 import Modal from '@/components/common/Modal';
@@ -21,10 +21,25 @@ export default function MembersTab({ projectId, managerId, canEdit, canSeeScores
   const [scoringUserId, setScoringUserId] = useState<number | null>(null);
   const [savingScore, setSavingScore] = useState(false);
   const [scoreError, setScoreError] = useState<string | null>(null);
+  const [editingAllocUserId, setEditingAllocUserId] = useState<number | null>(null);
+  const [editAllocValue, setEditAllocValue] = useState('');
+  const [savingAlloc, setSavingAlloc] = useState(false);
+  const [allocationSummaries, setAllocationSummaries] = useState<Record<number, AllocationSummaryDto>>({});
 
   const fetchMembers = useCallback(async () => {
     setLoading(true);
-    try { setMembers(await getMembers(projectId)); } finally { setLoading(false); }
+    try {
+      const mems = await getMembers(projectId);
+      setMembers(mems);
+      // Fetch allocation summaries for all members
+      const summaries: Record<number, AllocationSummaryDto> = {};
+      await Promise.all(mems.map(async (m) => {
+        try {
+          summaries[m.userId] = await getUserAllocationSummary(m.userId);
+        } catch { /* ignore */ }
+      }));
+      setAllocationSummaries(summaries);
+    } finally { setLoading(false); }
   }, [projectId]);
 
   useEffect(() => { fetchMembers(); }, [fetchMembers]);
@@ -53,6 +68,17 @@ export default function MembersTab({ projectId, managerId, canEdit, canSeeScores
 
   const canSeeScores = canSeeScoresProp ?? canEdit;
 
+  const handleAllocationSave = async (userId: number) => {
+    const val = Number(editAllocValue);
+    if (val < 1 || val > 100) return;
+    setSavingAlloc(true);
+    try {
+      await updateMemberAllocation(projectId, userId, val);
+      setEditingAllocUserId(null);
+      fetchMembers();
+    } catch { /* ignore */ } finally { setSavingAlloc(false); }
+  };
+
   return (
     <div className="space-y-4">
       {canEdit && (
@@ -70,6 +96,7 @@ export default function MembersTab({ projectId, managerId, canEdit, canSeeScores
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Username</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Full Name</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Role</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-500">Allocation</th>
                 {canSeeScores && <th className="text-left px-4 py-3 font-medium text-gray-500">Evaluation</th>}
                 {canEdit && <th className="text-left px-4 py-3 font-medium text-gray-500">Actions</th>}
               </tr>
@@ -81,6 +108,32 @@ export default function MembersTab({ projectId, managerId, canEdit, canSeeScores
                   <td className="px-4 py-3">{m.fullName}</td>
                   <td className="px-4 py-3">
                     {m.userId === managerId && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">Manager</span>}
+                  </td>
+                  <td className="px-4 py-3">
+                    {editingAllocUserId === m.userId ? (
+                      <div className="flex items-center gap-1">
+                        <input type="number" min={1} max={100} value={editAllocValue} onChange={(e) => setEditAllocValue(e.target.value)} className="w-16 px-2 py-1 border border-gray-300 rounded text-sm" autoFocus />
+                        <span className="text-xs text-gray-500">%</span>
+                        <button onClick={() => handleAllocationSave(m.userId)} disabled={savingAlloc} className="text-green-600 hover:text-green-800 text-xs font-medium">{savingAlloc ? '...' : 'Save'}</button>
+                        <button onClick={() => setEditingAllocUserId(null)} className="text-gray-400 hover:text-gray-600 text-xs">Cancel</button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => { if (canEdit) { setEditingAllocUserId(m.userId); setEditAllocValue(String(m.allocation)); } }}
+                        className={`px-2 py-0.5 rounded text-xs font-medium ${
+                          (allocationSummaries[m.userId]?.totalAllocation ?? 0) > 100
+                            ? 'bg-red-100 text-red-700'
+                            : m.allocation >= 80
+                              ? 'bg-blue-100 text-blue-700'
+                              : 'bg-gray-100 text-gray-700'
+                        } ${canEdit ? 'cursor-pointer hover:opacity-80' : ''}`}
+                      >
+                        {m.allocation}%
+                      </button>
+                    )}
+                    {editingAllocUserId !== m.userId && allocationSummaries[m.userId] && allocationSummaries[m.userId].totalAllocation > 100 && (
+                      <span className="ml-1 text-xs text-red-500">({allocationSummaries[m.userId].totalAllocation}% total)</span>
+                    )}
                   </td>
                   {canSeeScores && (
                     <td className="px-4 py-3">
@@ -136,7 +189,7 @@ export default function MembersTab({ projectId, managerId, canEdit, canSeeScores
                 </tr>
               ))}
               {members.length === 0 && (
-                <tr><td colSpan={canSeeScores ? (canEdit ? 5 : 4) : (canEdit ? 4 : 3)} className="px-4 py-8 text-center text-gray-500">No members.</td></tr>
+                <tr><td colSpan={canSeeScores ? (canEdit ? 6 : 5) : (canEdit ? 5 : 4)} className="px-4 py-8 text-center text-gray-500">No members.</td></tr>
               )}
             </tbody>
           </table>
@@ -150,12 +203,32 @@ export default function MembersTab({ projectId, managerId, canEdit, canSeeScores
 function AddMembersModal({ projectId, currentMembers, onClose }: { projectId: number; currentMembers: MemberDto[]; onClose: () => void }) {
   const [allUsers, setAllUsers] = useState<UserDto[]>([]);
   const [selected, setSelected] = useState<number[]>([]);
+  const [allocations, setAllocations] = useState<Record<number, number>>({});
+  const [existingAllocations, setExistingAllocations] = useState<Record<number, number>>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     listAllUsers({ active: 'true' }).then(setAllUsers);
   }, []);
+
+  useEffect(() => {
+    // Fetch allocation summaries for available users
+    const memberIds = new Set(currentMembers.map((m) => m.userId));
+    const fetchAllocs = async () => {
+      const result: Record<number, number> = {};
+      await Promise.all(allUsers.map(async (u) => {
+        if (!memberIds.has(u.id)) {
+          try {
+            const summary = await getUserAllocationSummary(u.id);
+            result[u.id] = summary.totalAllocation;
+          } catch { /* ignore */ }
+        }
+      }));
+      setExistingAllocations(result);
+    };
+    if (allUsers.length > 0) fetchAllocs();
+  }, [allUsers, currentMembers]);
 
   const memberIds = new Set(currentMembers.map((m) => m.userId));
   const available = allUsers.filter((u) => !memberIds.has(u.id));
@@ -167,6 +240,13 @@ function AddMembersModal({ projectId, currentMembers, onClose }: { projectId: nu
     setError(null);
     try {
       await addMembers(projectId, selected);
+      // Set allocations for each added member
+      await Promise.all(selected.map(async (userId) => {
+        const alloc = allocations[userId] ?? 100;
+        if (alloc !== 100) {
+          try { await updateMemberAllocation(projectId, userId, alloc); } catch { /* ignore */ }
+        }
+      }));
       onClose();
     } catch {
       setError('Failed to add members.');
@@ -179,20 +259,50 @@ function AddMembersModal({ projectId, currentMembers, onClose }: { projectId: nu
     setSelected((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
   };
 
+  const getTotalForUser = (userId: number) => {
+    const existing = existingAllocations[userId] ?? 0;
+    const newAlloc = selected.includes(userId) ? (allocations[userId] ?? 100) : 0;
+    return existing + newAlloc;
+  };
+
   return (
     <Modal title="Add Members" onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-3 py-2">{error}</div>}
-        <div className="max-h-60 overflow-y-auto border border-gray-300 rounded-lg p-2 space-y-1">
+        <div className="max-h-72 overflow-y-auto border border-gray-300 rounded-lg p-2 space-y-1">
           {available.length === 0 && <p className="text-sm text-gray-500 p-2">All users are already members.</p>}
-          {available.map((u) => (
-            <label key={u.id} className="flex items-center gap-2 text-sm py-1 cursor-pointer">
-              <input type="checkbox" checked={selected.includes(u.id)} onChange={() => toggle(u.id)} className="rounded border-gray-300" />
-              <span>{u.firstName} {u.lastName}</span>
-              <span className="text-gray-400 text-xs">({u.username})</span>
-              <span className="text-xs text-gray-400 ml-auto">{u.role}</span>
-            </label>
-          ))}
+          {available.map((u) => {
+            const isSelected = selected.includes(u.id);
+            const existingTotal = existingAllocations[u.id] ?? 0;
+            const newTotal = getTotalForUser(u.id);
+            return (
+              <label key={u.id} className={`flex items-center gap-2 text-sm py-1.5 px-1 rounded cursor-pointer ${isSelected ? 'bg-primary-50' : ''}`}>
+                <input type="checkbox" checked={isSelected} onChange={() => toggle(u.id)} className="rounded border-gray-300 shrink-0" />
+                <span className="truncate">{u.firstName} {u.lastName}</span>
+                <span className="text-gray-400 text-xs shrink-0">({u.username})</span>
+                {existingTotal > 0 && (
+                  <span className={`text-xs shrink-0 ml-1 ${existingTotal > 100 ? 'text-red-500 font-medium' : 'text-gray-400'}`}>
+                    {existingTotal}% allocated
+                  </span>
+                )}
+                {isSelected && (
+                  <div className="flex items-center gap-1 ml-auto shrink-0">
+                    <input
+                      type="number" min={1} max={100}
+                      value={allocations[u.id] ?? 100}
+                      onChange={(e) => setAllocations((prev) => ({ ...prev, [u.id]: Number(e.target.value) }))}
+                      className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <span className="text-xs text-gray-500">%</span>
+                    {newTotal > 100 && (
+                      <span className="text-xs text-red-500 font-medium">{newTotal}% total</span>
+                    )}
+                  </div>
+                )}
+              </label>
+            );
+          })}
         </div>
         <div className="flex justify-end gap-3 pt-2">
           <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100">Cancel</button>

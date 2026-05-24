@@ -34,5 +34,6 @@ public interface ProjectMapper {
     @Mapping(target = "username", source = "user.username")
     @Mapping(target = "fullName", expression = "java(pm.getUser().getFirstName() + ' ' + pm.getUser().getLastName())")
     @Mapping(target = "score", source = "score")
+    @Mapping(target = "allocation", source = "allocation")
     ProjectDto.MemberDto toMemberDto(ProjectMember pm);
 }

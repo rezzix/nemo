@@ -25,6 +25,9 @@ public class ProjectMember {
     @Column(name = "score")
     private Integer score;
 
+    @Column(nullable = false)
+    private int allocation = 100;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -41,5 +44,7 @@ public class ProjectMember {
     public User getUser() { return user; }
     public Integer getScore() { return score; }
     public void setScore(Integer score) { this.score = score; }
+    public int getAllocation() { return allocation; }
+    public void setAllocation(int allocation) { this.allocation = allocation; }
     public Instant getCreatedAt() { return createdAt; }
 }

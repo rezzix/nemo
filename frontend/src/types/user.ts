@@ -15,6 +15,7 @@ export interface UserDto {
   department: string | null;
   phone: string | null;
   hireDate: string | null;
+  weeklyCapacity: number;
   avatarUrl: string | null;
   active: boolean;
   createdAt: string;
@@ -36,4 +37,10 @@ export interface UpdateProfileRequest {
 export interface PasswordChangeRequest {
   currentPassword: string;
   newPassword: string;
+}
+
+export interface AllocationSummaryDto {
+  userId: number;
+  totalAllocation: number;
+  projects: { projectId: number; projectName: string; allocation: number }[];
 }
