@@ -1,31 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { UserDto, AdminUpdateUserRequest, CompanyDto, UserRateDto, ProjectDto } from '@/types';
+import type { UserDto, AdminUpdateUserRequest, CompanyDto, ProjectDto } from '@/types';
 import Modal from '@/components/common/Modal';
 import Field from '@/components/common/Field';
 import Spinner from '@/components/common/Spinner';
-import { formatCurrency } from '@/utils/format';
 import {
   listUsers, createUser, adminUpdateUser, deactivateUser,
 } from '@/api/admin';
 import { listCompanies } from '@/api/companies';
 import { listProjects } from '@/api/projects';
-import { getUserRates, createUserRate, updateUserRate, deleteUserRate } from '@/api/userRates';
-
-function SpinnerWrapper() {
-  return (
-    <div className="flex items-center justify-center h-32">
-      <Spinner className="h-6 w-6 text-primary-600" />
-    </div>
-  );
-}
-
-function ChevronIcon({ open, className }: { open: boolean; className?: string }) {
-  return (
-    <svg className={`${className} transition-transform ${open ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-    </svg>
-  );
-}
 
 export default function UsersTab() {
   const [users, setUsers] = useState<UserDto[]>([]);
@@ -33,17 +15,6 @@ export default function UsersTab() {
   const [showCreate, setShowCreate] = useState(false);
   const [editingUser, setEditingUser] = useState<UserDto | null>(null);
   const [deactivatingId, setDeactivatingId] = useState<number | null>(null);
-
-  // User rates state
-  const [expandedUserId, setExpandedUserId] = useState<number | null>(null);
-  const [ratesMap, setRatesMap] = useState<Record<number, UserRateDto[]>>({});
-  const [loadingRates, setLoadingRates] = useState(false);
-  const [showAddRate, setShowAddRate] = useState(false);
-  const [newRate, setNewRate] = useState('');
-  const [newRateDate, setNewRateDate] = useState(new Date().toISOString().slice(0, 10));
-  const [savingRate, setSavingRate] = useState(false);
-  const [editRateId, setEditRateId] = useState<number | null>(null);
-  const [editRateValue, setEditRateValue] = useState('');
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -56,69 +27,6 @@ export default function UsersTab() {
   }, []);
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
-
-  const handleExpand = async (userId: number) => {
-    if (expandedUserId === userId) {
-      setExpandedUserId(null);
-      return;
-    }
-    setExpandedUserId(userId);
-    setShowAddRate(false);
-    setEditRateId(null);
-    if (!ratesMap[userId]) {
-      setLoadingRates(true);
-      try {
-        const rates = await getUserRates(userId);
-        setRatesMap((prev) => ({ ...prev, [userId]: rates }));
-      } catch {
-        setRatesMap((prev) => ({ ...prev, [userId]: [] }));
-      } finally {
-        setLoadingRates(false);
-      }
-    }
-  };
-
-  const fetchRates = async (userId: number) => {
-    try {
-      const rates = await getUserRates(userId);
-      setRatesMap((prev) => ({ ...prev, [userId]: rates }));
-    } catch { /* ignore */ }
-  };
-
-  const handleCreateRate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!expandedUserId || !newRate) return;
-    setSavingRate(true);
-    try {
-      await createUserRate({ userId: expandedUserId, hourlyRate: Number(newRate), effectiveFrom: newRateDate });
-      setNewRate('');
-      setShowAddRate(false);
-      fetchRates(expandedUserId);
-    } catch { /* ignore */ } finally { setSavingRate(false); }
-  };
-
-  const handleUpdateRate = async (id: number) => {
-    if (!editRateValue || !expandedUserId) return;
-    setSavingRate(true);
-    try {
-      await updateUserRate(id, { hourlyRate: Number(editRateValue) });
-      setEditRateId(null);
-      fetchRates(expandedUserId);
-    } catch { /* ignore */ } finally { setSavingRate(false); }
-  };
-
-  const handleDeleteRate = async (id: number) => {
-    if (!confirm('Delete this rate?') || !expandedUserId) return;
-    await deleteUserRate(id);
-    fetchRates(expandedUserId);
-  };
-
-  const today = new Date().toISOString().slice(0, 10);
-
-  const getCurrentRate = (rates: UserRateDto[]) => {
-    const past = rates.filter((r) => r.effectiveFrom <= today);
-    return past.length > 0 ? past[0] : null;
-  };
 
   // Group users by company (tabs), with externals as a separate tab
   const [activeTab, setActiveTab] = useState<string | null>(null);
@@ -201,7 +109,9 @@ export default function UsersTab() {
         </div>
       )}
 
-      {loading ? <SpinnerWrapper /> : (
+      {loading ? (
+        <div className="flex items-center justify-center h-32"><Spinner className="h-6 w-6 text-primary-600" /></div>
+      ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
           {visibleUsers.length === 0 ? (
             <div className="text-center text-gray-500 py-8">No {showActive ? 'active' : 'inactive'} users in this group.</div>
@@ -209,7 +119,6 @@ export default function UsersTab() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500 w-8"></th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Username</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Email</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Name</th>
@@ -217,123 +126,69 @@ export default function UsersTab() {
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Dept</th>
                   {currentTab === 'Externals' && <th className="text-left px-4 py-3 font-medium text-gray-500">Project</th>}
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Role</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Rate</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {visibleUsers.map((u) => {
-                  const isExpanded = expandedUserId === u.id;
-                  const rates = ratesMap[u.id] ?? [];
-                  const currentRate = getCurrentRate(rates);
                   const isExternalGroup = currentTab === 'Externals';
-
                   return (
-                    <UserRowFragment
-                      key={u.id}
-                      user={u}
-                      isExpanded={isExpanded}
-                      currentRate={currentRate}
-                      onExpand={() => handleExpand(u.id)}
-                      deactivatingId={deactivatingId}
-                      onToggleActive={async () => {
-                        setDeactivatingId(u.id);
-                        try {
-                          if (u.active) {
-                            await deactivateUser(u.id);
-                          } else {
-                            await adminUpdateUser(u.id, { active: true });
-                          }
-                          fetchUsers();
-                        } finally { setDeactivatingId(null); }
-                      }}
-                      onEdit={() => setEditingUser(u)}
-                      isExternalGroup={isExternalGroup}
-                    >
-                      {isExpanded && (
-                        <td colSpan={isExternalGroup ? 10 : 9} className="px-8 py-4 bg-gray-50 border-t border-gray-100">
-                          <div className="flex items-center justify-between mb-3">
-                            <h4 className="text-sm font-semibold text-gray-700">Hourly Rates</h4>
-                            <button onClick={() => { setShowAddRate(true); setEditRateId(null); }} className="text-primary-600 hover:text-primary-800 text-xs font-medium">+ Add Rate</button>
-                          </div>
-
-                          {loadingRates ? (
-                            <div className="flex justify-center py-4"><Spinner className="h-5 w-5 text-primary-600" /></div>
-                          ) : rates.length === 0 && !showAddRate ? (
-                            <p className="text-sm text-gray-500 py-2">No rates configured. Click "+ Add Rate" to set one.</p>
+                    <tr key={u.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 font-mono text-xs">{u.username}</td>
+                      <td className="px-4 py-3">{u.email}</td>
+                      <td className="px-4 py-3">{u.firstName} {u.lastName}</td>
+                      <td className="px-4 py-3 text-gray-600 text-xs">{u.jobTitle || '—'}</td>
+                      <td className="px-4 py-3 text-gray-600 text-xs">{u.department || '—'}</td>
+                      {isExternalGroup && (
+                        <td className="px-4 py-3">
+                          {u.assignedProjectName ? (
+                            <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-700">{u.assignedProjectName}</span>
                           ) : (
-                            <>
-                              {showAddRate && (
-                                <form onSubmit={handleCreateRate} className="flex items-end gap-3 flex-wrap mb-3 bg-white rounded-lg border border-gray-200 p-3">
-                                  <div>
-                                    <label className="block text-xs font-medium text-gray-500 mb-1">Hourly Rate ($)</label>
-                                    <input type="number" step="0.01" min="0" value={newRate} onChange={(e) => setNewRate(e.target.value)} required placeholder="e.g. 75.00" className="px-3 py-2 border border-gray-300 rounded-lg text-sm w-32" />
-                                  </div>
-                                  <div>
-                                    <label className="block text-xs font-medium text-gray-500 mb-1">Effective From</label>
-                                    <input type="date" value={newRateDate} onChange={(e) => setNewRateDate(e.target.value)} required className="px-3 py-2 border border-gray-300 rounded-lg text-sm" />
-                                  </div>
-                                  <button type="submit" disabled={savingRate || !newRate} className="bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50">{savingRate ? 'Saving...' : 'Add'}</button>
-                                  <button type="button" onClick={() => setShowAddRate(false)} className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
-                                </form>
-                              )}
-
-                              {rates.length > 0 && (
-                                <table className="w-full text-sm">
-                                  <thead>
-                                    <tr className="border-b border-gray-200">
-                                      <th className="text-left px-3 py-2 text-xs font-medium text-gray-500">Rate</th>
-                                      <th className="text-left px-3 py-2 text-xs font-medium text-gray-500">Effective From</th>
-                                      <th className="text-left px-3 py-2 text-xs font-medium text-gray-500">Status</th>
-                                      <th className="text-left px-3 py-2 text-xs font-medium text-gray-500">Actions</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody className="divide-y divide-gray-100">
-                                    {rates.map((rate) => (
-                                      <tr key={rate.id} className="hover:bg-white">
-                                        <td className="px-3 py-2">
-                                          {editRateId === rate.id ? (
-                                            <input type="number" step="0.01" value={editRateValue} onChange={(e) => setEditRateValue(e.target.value)} className="px-2 py-1 border border-gray-300 rounded text-sm w-28" autoFocus />
-                                          ) : (
-                                            <span className="font-medium">${rate.hourlyRate.toFixed(2)}/hr</span>
-                                          )}
-                                        </td>
-                                        <td className="px-3 py-2 text-gray-600">{rate.effectiveFrom}</td>
-                                        <td className="px-3 py-2">
-                                          {rate.effectiveFrom <= today && (
-                                            rates[0]?.id === rate.id ? (
-                                              <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Current</span>
-                                            ) : (
-                                              <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">Historical</span>
-                                            )
-                                          )}
-                                          {rate.effectiveFrom > today && (
-                                            <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">Upcoming</span>
-                                          )}
-                                        </td>
-                                        <td className="px-3 py-2">
-                                          {editRateId === rate.id ? (
-                                            <div className="flex items-center gap-2">
-                                              <button onClick={() => handleUpdateRate(rate.id)} className="text-green-600 hover:text-green-800 text-xs font-medium">Save</button>
-                                              <button onClick={() => setEditRateId(null)} className="text-gray-500 hover:text-gray-700 text-xs font-medium">Cancel</button>
-                                            </div>
-                                          ) : (
-                                            <div className="flex items-center gap-2">
-                                              <button onClick={() => { setEditRateId(rate.id); setEditRateValue(rate.hourlyRate.toString()); setShowAddRate(false); }} className="text-primary-600 hover:text-primary-800 text-xs font-medium">Edit</button>
-                                              <button onClick={() => handleDeleteRate(rate.id)} className="text-red-600 hover:text-red-800 text-xs font-medium">Delete</button>
-                                            </div>
-                                          )}
-                                        </td>
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              )}
-                            </>
+                            <span className="text-gray-400">{'—'}</span>
                           )}
                         </td>
                       )}
-                    </UserRowFragment>
+                      <td className="px-4 py-3">
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
+                          u.role === 'ADMIN' ? 'bg-red-100 text-red-700' :
+                          u.role === 'MANAGER' ? 'bg-blue-100 text-blue-700' :
+                          u.role === 'EXECUTIVE' ? 'bg-amber-100 text-amber-700' :
+                          u.role === 'HR' ? 'bg-pink-100 text-pink-700' :
+                          u.role === 'EXTERNAL' ? 'bg-teal-100 text-teal-700' :
+                          'bg-gray-100 text-gray-700'
+                        }`}>{u.role}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-2">
+                          <button onClick={() => setEditingUser(u)} className="text-primary-600 hover:text-primary-800 text-xs font-medium">Edit</button>
+                          {u.active ? (
+                            <button
+                              onClick={async () => {
+                                setDeactivatingId(u.id);
+                                try { await deactivateUser(u.id); fetchUsers(); } finally { setDeactivatingId(null); }
+                              }}
+                              disabled={deactivatingId === u.id}
+                              className="text-red-600 hover:text-red-800 text-xs font-medium disabled:opacity-50 flex items-center gap-1"
+                            >
+                              {deactivatingId === u.id && <Spinner className="h-3 w-3" />}
+                              Deactivate
+                            </button>
+                          ) : (
+                            <button
+                              onClick={async () => {
+                                setDeactivatingId(u.id);
+                                try { await adminUpdateUser(u.id, { active: true }); fetchUsers(); } finally { setDeactivatingId(null); }
+                              }}
+                              disabled={deactivatingId === u.id}
+                              className="text-green-600 hover:text-green-800 text-xs font-medium disabled:opacity-50 flex items-center gap-1"
+                            >
+                              {deactivatingId === u.id && <Spinner className="h-3 w-3" />}
+                              Activate
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
                   );
                 })}
               </tbody>
@@ -345,92 +200,6 @@ export default function UsersTab() {
       {showCreate && <CreateUserModal onClose={() => { setShowCreate(false); fetchUsers(); }} />}
       {editingUser && <EditUserModal user={editingUser} onClose={() => { setEditingUser(null); fetchUsers(); }} />}
     </div>
-  );
-}
-
-function UserRowFragment({
-  user,
-  isExpanded,
-  currentRate,
-  onExpand,
-  deactivatingId,
-  onToggleActive,
-  onEdit,
-  isExternalGroup,
-  children,
-}: {
-  user: UserDto;
-  isExpanded: boolean;
-  currentRate: UserRateDto | null;
-  onExpand: () => void;
-  deactivatingId: number | null;
-  onToggleActive: () => void;
-  onEdit: () => void;
-  isExternalGroup?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <>
-      <tr className={isExpanded ? 'bg-gray-50' : 'hover:bg-gray-50'}>
-        <td className="px-4 py-3">
-          <button onClick={onExpand} className="text-gray-400 hover:text-gray-600">
-            <ChevronIcon open={isExpanded} className="w-4 h-4" />
-          </button>
-        </td>
-        <td className="px-4 py-3 font-mono text-xs">{user.username}</td>
-        <td className="px-4 py-3">{user.email}</td>
-        <td className="px-4 py-3">{user.firstName} {user.lastName}</td>
-        <td className="px-4 py-3 text-gray-600 text-xs">{user.jobTitle || '—'}</td>
-        <td className="px-4 py-3 text-gray-600 text-xs">{user.department || '—'}</td>
-        {isExternalGroup && (
-          <td className="px-4 py-3">
-            {user.assignedProjectName ? (
-              <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-700">{user.assignedProjectName}</span>
-            ) : (
-              <span className="text-gray-400">—</span>
-            )}
-          </td>
-        )}
-        <td className="px-4 py-3">
-          <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-            user.role === 'ADMIN' ? 'bg-red-100 text-red-700' :
-            user.role === 'MANAGER' ? 'bg-blue-100 text-blue-700' :
-            user.role === 'EXECUTIVE' ? 'bg-amber-100 text-amber-700' :
-            user.role === 'HR' ? 'bg-pink-100 text-pink-700' :
-            user.role === 'EXTERNAL' ? 'bg-teal-100 text-teal-700' :
-            'bg-gray-100 text-gray-700'
-          }`}>{user.role}</span>
-        </td>
-        <td className="px-4 py-3 text-gray-600">
-          {currentRate ? formatCurrency(currentRate.hourlyRate) : '—'}
-        </td>
-        <td className="px-4 py-3">
-          <div className="flex gap-2">
-            <button onClick={onEdit} className="text-primary-600 hover:text-primary-800 text-xs font-medium">Edit</button>
-            {user.active ? (
-              <button
-                onClick={onToggleActive}
-                disabled={deactivatingId === user.id}
-                className="text-red-600 hover:text-red-800 text-xs font-medium disabled:opacity-50 flex items-center gap-1"
-              >
-                {deactivatingId === user.id && <Spinner className="h-3 w-3" />}
-                Deactivate
-              </button>
-            ) : (
-              <button
-                onClick={onToggleActive}
-                disabled={deactivatingId === user.id}
-                className="text-green-600 hover:text-green-800 text-xs font-medium disabled:opacity-50 flex items-center gap-1"
-              >
-                {deactivatingId === user.id && <Spinner className="h-3 w-3" />}
-                Activate
-              </button>
-            )}
-          </div>
-        </td>
-      </tr>
-      {children}
-    </>
   );
 }
 
