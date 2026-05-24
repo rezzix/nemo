@@ -8,7 +8,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.Instant;
 
 @Entity
-@Table(name = "leave_entitlement", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "type", "\"year\""}))
+@Table(name = "leave_entitlement", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "type", "year_"}))
 public class LeaveEntitlement {
 
     @Id
@@ -23,7 +23,7 @@ public class LeaveEntitlement {
     @Column(nullable = false, length = 20)
     private LeaveRequest.Type type;
 
-    @Column(name = "\"year\"", nullable = false)
+    @Column(name = "year_", nullable = false)
     private int year;
 
     @Column(name = "total_days", nullable = false)
