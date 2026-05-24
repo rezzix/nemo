@@ -121,8 +121,8 @@ public class PmoService {
                 ? earnedValue.divide(actualCost, 2, RoundingMode.HALF_UP)
                 : null;
 
-        // SPI = EV / PV (null when PV = 0 — no planned value yet)
-        BigDecimal spi = pvToday.compareTo(BigDecimal.ZERO) > 0
+        // SPI = EV / PV (null when EV = 0 or PV = 0 — no meaningful ratio)
+        BigDecimal spi = earnedValue.compareTo(BigDecimal.ZERO) > 0 && pvToday.compareTo(BigDecimal.ZERO) > 0
                 ? earnedValue.divide(pvToday, 2, RoundingMode.HALF_UP)
                 : null;
 

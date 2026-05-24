@@ -203,7 +203,7 @@ export default function ExecutiveDashboard() {
         { label: 'Total Projects', value: cs.totalProjects, color: 'bg-primary-50 text-primary-700' },
         { label: 'Total Budget', value: formatCurrency(cs.totalBudget), color: 'bg-blue-50 text-blue-700' },
         { label: 'Portfolio CPI', value: totalActualCost > 0 ? (totalEarnedValue / totalActualCost).toFixed(2) : '—', color: cv >= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' },
-        { label: 'Portfolio SPI', value: totalPlannedValue > 0 ? (totalEarnedValue / totalPlannedValue).toFixed(2) : '—', color: sv >= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' },
+        { label: 'Portfolio SPI', value: totalEarnedValue > 0 && totalPlannedValue > 0 ? (totalEarnedValue / totalPlannedValue).toFixed(2) : '—', color: sv >= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' },
         { label: 'Open Risks', value: cs.totalOpenRisks + cs.totalMitigatingRisks, color: 'bg-amber-50 text-amber-700' },
         { label: 'Completion', value: cs.totalTasks > 0 ? ((cs.totalCompleted / cs.totalTasks) * 100).toFixed(0) + '%' : '—', color: 'bg-emerald-50 text-emerald-700' },
       ];
@@ -213,7 +213,7 @@ export default function ExecutiveDashboard() {
     { label: 'Total Projects', value: portfolio.totalProjects, color: 'bg-primary-50 text-primary-700' },
     { label: 'Total Budget', value: formatCurrency(portfolio.totalBudget), color: 'bg-blue-50 text-blue-700' },
     { label: 'Portfolio CPI', value: portfolio.portfolioCv !== 0 ? (portfolio.totalActualCost > 0 ? (portfolio.totalEarnedValue / portfolio.totalActualCost).toFixed(2) : '—') : '—', color: portfolio.portfolioCv >= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' },
-    { label: 'Portfolio SPI', value: portfolio.totalPlannedValue > 0 ? (portfolio.totalEarnedValue / portfolio.totalPlannedValue).toFixed(2) : '—', color: portfolio.portfolioSv >= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' },
+    { label: 'Portfolio SPI', value: portfolio.totalEarnedValue > 0 && portfolio.totalPlannedValue > 0 ? (portfolio.totalEarnedValue / portfolio.totalPlannedValue).toFixed(2) : '—', color: portfolio.portfolioSv >= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' },
     { label: 'Open Risks', value: portfolio.totalOpenRisks + portfolio.totalMitigatingRisks, color: 'bg-amber-50 text-amber-700' },
     { label: 'Completion', value: portfolio.totalTasks > 0 ? ((portfolio.totalCompleted / portfolio.totalTasks) * 100).toFixed(0) + '%' : '—', color: 'bg-emerald-50 text-emerald-700' },
   ] : [
