@@ -53,9 +53,11 @@ public record ProjectDto(
 
     public record LabelCreateRequest(@NotBlank String name, @NotBlank String color) {}
 
-    public record MemberDto(Long id, Long userId, String username, String fullName, Integer score) {}
+    public record MemberDto(Long id, Long userId, String username, String fullName, Integer score, int allocation) {}
 
     public record ScoreRequest(@NotNull Integer score) {}
+
+    public record AllocationRequest(@NotNull Integer allocation) {}
 
     public record InstructionDto(Long id, Long projectId, Long authorId, String authorName,
             String content, boolean important,

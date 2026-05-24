@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 public class UserService {
@@ -176,5 +177,29 @@ public class UserService {
         User user = getById(id);
         user.setActive(false);
         userRepository.save(user);
+    }
+
+    @Transactional
+    public User updateCapacity(Long id, int weeklyCapacity) {
+        if (weeklyCapacity < 1 || weeklyCapacity > 168) {
+            throw new BadRequestException("Weekly capacity must be between 1 and 168 hours");
+        }
+        User user = getById(id);
+        user.setWeeklyCapacity(weeklyCapacity);
+        return userRepository.save(user);
+    }
+
+    @Transactional(readOnly = true)
+    public AllocationSummaryDto getAllocationSummary(Long userId) {
+        User user = getById(userId);
+        List<ProjectMember> memberships = projectMemberRepository.findByUserId(userId);
+        List<AllocationSummaryDto.ProjectAllocation> projects = memberships.stream()
+                .map(pm -> new AllocationSummaryDto.ProjectAllocation(
+                        pm.getProject().getId(),
+                        pm.getProject().getName(),
+                        pm.getAllocation()))
+                .toList();
+        int total = memberships.stream().mapToInt(ProjectMember::getAllocation).sum();
+        return new AllocationSummaryDto(user.getId(), total, projects);
     }
 }

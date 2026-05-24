@@ -92,4 +92,20 @@ public class UserController {
         userService.deactivate(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}/capacity")
+    @PreAuthorize("hasAnyRole('HR', 'EXECUTIVE')")
+    public ResponseEntity<ApiResponse<UserDto>> updateCapacity(
+            @PathVariable Long id, @RequestBody CapacityRequest request) {
+        User updated = userService.updateCapacity(id, request.weeklyCapacity());
+        return ResponseEntity.ok(ApiResponse.of(userMapper.toDto(updated)));
+    }
+
+    @GetMapping("/{id}/allocation-summary")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EXECUTIVE', 'HR')")
+    public ResponseEntity<ApiResponse<AllocationSummaryDto>> getAllocationSummary(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.of(userService.getAllocationSummary(id)));
+    }
+
+    public record CapacityRequest(int weeklyCapacity) {}
 }

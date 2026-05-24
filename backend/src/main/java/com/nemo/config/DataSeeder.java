@@ -298,29 +298,30 @@ public class DataSeeder implements CommandLineRunner {
                 LocalDate.of(2025, 3, 1), LocalDate.of(2025, 11, 30), company3);
         footballTeam.setClient(frmf); footballTeam = projectRepository.save(footballTeam);
 
-        // Add members
-        addMember(fse, majid);
-        addMember(fse, dev1);
-        addMember(fse, dev2);
-        addMember(apiGateway, dev1);
-        addMember(apiGateway, majid);
-        addMember(mobileApp, dev3);
-        addMember(mobileApp, dev4);
-        addMember(mobileApp, pmHarmony);
-        addMember(infraUpgrade, dev1);
-        addMember(infraUpgrade, dev3);
-        addMember(infraUpgrade, salim);
-        addMember(eHealthPortal, dev2);
-        addMember(eHealthPortal, majid);
-        addMember(mobilePay, dev3);
-        addMember(mobilePay, dev4);
-        addMember(mobilePay, pmHarmony);
-        addMember(dataWarehouse, dev1);
-        addMember(dataWarehouse, salim);
-        addMember(erpProject, younes);
-        addMember(footballTeam, youssef);
-        addMember(footballTeam, walid);
-        addMember(footballTeam, dev1);
+        // Add members with allocations
+        // majid: fse 40%, apiGateway 40%, eHealthPortal 20%
+        addMember(fse, majid, 40);
+        addMember(fse, dev1, 30);
+        addMember(fse, dev2, 60);
+        addMember(apiGateway, dev1, 25);
+        addMember(apiGateway, majid, 40);
+        addMember(mobileApp, dev3, 40);
+        addMember(mobileApp, dev4, 60);
+        addMember(mobileApp, pmHarmony, 60);
+        addMember(infraUpgrade, dev1, 20);
+        addMember(infraUpgrade, dev3, 30);
+        addMember(infraUpgrade, salim, 60);
+        addMember(eHealthPortal, dev2, 40);
+        addMember(eHealthPortal, majid, 20);
+        addMember(mobilePay, dev3, 30);
+        addMember(mobilePay, dev4, 40);
+        addMember(mobilePay, pmHarmony, 40);
+        addMember(dataWarehouse, dev1, 15);
+        addMember(dataWarehouse, salim, 40);
+        addMember(erpProject, younes, 100);
+        addMember(footballTeam, youssef, 100);
+        addMember(footballTeam, walid, 100);
+        addMember(footballTeam, dev1, 10);
 
         // External user assigned to FSE
         basma.setAssignedProject(fse);
@@ -799,6 +800,12 @@ public class DataSeeder implements CommandLineRunner {
 
     private void addMember(Project project, User user) {
         projectMemberRepository.save(new ProjectMember(project, user));
+    }
+
+    private void addMember(Project project, User user, int allocation) {
+        ProjectMember pm = new ProjectMember(project, user);
+        pm.setAllocation(allocation);
+        projectMemberRepository.save(pm);
     }
 
     private void addFavorite(User user, Project project) {

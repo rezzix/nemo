@@ -151,7 +151,7 @@ public class ProjectController {
                 .anyMatch(a -> Set.of("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EXECUTIVE", "ROLE_HR").contains(a.getAuthority()));
         if (!canSeeScores) {
             members = members.stream()
-                    .map(m -> new ProjectDto.MemberDto(m.id(), m.userId(), m.username(), m.fullName(), null))
+                    .map(m -> new ProjectDto.MemberDto(m.id(), m.userId(), m.username(), m.fullName(), null, m.allocation()))
                     .toList();
         }
         return ResponseEntity.ok(ApiResponse.of(members));
@@ -177,6 +177,15 @@ public class ProjectController {
             @PathVariable Long id, @PathVariable Long userId,
             @RequestBody @Valid ProjectDto.ScoreRequest request) {
         ProjectMember pm = projectService.updateMemberScore(id, userId, request.score());
+        return ResponseEntity.ok(ApiResponse.of(projectMapper.toMemberDto(pm)));
+    }
+
+    @PutMapping("/{id}/members/{userId}/allocation")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    public ResponseEntity<ApiResponse<ProjectDto.MemberDto>> updateMemberAllocation(
+            @PathVariable Long id, @PathVariable Long userId,
+            @RequestBody @Valid ProjectDto.AllocationRequest request) {
+        ProjectMember pm = projectService.updateMemberAllocation(id, userId, request.allocation());
         return ResponseEntity.ok(ApiResponse.of(projectMapper.toMemberDto(pm)));
     }
 

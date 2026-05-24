@@ -39,6 +39,10 @@ export async function updateMemberScore(projectId: number, userId: number, score
   return apiPut<MemberDto>(`/projects/${projectId}/members/${userId}/score`, { score });
 }
 
+export async function updateMemberAllocation(projectId: number, userId: number, allocation: number): Promise<MemberDto> {
+  return apiPut<MemberDto>(`/projects/${projectId}/members/${userId}/allocation`, { allocation });
+}
+
 // Labels
 export async function getLabels(projectId: number): Promise<LabelDto[]> {
   return apiGet<LabelDto[]>(`/projects/${projectId}/labels`);

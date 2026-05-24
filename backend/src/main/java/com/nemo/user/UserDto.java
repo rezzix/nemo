@@ -21,6 +21,7 @@ public record UserDto(
         String department,
         String phone,
         String hireDate,
+        int weeklyCapacity,
         String createdAt,
         String updatedAt
 ) {

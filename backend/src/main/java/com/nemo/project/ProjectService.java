@@ -251,6 +251,20 @@ public class ProjectService {
         return memberRepository.existsByProjectIdAndUserId(projectId, userId);
     }
 
+    @Transactional
+    public ProjectMember updateMemberAllocation(Long projectId, Long userId, Integer allocation) {
+        if (allocation == null || allocation < 1 || allocation > 100) {
+            throw new BadRequestException("Allocation must be between 1 and 100");
+        }
+        List<ProjectMember> members = memberRepository.findByProjectId(projectId);
+        ProjectMember pm = members.stream()
+                .filter(m -> m.getUser().getId().equals(userId))
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException("ProjectMember", userId));
+        pm.setAllocation(allocation);
+        return memberRepository.save(pm);
+    }
+
     // Labels
     @Transactional(readOnly = true)
     public List<Label> getLabels(Long projectId) {

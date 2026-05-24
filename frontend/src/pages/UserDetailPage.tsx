@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import type { UserDto, ProjectDto, MemberDto, TaskDto, TimeLogDto, LeaveRequestDto, AssetDto, AssetType, AssetStatus } from '@/types';
-import { getUser } from '@/api/users';
+import { getUser, updateUserCapacity } from '@/api/users';
 import { listProjects, getMembers } from '@/api/projects';
 import { listProjectTasks } from '@/api/tasks';
 import { listTimeLogs } from '@/api/timeLogs';
@@ -48,6 +48,7 @@ interface ProjectData {
   project: ProjectDto;
   tasks: TaskDto[];
   score: number | null;
+  allocation: number;
   totalHours: number;
   taskHours: Record<number, number>;
 }
@@ -61,8 +62,12 @@ export default function UserDetailPage() {
   const [leaves, setLeaves] = useState<LeaveRequestDto[]>([]);
   const [assets, setAssets] = useState<AssetDto[]>([]);
   const [dataLoading, setDataLoading] = useState(false);
+  const [editingCapacity, setEditingCapacity] = useState(false);
+  const [capacityValue, setCapacityValue] = useState('');
+  const [savingCapacity, setSavingCapacity] = useState(false);
 
   const canSeeScores = currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'MANAGER' || currentUser.role === 'EXECUTIVE' || currentUser.role === 'HR');
+  const canManageCapacity = currentUser && (currentUser.role === 'HR' || currentUser.role === 'EXECUTIVE');
 
   useEffect(() => {
     if (!id) return;
@@ -99,6 +104,7 @@ export default function UserDetailPage() {
                 project: p,
                 tasks,
                 score: member.score,
+                allocation: member.allocation,
                 totalHours: projectHours,
                 taskHours: taskHoursMap,
               });
@@ -118,6 +124,18 @@ export default function UserDetailPage() {
     };
     fetchAll();
   }, [user]);
+
+  const handleSaveCapacity = async () => {
+    if (!user) return;
+    const val = Number(capacityValue);
+    if (val < 1 || val > 168) return;
+    setSavingCapacity(true);
+    try {
+      const updated = await updateUserCapacity(user.id, val);
+      setUser(updated);
+      setEditingCapacity(false);
+    } catch { /* ignore */ } finally { setSavingCapacity(false); }
+  };
 
   if (loading) {
     return <div className="flex items-center justify-center h-64"><Spinner className="h-8 w-8 text-primary-600" /></div>;
@@ -150,6 +168,24 @@ export default function UserDetailPage() {
           {user.email && <div><p className="text-xs text-gray-500">Email</p><p className="text-sm font-medium text-gray-900">{user.email}</p></div>}
           {user.phone && <div><p className="text-xs text-gray-500">Phone</p><p className="text-sm font-medium text-gray-900">{user.phone}</p></div>}
           {user.hireDate && <div><p className="text-xs text-gray-500">Hire Date</p><p className="text-sm font-medium text-gray-900">{formatDate(user.hireDate)}</p></div>}
+          <div>
+            <p className="text-xs text-gray-500">Weekly Capacity</p>
+            {editingCapacity ? (
+              <div className="flex items-center gap-1 mt-0.5">
+                <input type="number" min={1} max={168} value={capacityValue} onChange={(e) => setCapacityValue(e.target.value)} className="w-16 px-2 py-1 border border-gray-300 rounded text-sm" autoFocus />
+                <span className="text-xs text-gray-500">h/wk</span>
+                <button onClick={handleSaveCapacity} disabled={savingCapacity} className="text-green-600 hover:text-green-800 text-xs font-medium">{savingCapacity ? '...' : 'Save'}</button>
+                <button onClick={() => setEditingCapacity(false)} className="text-gray-400 hover:text-gray-600 text-xs">Cancel</button>
+              </div>
+            ) : (
+              <p className="text-sm font-medium text-gray-900">
+                {user.weeklyCapacity}h/wk
+                {canManageCapacity && (
+                  <button onClick={() => { setEditingCapacity(true); setCapacityValue(String(user.weeklyCapacity)); }} className="ml-1 text-primary-600 hover:text-primary-800 text-xs">Edit</button>
+                )}
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
@@ -162,7 +198,7 @@ export default function UserDetailPage() {
           {projectData.length === 0 ? (
             <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-500">No project assignments found.</div>
           ) : (
-            projectData.map(({ project, tasks, score, totalHours, taskHours }) => (
+            projectData.map(({ project, tasks, score, allocation, totalHours, taskHours }) => (
               <div key={project.id} className="bg-white rounded-xl border border-gray-200">
                 {/* Project header */}
                 <Link to={`/projects/${project.id}`} className="block px-5 py-4 hover:bg-gray-50 rounded-t-xl">
@@ -172,6 +208,7 @@ export default function UserDetailPage() {
                       <h4 className="font-semibold text-gray-900">{project.name}</h4>
                     </div>
                     <div className="flex items-center gap-3 text-sm text-gray-500">
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${allocation >= 80 ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>{allocation}%</span>
                       {canSeeScores && score != null && (
                         <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${scoreColor(score)}`}>{score} - {scoreLabel(score)}</span>
                       )}
