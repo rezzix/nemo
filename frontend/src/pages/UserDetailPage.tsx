@@ -332,7 +332,7 @@ export default function UserDetailPage() {
                 <form onSubmit={handleCreateRate} className="bg-white rounded-xl border border-gray-200 p-4 mb-3 space-y-3">
                   <div className="flex items-end gap-3 flex-wrap">
                     <div>
-                      <label className="block text-xs font-medium text-gray-500 mb-1">Hourly Rate ($)</label>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Hourly Rate</label>
                       <input type="number" step="0.01" min="0" value={newRate} onChange={(e) => setNewRate(e.target.value)} required placeholder="e.g. 75.00" className="px-3 py-2 border border-gray-300 rounded-lg text-sm w-32" />
                     </div>
                     <div>
