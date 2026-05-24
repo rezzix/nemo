@@ -2,6 +2,7 @@ package com.nemo.leave;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -30,4 +31,7 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long
     List<LeaveRequest> findByCompanyIdAndStatus(Long companyId, LeaveRequest.Status status);
 
     long countByUserIdAndTypeAndStatus(Long userId, LeaveRequest.Type type, LeaveRequest.Status status);
+
+    @Query("SELECT lr FROM LeaveRequest lr WHERE lr.user.id = :userId AND lr.type = :type AND lr.status = 'APPROVED' AND lr.startDate <= :yearEnd AND lr.endDate >= :yearStart")
+    List<LeaveRequest> findApprovedByUserAndTypeInYear(@Param("userId") Long userId, @Param("type") LeaveRequest.Type type, @Param("yearStart") LocalDate yearStart, @Param("yearEnd") LocalDate yearEnd);
 }

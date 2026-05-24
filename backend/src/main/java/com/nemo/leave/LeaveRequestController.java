@@ -5,6 +5,7 @@ import com.nemo.common.exception.ForbiddenException;
 import com.nemo.security.AuthHelper;
 import com.nemo.user.User;
 import com.nemo.user.UserRepository;
+import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,12 +23,18 @@ public class LeaveRequestController {
 
     private final LeaveRequestService leaveRequestService;
     private final LeaveRequestMapper leaveRequestMapper;
+    private final LeaveEntitlementService entitlementService;
+    private final LeaveEntitlementMapper entitlementMapper;
     private final AuthHelper authHelper;
     private final UserRepository userRepository;
 
-    public LeaveRequestController(LeaveRequestService leaveRequestService, LeaveRequestMapper leaveRequestMapper, AuthHelper authHelper, UserRepository userRepository) {
+    public LeaveRequestController(LeaveRequestService leaveRequestService, LeaveRequestMapper leaveRequestMapper,
+                                   LeaveEntitlementService entitlementService, LeaveEntitlementMapper entitlementMapper,
+                                   AuthHelper authHelper, UserRepository userRepository) {
         this.leaveRequestService = leaveRequestService;
         this.leaveRequestMapper = leaveRequestMapper;
+        this.entitlementService = entitlementService;
+        this.entitlementMapper = entitlementMapper;
         this.authHelper = authHelper;
         this.userRepository = userRepository;
     }
@@ -158,6 +165,71 @@ public class LeaveRequestController {
         leaveRequestService.cancel(id, userId);
         LeaveRequest lr = leaveRequestService.getById(id);
         return ResponseEntity.ok(ApiResponse.of(leaveRequestMapper.toDto(lr)));
+    }
+
+    // --- Balance endpoints ---
+
+    @GetMapping("/balances")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<List<LeaveBalanceDto>>> getBalances(
+            @RequestParam(required = false) Long userId,
+            @RequestParam(required = false) Integer year,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        Long currentUserId = authHelper.getCurrentUserId(currentUser);
+        boolean canSeeAll = authHelper.hasAnyRole(currentUser, "ADMIN", "MANAGER", "EXECUTIVE", "HR");
+
+        Long targetUserId = userId != null ? userId : currentUserId;
+        if (!canSeeAll && !targetUserId.equals(currentUserId)) {
+            throw new ForbiddenException("You can only view your own leave balances");
+        }
+
+        int targetYear = year != null ? year : LocalDate.now().getYear();
+        List<LeaveBalanceDto> balances = entitlementService.getBalances(targetUserId, targetYear);
+        return ResponseEntity.ok(ApiResponse.of(balances));
+    }
+
+    @GetMapping("/working-days")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<LeaveEntitlementService.WorkingDaysResult>> getWorkingDays(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) Long companyId,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        if (companyId == null) {
+            Long currentUserId = authHelper.getCurrentUserId(currentUser);
+            User user = userRepository.findById(currentUserId).orElse(null);
+            companyId = user != null && user.getCompany() != null ? user.getCompany().getId() : null;
+        }
+        LeaveEntitlementService.WorkingDaysResult result = entitlementService.calculateWorkingDays(startDate, endDate, companyId);
+        return ResponseEntity.ok(ApiResponse.of(result));
+    }
+
+    // --- Entitlement management endpoints (HR only) ---
+
+    @GetMapping("/entitlements")
+    @PreAuthorize("hasRole('HR')")
+    public ResponseEntity<ApiResponse<List<LeaveEntitlementDto>>> listEntitlements(
+            @RequestParam(required = false) Long userId,
+            @RequestParam(required = false) Integer year) {
+        List<LeaveEntitlement> entitlements = entitlementService.listEntitlements(userId, year);
+        return ResponseEntity.ok(ApiResponse.of(entitlementMapper.toDtoList(entitlements)));
+    }
+
+    @PostMapping("/entitlements")
+    @PreAuthorize("hasRole('HR')")
+    public ResponseEntity<ApiResponse<LeaveEntitlementDto>> createEntitlement(
+            @Valid @RequestBody LeaveEntitlementDto.CreateRequest request) {
+        LeaveEntitlement created = entitlementService.create(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.of(entitlementMapper.toDto(created)));
+    }
+
+    @PutMapping("/entitlements/{id}")
+    @PreAuthorize("hasRole('HR')")
+    public ResponseEntity<ApiResponse<LeaveEntitlementDto>> updateEntitlement(
+            @PathVariable Long id,
+            @Valid @RequestBody LeaveEntitlementDto.UpdateRequest request) {
+        LeaveEntitlement updated = entitlementService.update(id, request);
+        return ResponseEntity.ok(ApiResponse.of(entitlementMapper.toDto(updated)));
     }
 
     private void checkCompanyAccess(Long leaveRequestId, UserDetails currentUser) {

@@ -10,6 +10,10 @@ import com.nemo.documentation.WikiPage;
 import com.nemo.documentation.WikiPageRepository;
 import com.nemo.task.Task;
 import com.nemo.task.TaskRepository;
+import com.nemo.leave.LeaveEntitlement;
+import com.nemo.leave.LeaveEntitlementRepository;
+import com.nemo.leave.LeaveRequest;
+import com.nemo.leave.LeaveRequestRepository;
 import com.nemo.location.Location;
 import com.nemo.location.LocationRepository;
 import com.nemo.phase.Deliverable;
@@ -83,6 +87,8 @@ public class DataSeeder implements CommandLineRunner {
     private final LocationRepository locationRepository;
     private final AssetRepository assetRepository;
     private final ClientRepository clientRepository;
+    private final LeaveEntitlementRepository leaveEntitlementRepository;
+    private final LeaveRequestRepository leaveRequestRepository;
 
     public DataSeeder(UserRepository userRepository,
                       PasswordEncoder passwordEncoder,
@@ -107,7 +113,9 @@ public class DataSeeder implements CommandLineRunner {
                       WikiPageRepository wikiPageRepository,
                       LocationRepository locationRepository,
                       AssetRepository assetRepository,
-                      ClientRepository clientRepository) {
+                      ClientRepository clientRepository,
+                      LeaveEntitlementRepository leaveEntitlementRepository,
+                      LeaveRequestRepository leaveRequestRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.companyRepository = companyRepository;
@@ -132,6 +140,8 @@ public class DataSeeder implements CommandLineRunner {
         this.locationRepository = locationRepository;
         this.assetRepository = assetRepository;
         this.clientRepository = clientRepository;
+        this.leaveEntitlementRepository = leaveEntitlementRepository;
+        this.leaveRequestRepository = leaveRequestRepository;
     }
 
     @Override
@@ -661,6 +671,37 @@ public class DataSeeder implements CommandLineRunner {
                 "TP-T14S-001", LocalDate.of(2024, 3, 1), new BigDecimal("1400"));
         createAsset("Coffee Machine Jura", Asset.Type.OTHER, Asset.Status.IN_STOCK, null, null, company1,
                 "BEV-JURA-001", LocalDate.of(2024, 5, 1), new BigDecimal("800"));
+
+        // Leave entitlements — default allocations for current year
+        int currentYear = today.getYear();
+        User[] allUsers = {admin, majid, dev1, dev2, dev3, dev4, pmHarmony, salim, basma, younes, youssef, walid, mehdi};
+        for (User u : allUsers) {
+            createLeaveEntitlement(u, LeaveRequest.Type.VACATION, currentYear, 20);
+            createLeaveEntitlement(u, LeaveRequest.Type.SICK, currentYear, 10);
+            createLeaveEntitlement(u, LeaveRequest.Type.PERSONAL, currentYear, 5);
+            createLeaveEntitlement(u, LeaveRequest.Type.UNPAID, currentYear, 0);
+        }
+
+        // Sample approved leave requests
+        LeaveRequest lr1 = new LeaveRequest();
+        lr1.setUser(admin); lr1.setType(LeaveRequest.Type.VACATION); lr1.setStartDate(LocalDate.of(currentYear, 1, 15)); lr1.setEndDate(LocalDate.of(currentYear, 1, 17)); lr1.setStatus(LeaveRequest.Status.APPROVED); lr1.setReason("Winter break"); lr1.setApprover(majid);
+        leaveRequestRepository.save(lr1);
+
+        LeaveRequest lr2 = new LeaveRequest();
+        lr2.setUser(dev1); lr2.setType(LeaveRequest.Type.SICK); lr2.setStartDate(LocalDate.of(currentYear, 5, 5)); lr2.setEndDate(LocalDate.of(currentYear, 5, 6)); lr2.setStatus(LeaveRequest.Status.APPROVED); lr2.setReason("Flu"); lr2.setApprover(majid);
+        leaveRequestRepository.save(lr2);
+
+        LeaveRequest lr3 = new LeaveRequest();
+        lr3.setUser(dev2); lr3.setType(LeaveRequest.Type.PERSONAL); lr3.setStartDate(LocalDate.of(currentYear, 2, 14)); lr3.setEndDate(LocalDate.of(currentYear, 2, 14)); lr3.setStatus(LeaveRequest.Status.APPROVED); lr3.setReason("Valentine's Day"); lr3.setApprover(majid);
+        leaveRequestRepository.save(lr3);
+
+        LeaveRequest lr4 = new LeaveRequest();
+        lr4.setUser(majid); lr4.setType(LeaveRequest.Type.VACATION); lr4.setStartDate(LocalDate.of(currentYear, 3, 3)); lr4.setEndDate(LocalDate.of(currentYear, 3, 7)); lr4.setStatus(LeaveRequest.Status.APPROVED); lr4.setReason("Family vacation"); lr4.setApprover(salim);
+        leaveRequestRepository.save(lr4);
+
+        LeaveRequest lr5 = new LeaveRequest();
+        lr5.setUser(youssef); lr5.setType(LeaveRequest.Type.VACATION); lr5.setStartDate(LocalDate.of(currentYear, 6, 16)); lr5.setEndDate(LocalDate.of(currentYear, 6, 20)); lr5.setStatus(LeaveRequest.Status.PENDING); lr5.setReason("Summer vacation");
+        leaveRequestRepository.save(lr5);
     }
 
     private User createUser(String username, String email, String firstName, String lastName, User.Role role, Company company) {
@@ -909,5 +950,14 @@ public class DataSeeder implements CommandLineRunner {
         asset.setPurchaseCost(purchaseCost);
         asset.setActive(true);
         return assetRepository.save(asset);
+    }
+
+    private LeaveEntitlement createLeaveEntitlement(User user, LeaveRequest.Type type, int year, int totalDays) {
+        LeaveEntitlement entitlement = new LeaveEntitlement();
+        entitlement.setUser(user);
+        entitlement.setType(type);
+        entitlement.setYear(year);
+        entitlement.setTotalDays(totalDays);
+        return leaveEntitlementRepository.save(entitlement);
     }
 }
