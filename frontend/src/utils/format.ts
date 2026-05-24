@@ -170,8 +170,11 @@ export function preSaleStageLabel(stage: string): string {
   }
 }
 
-export function deadlineBadge(endDate: string | null): string {
+const completedCategories = new Set(['DONE', 'CLOSED']);
+
+export function deadlineBadge(endDate: string | null, statusCategory?: string): string {
   if (!endDate) return '';
+  if (statusCategory && completedCategories.has(statusCategory)) return '';
   const now = new Date();
   now.setHours(0, 0, 0, 0);
   const end = new Date(endDate);
@@ -182,8 +185,9 @@ export function deadlineBadge(endDate: string | null): string {
   return '';
 }
 
-export function deadlineLabel(endDate: string | null): string | null {
+export function deadlineLabel(endDate: string | null, statusCategory?: string): string | null {
   if (!endDate) return null;
+  if (statusCategory && completedCategories.has(statusCategory)) return null;
   const now = new Date();
   now.setHours(0, 0, 0, 0);
   const end = new Date(endDate);

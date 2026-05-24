@@ -181,7 +181,7 @@ export default function TaskDetailPage() {
                 } />
                 <DetailRow label="Due Date" value={
                   task.dueDate
-                    ? <>{formatDate(task.dueDate)}{deadlineLabel(task.dueDate) && <span className={`inline-block ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${deadlineBadge(task.dueDate)}`}>{deadlineLabel(task.dueDate)}</span>}</>
+                    ? <>{formatDate(task.dueDate)}{deadlineLabel(task.dueDate, task.statusCategory) && <span className={`inline-block ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${deadlineBadge(task.dueDate, task.statusCategory)}`}>{deadlineLabel(task.dueDate, task.statusCategory)}</span>}</>
                     : 'None'
                 } />
                 <DetailRow label="Sprint" value={task.sprintId ? `Sprint ${task.sprintId}` : 'Backlog'} />
