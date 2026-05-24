@@ -12,7 +12,7 @@ export type { RaidItemDto, CreateRaidItemRequest, UpdateRaidItemRequest, EvmMetr
 export type { PhaseDto, CreatePhaseRequest, UpdatePhaseRequest, PhasePaymentDto, CreatePhasePaymentRequest, UpdatePhasePaymentRequest, DeliverableDto, DeliverableAttachmentDto, CreateDeliverableRequest, UpdateDeliverableRequest } from './phase';
 export type { TaskTypeDto, TaskStatusDto, TaskStatusCategory, AuditLogDto, ActivityLogDto, OrganizationUpdateRequest, CreateUserRequest, AdminUpdateUserRequest, CreateTaskTypeRequest, CreateTaskStatusRequest } from './admin';
 export type { HolidayDto, CreateHolidayRequest, UpdateHolidayRequest } from './holiday';
-export type { LeaveRequestDto, LeaveType, LeaveStatus, CreateLeaveRequest, LeaveActionRequest } from './leave';
+export type { LeaveRequestDto, LeaveType, LeaveStatus, CreateLeaveRequest, LeaveActionRequest, LeaveBalanceDto, LeaveEntitlementDto, CreateLeaveEntitlementRequest, UpdateLeaveEntitlementRequest, WorkingDaysResponse } from './leave';
 export type { LocationDto, AssetDto, AssetType, AssetStatus, CreateLocationRequest, UpdateLocationRequest, CreateAssetRequest, UpdateAssetRequest, AssignAssetRequest } from './asset';
 export type { ClientDto, ClientContactDto, CreateClientRequest, UpdateClientRequest, CreateClientContactRequest, UpdateClientContactRequest } from './client';
 export type { PreSaleDto, PreSaleStage, CreatePreSaleRequest, UpdatePreSaleRequest, ConvertPreSaleRequest, CostSummaryDto, UserCostEntry } from './presale';

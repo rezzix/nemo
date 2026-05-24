@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '@/stores/authStore';
-import { listLeaveRequests, listPendingLeaveRequests, createLeaveRequest, approveLeaveRequest, rejectLeaveRequest, cancelLeaveRequest } from '@/api/leave';
-import type { LeaveRequestDto, LeaveType, LeaveStatus, CreateLeaveRequest } from '@/types';
+import { listLeaveRequests, listPendingLeaveRequests, createLeaveRequest, approveLeaveRequest, rejectLeaveRequest, cancelLeaveRequest, getLeaveBalances, calculateWorkingDays } from '@/api/leave';
+import type { LeaveRequestDto, LeaveType, LeaveStatus, CreateLeaveRequest, LeaveBalanceDto } from '@/types';
 import Modal from '@/components/common/Modal';
 import Field from '@/components/common/Field';
 import Spinner from '@/components/common/Spinner';
@@ -11,6 +11,13 @@ const leaveTypeLabels: Record<LeaveType, string> = {
   SICK: 'Sick Leave',
   PERSONAL: 'Personal',
   UNPAID: 'Unpaid Leave',
+};
+
+const leaveTypeColors: Record<LeaveType, string> = {
+  VACATION: 'bg-blue-100 text-blue-700 border-blue-200',
+  SICK: 'bg-orange-100 text-orange-700 border-orange-200',
+  PERSONAL: 'bg-purple-100 text-purple-700 border-purple-200',
+  UNPAID: 'bg-gray-100 text-gray-700 border-gray-200',
 };
 
 const statusColors: Record<LeaveStatus, string> = {
@@ -26,6 +33,7 @@ export default function LeavePage() {
 
   const [requests, setRequests] = useState<LeaveRequestDto[]>([]);
   const [pendingRequests, setPendingRequests] = useState<LeaveRequestDto[]>([]);
+  const [balances, setBalances] = useState<LeaveBalanceDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'all' | 'pending'>('all');
   const [filterStatus, setFilterStatus] = useState<string>('');
@@ -35,24 +43,26 @@ export default function LeavePage() {
   const [actionComment, setActionComment] = useState('');
   const [actionType, setActionType] = useState<'approve' | 'reject' | null>(null);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const params: Record<string, string | number> = {};
       if (filterStatus) params.status = filterStatus;
       if (filterType) params.type = filterType;
-      const [all, pending] = await Promise.all([
+      const [all, pending, bals] = await Promise.all([
         listLeaveRequests(params),
         canApprove ? listPendingLeaveRequests() : Promise.resolve([]),
+        getLeaveBalances(),
       ]);
       setRequests(all);
       setPendingRequests(pending);
+      setBalances(bals);
     } catch { /* ignore */ } finally {
       setLoading(false);
     }
-  };
+  }, [filterStatus, filterType, canApprove]);
 
-  useEffect(() => { fetchData(); }, [filterStatus, filterType]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleAction = async () => {
     if (!actionId || !actionType) return;
@@ -93,6 +103,22 @@ export default function LeavePage() {
           Request Leave
         </button>
       </div>
+
+      {/* Balance cards */}
+      {balances.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {balances.map((b) => (
+            <div key={b.type} className={`rounded-lg border p-3 ${leaveTypeColors[b.type] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>
+              <div className="text-xs font-semibold uppercase tracking-wide opacity-75">{leaveTypeLabels[b.type] || b.type}</div>
+              <div className="mt-1 flex items-baseline gap-2">
+                <span className="text-lg font-bold">{b.remainingDays}</span>
+                <span className="text-xs opacity-75">remaining</span>
+              </div>
+              <div className="text-xs mt-0.5 opacity-75">{b.usedDays} used / {b.totalAllocated} allocated</div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex border border-gray-200 rounded-lg overflow-hidden">
@@ -178,7 +204,7 @@ export default function LeavePage() {
         </div>
       )}
 
-      {showCreate && <CreateLeaveModal onClose={() => { setShowCreate(false); fetchData(); }} />}
+      {showCreate && <CreateLeaveModal balances={balances} onClose={() => { setShowCreate(false); fetchData(); }} />}
 
       {actionId && actionType && (
         <Modal title={actionType === 'approve' ? 'Approve Leave' : 'Reject Leave'} onClose={() => { setActionId(null); setActionType(null); }}>
@@ -197,13 +223,26 @@ export default function LeavePage() {
   );
 }
 
-function CreateLeaveModal({ onClose }: { onClose: () => void }) {
+function CreateLeaveModal({ balances, onClose }: { balances: LeaveBalanceDto[]; onClose: () => void }) {
   const [type, setType] = useState<LeaveType>('VACATION');
   const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [endDate, setEndDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [reason, setReason] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [workingDays, setWorkingDays] = useState<number | null>(null);
+
+  const selectedBalance = balances.find(b => b.type === type);
+
+  useEffect(() => {
+    if (startDate && endDate && startDate <= endDate) {
+      calculateWorkingDays(startDate, endDate)
+        .then(res => setWorkingDays(res.workingDays))
+        .catch(() => setWorkingDays(null));
+    } else {
+      setWorkingDays(null);
+    }
+  }, [startDate, endDate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -232,11 +271,26 @@ function CreateLeaveModal({ onClose }: { onClose: () => void }) {
             <option value="PERSONAL">Personal</option>
             <option value="UNPAID">Unpaid Leave</option>
           </select>
+          {selectedBalance && (
+            <p className={`mt-1 text-sm font-medium ${selectedBalance.remainingDays > 0 ? 'text-green-600' : 'text-red-600'}`}>
+              Remaining: {selectedBalance.remainingDays} days (of {selectedBalance.totalAllocated} allocated)
+            </p>
+          )}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Start Date" type="date" value={startDate} onChange={setStartDate} required />
           <Field label="End Date" type="date" value={endDate} onChange={setEndDate} required />
         </div>
+        {workingDays != null && (
+          <div className="text-sm text-gray-600">
+            Working days: <span className="font-semibold">{workingDays}</span> (excluding weekends &amp; holidays)
+          </div>
+        )}
+        {workingDays != null && selectedBalance && workingDays > selectedBalance.remainingDays && selectedBalance.totalAllocated > 0 && (
+          <div className="bg-amber-50 border border-amber-200 text-amber-700 text-sm rounded-lg px-3 py-2">
+            Warning: this request exceeds your remaining balance ({selectedBalance.remainingDays} days remaining).
+          </div>
+        )}
         <Field label="Reason (optional)" value={reason} onChange={setReason} />
         <div className="flex justify-end gap-3 pt-2">
           <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100">Cancel</button>
