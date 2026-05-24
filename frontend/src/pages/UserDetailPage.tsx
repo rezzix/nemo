@@ -1,14 +1,15 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import type { UserDto, ProjectDto, MemberDto, TaskDto, TimeLogDto, LeaveRequestDto, AssetDto, AssetType, AssetStatus, AllocationSummaryDto } from '@/types';
+import type { UserDto, ProjectDto, MemberDto, TaskDto, TimeLogDto, LeaveRequestDto, AssetDto, AssetType, AssetStatus, AllocationSummaryDto, UserRateDto } from '@/types';
 import { getUser, updateUserCapacity, getUserAllocationSummary } from '@/api/users';
 import { listProjects, getMembers } from '@/api/projects';
 import { listProjectTasks } from '@/api/tasks';
 import { listTimeLogs } from '@/api/timeLogs';
 import { listLeaveRequests } from '@/api/leave';
 import { listAssets } from '@/api/assets';
+import { getUserRates, createUserRate, updateUserRate, deleteUserRate } from '@/api/userRates';
 import { useAuth } from '@/hooks/useAuth';
-import { scoreLabel, scoreColor, roleBadgeColor, formatDate } from '@/utils/format';
+import { scoreLabel, scoreColor, roleBadgeColor, formatDate, formatCurrency } from '@/utils/format';
 import { computeAvailability, allocationColor, allocationBgColor, availableColor } from '@/utils/availability';
 import Spinner from '@/components/common/Spinner';
 
@@ -62,14 +63,22 @@ export default function UserDetailPage() {
   const [projectData, setProjectData] = useState<ProjectData[]>([]);
   const [leaves, setLeaves] = useState<LeaveRequestDto[]>([]);
   const [assets, setAssets] = useState<AssetDto[]>([]);
+  const [rates, setRates] = useState<UserRateDto[]>([]);
   const [dataLoading, setDataLoading] = useState(false);
   const [editingCapacity, setEditingCapacity] = useState(false);
   const [capacityValue, setCapacityValue] = useState('');
   const [savingCapacity, setSavingCapacity] = useState(false);
   const [allocationSummary, setAllocationSummary] = useState<AllocationSummaryDto | null>(null);
+  const [showAddRate, setShowAddRate] = useState(false);
+  const [newRate, setNewRate] = useState('');
+  const [newRateDate, setNewRateDate] = useState(new Date().toISOString().slice(0, 10));
+  const [savingRate, setSavingRate] = useState(false);
+  const [editRateId, setEditRateId] = useState<number | null>(null);
+  const [editRateValue, setEditRateValue] = useState('');
 
   const canSeeScores = currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'MANAGER' || currentUser.role === 'EXECUTIVE' || currentUser.role === 'HR');
   const canManageCapacity = currentUser && (currentUser.role === 'HR' || currentUser.role === 'EXECUTIVE');
+  const canManageRates = currentUser && (currentUser.role === 'HR' || currentUser.role === 'EXECUTIVE');
 
   const availability = useMemo(() => {
     if (!allocationSummary || !user) return null;
@@ -121,19 +130,21 @@ export default function UserDetailPage() {
         }
         setProjectData(pData);
 
-        const [leaveReqs, userAssets, allocSummary] = await Promise.all([
+        const [leaveReqs, userAssets, allocSummary, userRates] = await Promise.all([
           listLeaveRequests({ userId }),
           listAssets({ userId }),
           getUserAllocationSummary(userId).catch(() => null),
+          canManageRates ? getUserRates(userId) : Promise.resolve([]),
         ]);
         setLeaves(leaveReqs);
         setAssets(userAssets);
         setAllocationSummary(allocSummary);
+        setRates(userRates);
       } catch { /* ignore */ }
       finally { setDataLoading(false); }
     };
     fetchAll();
-  }, [user]);
+  }, [user, canManageRates]);
 
   const handleSaveCapacity = async () => {
     if (!user) return;
@@ -145,6 +156,47 @@ export default function UserDetailPage() {
       setUser(updated);
       setEditingCapacity(false);
     } catch { /* ignore */ } finally { setSavingCapacity(false); }
+  };
+
+  const refreshRates = useCallback(async () => {
+    if (!user || !canManageRates) return;
+    try {
+      setRates(await getUserRates(user.id));
+    } catch { /* ignore */ }
+  }, [user, canManageRates]);
+
+  const handleCreateRate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !newRate) return;
+    setSavingRate(true);
+    try {
+      await createUserRate({ userId: user.id, hourlyRate: Number(newRate), effectiveFrom: newRateDate });
+      setNewRate('');
+      setShowAddRate(false);
+      refreshRates();
+    } catch { /* ignore */ } finally { setSavingRate(false); }
+  };
+
+  const handleUpdateRate = async (id: number) => {
+    if (!editRateValue) return;
+    setSavingRate(true);
+    try {
+      await updateUserRate(id, { hourlyRate: Number(editRateValue) });
+      setEditRateId(null);
+      refreshRates();
+    } catch { /* ignore */ } finally { setSavingRate(false); }
+  };
+
+  const handleDeleteRate = async (id: number) => {
+    if (!confirm('Delete this rate?')) return;
+    try { await deleteUserRate(id); } catch { /* ignore */ }
+    refreshRates();
+  };
+
+  const today = new Date().toISOString().slice(0, 10);
+  const getCurrentRate = () => {
+    const past = rates.filter((r) => r.effectiveFrom <= today);
+    return past.length > 0 ? past[0] : null;
   };
 
   if (loading) {
@@ -364,7 +416,7 @@ export default function UserDetailPage() {
         </div>
       )}
 
-      {/* Leaves and Assets side by side */}
+      {/* Leaves, Assets, and Hourly Rates */}
       {!dataLoading && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Leaves */}
@@ -420,6 +472,86 @@ export default function UserDetailPage() {
               </div>
             )}
           </div>
+
+          {/* Hourly Rates — HR and Executive only */}
+          {canManageRates && (
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Hourly Rates</h3>
+                <button onClick={() => { setShowAddRate(true); setEditRateId(null); }} className="text-primary-600 hover:text-primary-800 text-sm font-medium">+ Add Rate</button>
+              </div>
+              {showAddRate && (
+                <form onSubmit={handleCreateRate} className="bg-white rounded-xl border border-gray-200 p-4 mb-3 space-y-3">
+                  <div className="flex items-end gap-3 flex-wrap">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Hourly Rate</label>
+                      <input type="number" step="0.01" min="0" value={newRate} onChange={(e) => setNewRate(e.target.value)} required placeholder="e.g. 75.00" className="px-3 py-2 border border-gray-300 rounded-lg text-sm w-32" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Effective From</label>
+                      <input type="date" value={newRateDate} onChange={(e) => setNewRateDate(e.target.value)} required className="px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                    </div>
+                    <button type="submit" disabled={savingRate || !newRate} className="bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50">{savingRate ? 'Saving...' : 'Add'}</button>
+                    <button type="button" onClick={() => setShowAddRate(false)} className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
+                  </div>
+                </form>
+              )}
+              {rates.length === 0 && !showAddRate ? (
+                <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-500">No rates configured.</div>
+              ) : (
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead><tr className="border-b border-gray-200 bg-gray-50">
+                      <th className="text-left px-4 py-3 font-medium text-gray-500">Rate</th>
+                      <th className="text-left px-4 py-3 font-medium text-gray-500">Effective From</th>
+                      <th className="text-left px-4 py-3 font-medium text-gray-500">Status</th>
+                      <th className="text-left px-4 py-3 font-medium text-gray-500">Actions</th>
+                    </tr></thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {rates.map((rate) => (
+                        <tr key={rate.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-3">
+                            {editRateId === rate.id ? (
+                              <input type="number" step="0.01" value={editRateValue} onChange={(e) => setEditRateValue(e.target.value)} className="px-2 py-1 border border-gray-300 rounded text-sm w-28" autoFocus />
+                            ) : (
+                              <span className="font-medium">{formatCurrency(rate.hourlyRate)}/hr</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-gray-600">{formatDate(rate.effectiveFrom)}</td>
+                          <td className="px-4 py-3">
+                            {rate.effectiveFrom <= today && (
+                              rates[0]?.id === rate.id
+                                ? <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Current</span>
+                                : <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">Historical</span>
+                            )}
+                            {rate.effectiveFrom > today && (
+                              <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">Upcoming</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            {editRateId === rate.id ? (
+                              <div className="flex items-center gap-2">
+                                <button onClick={() => handleUpdateRate(rate.id)} className="text-green-600 hover:text-green-800 text-xs font-medium">Save</button>
+                                <button onClick={() => setEditRateId(null)} className="text-gray-500 hover:text-gray-700 text-xs font-medium">Cancel</button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <button onClick={() => { setEditRateId(rate.id); setEditRateValue(rate.hourlyRate.toString()); setShowAddRate(false); }} className="text-primary-600 hover:text-primary-800 text-xs font-medium">Edit</button>
+                                <button onClick={() => handleDeleteRate(rate.id)} className="text-red-600 hover:text-red-800 text-xs font-medium">Delete</button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              {getCurrentRate() && (
+                <p className="mt-2 text-sm text-gray-500">Current rate: <span className="font-medium text-gray-900">{formatCurrency(getCurrentRate()!.hourlyRate)}/hr</span></p>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -39,7 +39,7 @@ export default function Sidebar() {
         ...(!isExternal && (role === 'ADMIN' || role === 'MANAGER' || role === 'EXECUTIVE' || role === 'HR')
           ? [{ to: '/programs', label: 'Programs', icon: ProgramsIcon }]
           : []),
-        ...(role === 'ADMIN' || role === 'HR' || role === 'MANAGER'
+        ...(role === 'HR' || role === 'EXECUTIVE'
           ? [{ to: '/people', label: 'People', icon: PeopleIcon }]
           : []),
         ...(role === 'ADMIN' || role === 'HR'
