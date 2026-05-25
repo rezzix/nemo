@@ -5,7 +5,7 @@ import { listProjects } from '@/api/projects';
 import { getEvmMetrics } from '@/api/pmo';
 import { listSprints } from '@/api/sprints';
 import { getTimeByUser } from '@/api/timeLogs';
-import { formatCurrency, stageBadge, stageLabel, riskColor, riskLabel } from '@/utils/format';
+import { formatCurrency, stageBadge, stageLabel, riskColor, riskLabel, deadlineBadge, deadlineLabel } from '@/utils/format';
 import { currentWeekRange, filterMyProjects, aggregateRaidItems } from './dashboardUtils';
 import type { ProjectDto, EvmMetrics, RaidItemDto, SprintDto } from '@/types';
 import Spinner from '@/components/common/Spinner';
@@ -221,8 +221,13 @@ export default function ManagerDashboard() {
                 </div>
                 <p className="text-xs text-gray-500 mb-2">{sprint.projectName}</p>
                 {sprint.goal && <p className="text-sm text-gray-600 line-clamp-2 mb-2">{sprint.goal}</p>}
-                <p className="text-xs text-gray-400">
+                <p className={`text-xs ${deadlineBadge(sprint.endDate) || 'text-gray-400'}`}>
                   {sprint.startDate} → {sprint.endDate}
+                  {deadlineLabel(sprint.endDate) && (
+                    <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full font-medium ${deadlineBadge(sprint.endDate)}`}>
+                      {deadlineLabel(sprint.endDate)}
+                    </span>
+                  )}
                 </p>
               </div>
             ))}

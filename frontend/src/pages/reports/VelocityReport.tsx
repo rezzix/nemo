@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { listSprints } from '@/api/sprints';
 import { listProjectTasks } from '@/api/tasks';
 import type { SprintDto, TaskDto } from '@/types';
-import { formatDate } from '@/utils/format';
+import { formatDate, deadlineBadge, deadlineLabel } from '@/utils/format';
 import Spinner from '@/components/common/Spinner';
 
 export default function VelocityReport({ projectId }: { projectId: number | null }) {
@@ -52,9 +52,14 @@ export default function VelocityReport({ projectId }: { projectId: number | null
                       <span className="text-sm font-medium text-gray-900">{sprint.name}</span>
                       <span className={`ml-2 text-xs px-2 py-0.5 rounded-full font-medium ${
                         sprint.status === 'ACTIVE' ? 'bg-green-100 text-green-700' :
-                        sprint.status === 'COMPLETED' ? 'bg-gray-100 text-gray-600' :
+                        sprint.status === 'CLOSED' ? 'bg-gray-100 text-gray-600' :
                         'bg-blue-100 text-blue-700'
                       }`}>{sprint.status}</span>
+                      {deadlineLabel(sprint.endDate, sprint.status === 'CLOSED' ? 'CLOSED' : undefined) && (
+                        <span className={`ml-1 text-xs px-2 py-0.5 rounded-full font-medium ${deadlineBadge(sprint.endDate, sprint.status === 'CLOSED' ? 'CLOSED' : undefined)}`}>
+                          {deadlineLabel(sprint.endDate, sprint.status === 'CLOSED' ? 'CLOSED' : undefined)}
+                        </span>
+                      )}
                     </div>
                     <div className="text-sm text-gray-500">
                       {completed}/{total} completed
@@ -69,7 +74,9 @@ export default function VelocityReport({ projectId }: { projectId: number | null
                     </div>
                   </div>
                   {sprint.startDate && sprint.endDate && (
-                    <div className="text-xs text-gray-400 mt-1">{formatDate(sprint.startDate)} — {formatDate(sprint.endDate)}</div>
+                    <div className={`text-xs mt-1 ${deadlineBadge(sprint.endDate, sprint.status === 'CLOSED' ? 'CLOSED' : undefined) || 'text-gray-400'}`}>
+                      {formatDate(sprint.startDate)} — {formatDate(sprint.endDate)}
+                    </div>
                   )}
                 </div>
               ))}
