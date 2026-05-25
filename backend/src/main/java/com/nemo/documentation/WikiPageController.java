@@ -44,39 +44,39 @@ public class WikiPageController {
     }
 
     @PostMapping("/pages")
+    @PreAuthorize("hasAnyRole('MANAGER', 'CONTRIBUTOR')")
     public ResponseEntity<ApiResponse<WikiPageDto>> createPage(
             @PathVariable Long projectId,
             @Valid @RequestBody WikiPageDto.CreateRequest request,
             @AuthenticationPrincipal UserDetails currentUser) {
-        authHelper.requireProjectMemberOrAdminManager(currentUser, projectId);
         Long userId = authHelper.getCurrentUserId(currentUser);
         WikiPage created = wikiPageService.create(projectId, request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.of(toDto(created)));
     }
 
     @PutMapping("/pages/{pageId}")
+    @PreAuthorize("hasAnyRole('MANAGER', 'CONTRIBUTOR')")
     public ResponseEntity<ApiResponse<WikiPageDto>> updatePage(
             @PathVariable Long projectId, @PathVariable Long pageId,
             @RequestBody WikiPageDto.UpdateRequest request,
             @AuthenticationPrincipal UserDetails currentUser) {
-        authHelper.requireProjectMemberOrAdminManager(currentUser, projectId);
         WikiPage updated = wikiPageService.update(pageId, request);
         return ResponseEntity.ok(ApiResponse.of(toDto(updated)));
     }
 
     @DeleteMapping("/pages/{pageId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'CONTRIBUTOR')")
     public ResponseEntity<Void> deletePage(@PathVariable Long projectId, @PathVariable Long pageId) {
         wikiPageService.delete(pageId);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/pages/{pageId}/position")
+    @PreAuthorize("hasAnyRole('MANAGER', 'CONTRIBUTOR')")
     public ResponseEntity<ApiResponse<WikiPageDto>> updatePosition(
             @PathVariable Long projectId, @PathVariable Long pageId,
             @RequestBody WikiPageDto.PositionRequest request,
             @AuthenticationPrincipal UserDetails currentUser) {
-        authHelper.requireProjectMemberOrAdminManager(currentUser, projectId);
         WikiPage updated = wikiPageService.updatePosition(pageId, request);
         return ResponseEntity.ok(ApiResponse.of(toDto(updated)));
     }

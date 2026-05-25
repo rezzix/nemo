@@ -109,7 +109,7 @@ export default function ProjectDetailPage() {
       {activeTab === 'summary' && <SummaryTab project={project} projectId={project.id} managerId={project.managerId} onNavigate={setActiveTab} />}
       {activeTab === 'tasks' && <TasksTab projectId={project.id} projectKey={project.key} canEdit={canEdit} isExternal={isExternal} />}
       {activeTab === 'board' && <BoardTab projectId={project.id} projectKey={project.key} isExternal={isExternal} />}
-      {activeTab === 'docs' && <DocsTab projectId={project.id} />}
+      {activeTab === 'docs' && <DocsTab projectId={project.id} canEdit={canEdit || role === 'CONTRIBUTOR'} />}
       {activeTab === 'raid' && <RaidTab projectId={project.id} canEdit={canEdit} />}
       {activeTab === 'phases' && <PhasesTab projectId={project.id} canEdit={canEdit} />}
       {activeTab === 'settings' && <SettingsTab project={project} onUpdate={(p) => setProject(p)} canEdit={canEdit} />}
@@ -120,7 +120,7 @@ export default function ProjectDetailPage() {
 
 // ─── Docs Tab ──────────────────────────────────────────────────────────────────
 
-function DocsTab({ projectId }: { projectId: number }) {
+function DocsTab({ projectId, canEdit }: { projectId: number; canEdit: boolean }) {
   const [tree, setTree] = useState<WikiTreeItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -235,11 +235,13 @@ function DocsTab({ projectId }: { projectId: number }) {
             ))
           )}
         </div>
-        <div className="p-2 border-t border-gray-200">
-          <button onClick={() => setShowNewPage(true)} className="w-full bg-primary-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-primary-700">
-            New Page
-          </button>
-        </div>
+        {canEdit && (
+          <div className="p-2 border-t border-gray-200">
+            <button onClick={() => setShowNewPage(true)} className="w-full bg-primary-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-primary-700">
+              New Page
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Right panel — content */}
@@ -271,8 +273,8 @@ function DocsTab({ projectId }: { projectId: number }) {
             <div className="flex items-start justify-between mb-4">
               <h2 className="text-2xl font-bold text-gray-900">{page.title}</h2>
               <div className="flex items-center gap-2">
-                <button onClick={startEditing} className="bg-primary-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-primary-700">Edit</button>
-                <button onClick={handleDelete} className="text-red-600 hover:text-red-800 text-sm font-medium px-3 py-1.5">Delete</button>
+                {canEdit && <button onClick={startEditing} className="bg-primary-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-primary-700">Edit</button>}
+                {canEdit && <button onClick={handleDelete} className="text-red-600 hover:text-red-800 text-sm font-medium px-3 py-1.5">Delete</button>}
               </div>
             </div>
             <div className="flex items-center gap-3 text-xs text-gray-400 mb-6">
@@ -282,7 +284,7 @@ function DocsTab({ projectId }: { projectId: number }) {
             <div>
               {page.content
                 ? <MarkdownRenderer content={page.content} />
-                : <span className="text-gray-400 italic">No content yet. Click Edit to add content.</span>
+                : <span className="text-gray-400 italic">No content yet.{canEdit ? ' Click Edit to add content.' : ''}</span>
               }
             </div>
           </div>
