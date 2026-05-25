@@ -109,7 +109,7 @@ export default function ProjectDetailPage() {
       {activeTab === 'summary' && <SummaryTab project={project} projectId={project.id} managerId={project.managerId} onNavigate={setActiveTab} />}
       {activeTab === 'tasks' && <TasksTab projectId={project.id} projectKey={project.key} canEdit={canEdit} isExternal={isExternal} />}
       {activeTab === 'board' && <BoardTab projectId={project.id} projectKey={project.key} isExternal={isExternal} />}
-      {activeTab === 'docs' && <DocsTab projectId={project.id} canEdit={canEdit} />}
+      {activeTab === 'docs' && <DocsTab projectId={project.id} canEdit={canEdit || role === 'CONTRIBUTOR'} />}
       {activeTab === 'raid' && <RaidTab projectId={project.id} canEdit={canEdit} />}
       {activeTab === 'phases' && <PhasesTab projectId={project.id} canEdit={canEdit} />}
       {activeTab === 'settings' && <SettingsTab project={project} onUpdate={(p) => setProject(p)} canEdit={canEdit} />}

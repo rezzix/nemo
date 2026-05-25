@@ -44,7 +44,7 @@ public class WikiPageController {
     }
 
     @PostMapping("/pages")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'CONTRIBUTOR')")
     public ResponseEntity<ApiResponse<WikiPageDto>> createPage(
             @PathVariable Long projectId,
             @Valid @RequestBody WikiPageDto.CreateRequest request,
@@ -55,7 +55,7 @@ public class WikiPageController {
     }
 
     @PutMapping("/pages/{pageId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'CONTRIBUTOR')")
     public ResponseEntity<ApiResponse<WikiPageDto>> updatePage(
             @PathVariable Long projectId, @PathVariable Long pageId,
             @RequestBody WikiPageDto.UpdateRequest request,
@@ -65,14 +65,14 @@ public class WikiPageController {
     }
 
     @DeleteMapping("/pages/{pageId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'CONTRIBUTOR')")
     public ResponseEntity<Void> deletePage(@PathVariable Long projectId, @PathVariable Long pageId) {
         wikiPageService.delete(pageId);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/pages/{pageId}/position")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'CONTRIBUTOR')")
     public ResponseEntity<ApiResponse<WikiPageDto>> updatePosition(
             @PathVariable Long projectId, @PathVariable Long pageId,
             @RequestBody WikiPageDto.PositionRequest request,
