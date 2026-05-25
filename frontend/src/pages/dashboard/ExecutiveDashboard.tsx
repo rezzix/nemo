@@ -288,7 +288,7 @@ export default function ExecutiveDashboard() {
             </div>
             <p className="text-sm font-bold text-gray-900">{projects.length} projects</p>
           </button>
-          {companyCards.filter((c) => c.id !== null).map((card) => {
+          {companyCards.map((card) => {
             const cs = companyData.find((c) => c.companyId === card.id);
             const isSelected = selectedCompanyId === card.id;
             return (

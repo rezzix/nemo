@@ -306,7 +306,7 @@ public class PmoService {
             String companyName;
             String companyKey;
             if (cid == 0L) {
-                companyName = "Unassigned";
+                companyName = "Global";
                 companyKey = "N/A";
             } else {
                 Company c = companyProjects.get(0).getCompany();
