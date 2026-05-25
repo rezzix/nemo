@@ -20,7 +20,6 @@ import MyTimePage from '@/pages/MyTimePage';
 import TimesheetsPage from '@/pages/TimesheetsPage';
 import PeoplePage from '@/pages/PeoplePage';
 import TimeReportsPage from '@/pages/reports';
-import PmoDashboardPage from '@/pages/PmoDashboardPage';
 import HolidaysPage from '@/pages/HolidaysPage';
 import LeavePage from '@/pages/LeavePage';
 import AssetsPage from '@/pages/AssetsPage';
@@ -86,7 +85,6 @@ export default function App() {
           <Route path="/clients/:id" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR']}><ClientDetailPage /></RoleGuard>} />
           <Route path="/presales" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR']}><PreSalesPage /></RoleGuard>} />
           <Route path="/presales/:id" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR']}><PreSaleDetailPage /></RoleGuard>} />
-          <Route path="/pmo" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE']}><PmoDashboardPage /></RoleGuard>} />
           <Route path="/admin" element={<AdminGuard><AdminPage /></AdminGuard>} />
           <Route path="/profile" element={<ProfilePage />} />
         </Route>
