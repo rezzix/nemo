@@ -23,9 +23,9 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
            "AND (:companyId IS NULL OR p.company.id = :companyId OR p.company.id IS NULL)")
     Page<Project> findByMemberUserIdAndCompany(Long userId, Long companyId, Pageable pageable);
 
-    @Query("SELECT p FROM Project p WHERE (:companyId IS NULL OR p.company.id = :companyId OR p.company.id IS NULL)")
+    @Query("SELECT p FROM Project p WHERE (:companyId IS NULL OR p.company.id = :companyId)")
     Page<Project> findByCompanyIdOrNull(Long companyId, Pageable pageable);
 
-    @Query("SELECT p FROM Project p WHERE (:companyId IS NULL OR p.company.id = :companyId OR p.company.id IS NULL)")
+    @Query("SELECT p FROM Project p WHERE (:companyId IS NULL OR p.company.id = :companyId)")
     List<Project> findAllByCompanyIdOrNull(Long companyId);
 }

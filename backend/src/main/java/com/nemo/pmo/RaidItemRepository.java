@@ -22,9 +22,9 @@ public interface RaidItemRepository extends JpaRepository<RaidItem, Long> {
 
     long countByProjectIdAndStatus(Long projectId, RaidItem.RaidStatus status);
 
-    @Query("SELECT r FROM RaidItem r WHERE (:companyId IS NULL OR r.project.company.id = :companyId OR r.project.company.id IS NULL)")
+    @Query("SELECT r FROM RaidItem r WHERE (:companyId IS NULL OR r.project.company.id = :companyId)")
     List<RaidItem> findByCompanyIdOrNull(@Param("companyId") Long companyId);
 
-    @Query("SELECT r FROM RaidItem r WHERE (:companyId IS NULL OR r.project.company.id = :companyId OR r.project.company.id IS NULL) AND (:type IS NULL OR r.type = :type)")
+    @Query("SELECT r FROM RaidItem r WHERE (:companyId IS NULL OR r.project.company.id = :companyId) AND (:type IS NULL OR r.type = :type)")
     List<RaidItem> findByCompanyIdAndType(@Param("companyId") Long companyId, @Param("type") RaidItem.RaidType type);
 }
