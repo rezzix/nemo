@@ -57,16 +57,22 @@ export default function MyTimePage() {
     );
   }, [myTasks]);
 
-  // Group open tasks by project for the dropdown
+  // Group open tasks by project name for the dropdown
+  const projectNames = useMemo(() => {
+    const map: Record<number, string> = {};
+    for (const p of projects) map[p.id] = p.name;
+    return map;
+  }, [projects]);
+
   const tasksByProject = useMemo(() => {
     const groups: Record<string, TaskDto[]> = {};
     for (const task of openTasks) {
-      const key = task.projectKey || `Project ${task.projectId}`;
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(task);
+      const label = projectNames[task.projectId] || task.projectKey || `Project ${task.projectId}`;
+      if (!groups[label]) groups[label] = [];
+      groups[label].push(task);
     }
     return groups;
-  }, [openTasks]);
+  }, [openTasks, projectNames]);
 
   const fetchWeek = useCallback(async () => {
     if (!user) return;
