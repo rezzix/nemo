@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom';
+import AccessDenied from '@/components/common/AccessDenied';
 import { useAuthStore } from '@/stores/authStore';
 
 type Role = 'ADMIN' | 'MANAGER' | 'EXECUTIVE' | 'CONTRIBUTOR' | 'EXTERNAL' | 'HR';
@@ -15,7 +15,7 @@ export default function RoleGuard({ roles, children }: RoleGuardProps) {
   if (isLoading) return null;
 
   if (!user || !roles.includes(user.role)) {
-    return <Navigate to="/" replace />;
+    return <AccessDenied requiredRoles={roles} />;
   }
 
   return <>{children}</>;
