@@ -85,8 +85,8 @@ export default function ProjectDetailPage() {
           <span>Manager: {project.managerName}</span>
           {project.clientName && <span>Client: {project.clientName}</span>}
           {project.programName && <span>Program: {project.programName}</span>}
-          {project.budget && <span>Budget: {formatCurrency(Number(project.budget))}</span>}
-          {project.strategicScore != null && <span>Score: {project.strategicScore}/10</span>}
+          {!isExternal && project.budget && <span>Budget: {formatCurrency(Number(project.budget))}</span>}
+          {!isExternal && project.strategicScore != null && <span>Score: {project.strategicScore}/10</span>}
         </div>
       </div>
 
