@@ -82,7 +82,7 @@ export default function PortfolioReport() {
             {(['INITIATION', 'PLANNING', 'EXECUTION', 'CLOSING'] as const).map(stage => (
               <div key={stage} className="flex-1 text-center">
                 <div className="text-2xl font-bold text-gray-900">{portfolio.stageDistribution[stage] || 0}</div>
-                <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${stageBadge(stage)}`}>{stage}</span>
+                <span className={'inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium ' + stageBadge(stage)}>{stage}</span>
               </div>
             ))}
           </div>
@@ -147,25 +147,34 @@ export default function PortfolioReport() {
                 const evm = evmMap[p.id];
                 if (!evm) return null;
                 const completionPct = Math.round(evm.completionPct * 100);
+                const dlBadge = p.targetEndDate ? deadlineBadge(p.targetEndDate) : '';
+                const cpiColor = evm.cpi != null ? eviColor(evm.cpi) : '';
+                const spiColor = evm.spi != null ? eviColor(evm.spi) : '';
+                const cvColor = evm.costVariance >= 0 ? 'text-green-600' : 'text-red-600';
+                const svColor = evm.scheduleVariance >= 0 ? 'text-green-600' : 'text-red-600';
                 return (
                   <tr key={p.id} className="hover:bg-gray-50">
                     <td className="px-5 py-3 font-medium"><Link to={`/projects/${p.id}`} className="text-primary-600 hover:text-primary-800">{p.name}</Link></td>
                     <td className="px-3 py-3">
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${stageBadge(evm.stage)}">{evm.stage}</span>
-                      {p.targetEndDate && deadlineLabel(p.targetEndDate) && <span className={`inline-block ml-1 px-2 py-0.5 rounded-full text-xs font-medium ${deadlineBadge(p.targetEndDate)}`}>{deadlineLabel(p.targetEndDate)}</span>}
+                      <span className={"inline-block px-2 py-0.5 rounded-full text-xs font-medium " + stageBadge(evm.stage)}>{evm.stage}</span>
+                      {p.targetEndDate && deadlineLabel(p.targetEndDate) && (
+                        <span className={'inline-block ml-1 px-2 py-0.5 rounded-full text-xs font-medium ' + dlBadge}>
+                          {deadlineLabel(p.targetEndDate)}
+                        </span>
+                      )}
                     </td>
                     <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(evm.budget)}</td>
                     <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(evm.plannedValue)}</td>
                     <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(evm.earnedValue)}</td>
                     <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(evm.actualCost)}</td>
-                    <td className={`px-3 py-3 text-right font-semibold ${evm.cpi != null ? eviColor(evm.cpi) : ''}`}>{evm.cpi != null ? evm.cpi.toFixed(2) : '—'}</td>
-                    <td className={`px-3 py-3 text-right font-semibold ${evm.spi != null ? eviColor(evm.spi) : ''}`}>{evm.spi != null ? evm.spi.toFixed(2) : '—'}</td>
-                    <td className={`px-3 py-3 text-right ${evm.costVariance >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(evm.costVariance)}</td>
-                    <td className={`px-3 py-3 text-right ${evm.scheduleVariance >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(evm.scheduleVariance)}</td>
+                    <td className={'px-3 py-3 text-right font-semibold ' + cpiColor}>{evm.cpi != null ? evm.cpi.toFixed(2) : '—'}</td>
+                    <td className={'px-3 py-3 text-right font-semibold ' + spiColor}>{evm.spi != null ? evm.spi.toFixed(2) : '—'}</td>
+                    <td className={'px-3 py-3 text-right ' + cvColor}>{formatCurrency(evm.costVariance)}</td>
+                    <td className={'px-3 py-3 text-right ' + svColor}>{formatCurrency(evm.scheduleVariance)}</td>
                     <td className="px-3 py-3 text-right">
                       <div className="flex items-center gap-2 justify-end">
                         <div className="w-16 bg-gray-200 rounded-full h-2">
-                          <div className="bg-primary-600 rounded-full h-2" style={{ width: `${completionPct}%` }} />
+                          <div className="bg-primary-600 rounded-full h-2" style={{ width: completionPct + '%' }} />
                         </div>
                         <span className="text-xs text-gray-600 w-8 text-right">{completionPct}%</span>
                       </div>
@@ -205,7 +214,7 @@ export default function PortfolioReport() {
                   <td className="px-3 py-3 text-center text-gray-600">{r.probability ?? '—'}</td>
                   <td className="px-3 py-3 text-center text-gray-600">{r.impact ?? '—'}</td>
                   <td className="px-3 py-3 text-center font-semibold">{r.riskScore}</td>
-                  <td className="px-3 py-3 text-center"><span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${riskColor(r.riskScore)}`}>{riskLabel(r.riskScore)}</span></td>
+                  <td className="px-3 py-3 text-center"><span className={'inline-block px-2 py-0.5 rounded-full text-xs font-medium ' + riskColor(r.riskScore)}>{riskLabel(r.riskScore)}</span></td>
                   <td className="px-3 py-3"><span className="text-xs font-medium text-gray-600">{r.status}</span></td>
                   <td className="px-3 py-3 text-gray-600 text-xs">{r.ownerName ?? '—'}</td>
                 </tr>
