@@ -106,7 +106,7 @@ export default function PortfolioReport() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {companyData.map((c) => (
-                <tr key={c.companyId ?? 'unassigned'} className="hover:bg-gray-50">
+                <tr key={c.companyId ?? 'global'} className="hover:bg-gray-50">
                   <td className="px-5 py-3 font-medium text-gray-900">{c.companyName}</td>
                   <td className="px-3 py-3 text-right text-gray-700">{c.totalProjects}</td>
                   <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(c.totalBudget)}</td>
