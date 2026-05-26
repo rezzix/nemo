@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -39,4 +40,8 @@ public interface TimeLogRepository extends JpaRepository<TimeLog, Long> {
     List<Long> findDistinctUserIdsByDateRange(LocalDate startDate, LocalDate endDate);
 
     List<TimeLog> findByPresaleId(Long presaleId);
+
+    @Query("SELECT tl FROM TimeLog tl WHERE tl.logDate BETWEEN :startDate AND :endDate " +
+           "AND (:companyId IS NULL OR tl.task.project.company.id = :companyId OR tl.task.project.company.id IS NULL)")
+    List<TimeLog> findByDateRangeAndCompany(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate, @Param("companyId") Long companyId);
 }
