@@ -3,7 +3,7 @@ package com.nemo.phase;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 
-public record PhasePaymentDto(
+public record ClientPaymentDto(
         Long id,
         Long phaseId,
         String amount,

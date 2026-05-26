@@ -75,7 +75,7 @@ public class ProjectController {
                 .map(dto -> new ProjectDto(dto.id(), dto.name(), dto.key(), dto.description(),
                         dto.programId(), dto.programName(), dto.managerId(), dto.managerName(),
                         dto.companyId(), dto.companyName(), dto.clientId(), dto.clientName(),
-                        dto.stage(), dto.strategicScore(), dto.plannedValue(), dto.budget(), dto.budgetSpent(),
+                        dto.stage(), dto.strategicScore(), dto.plannedValue(), dto.budget(),
                         dto.targetStartDate(), dto.targetEndDate(),
                         favoriteIds.contains(dto.id()),
                         dto.createdAt(), dto.updatedAt()))
@@ -96,7 +96,7 @@ public class ProjectController {
         ProjectDto enriched = new ProjectDto(dto.id(), dto.name(), dto.key(), dto.description(),
                 dto.programId(), dto.programName(), dto.managerId(), dto.managerName(),
                 dto.companyId(), dto.companyName(), dto.clientId(), dto.clientName(),
-                dto.stage(), dto.strategicScore(), dto.plannedValue(), dto.budget(), dto.budgetSpent(),
+                dto.stage(), dto.strategicScore(), dto.plannedValue(), dto.budget(),
                 dto.targetStartDate(), dto.targetEndDate(),
                 favoriteIds.contains(dto.id()),
                 dto.createdAt(), dto.updatedAt());

@@ -58,9 +58,6 @@ public class Project {
     @Column(name = "budget", precision = 12, scale = 2)
     private BigDecimal budget;
 
-    @Column(name = "budget_spent", precision = 12, scale = 2)
-    private BigDecimal budgetSpent;
-
     @Column(name = "target_start_date")
     private LocalDate targetStartDate;
 
@@ -96,8 +93,6 @@ public class Project {
     public void setPlannedValue(BigDecimal plannedValue) { this.plannedValue = plannedValue; }
     public BigDecimal getBudget() { return budget; }
     public void setBudget(BigDecimal budget) { this.budget = budget; }
-    public BigDecimal getBudgetSpent() { return budgetSpent; }
-    public void setBudgetSpent(BigDecimal budgetSpent) { this.budgetSpent = budgetSpent; }
     public LocalDate getTargetStartDate() { return targetStartDate; }
     public void setTargetStartDate(LocalDate targetStartDate) { this.targetStartDate = targetStartDate; }
     public LocalDate getTargetEndDate() { return targetEndDate; }

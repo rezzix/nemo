@@ -402,7 +402,7 @@ export default function ExecutiveDashboard() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Spent</span>
-                      <span className="font-medium text-gray-900">{formatCurrency(c.totalBudgetSpent)}</span>
+                      <span className="font-medium text-gray-900">{formatCurrency(c.totalExpenseCost)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Completion</span>

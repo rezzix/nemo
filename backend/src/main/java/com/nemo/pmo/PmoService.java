@@ -4,10 +4,11 @@ import com.nemo.common.exception.EntityNotFoundException;
 import com.nemo.company.Company;
 import com.nemo.config.TaskStatus;
 import com.nemo.config.TaskStatusRepository;
+import com.nemo.expense.ProjectExpenseRepository;
 import com.nemo.task.TaskRepository;
 import com.nemo.phase.DeliverableRepository;
 import com.nemo.phase.Phase;
-import com.nemo.phase.PhasePaymentRepository;
+import com.nemo.phase.ClientPaymentRepository;
 import com.nemo.phase.PhaseRepository;
 import com.nemo.project.Project;
 import com.nemo.project.ProjectRepository;
@@ -36,7 +37,8 @@ public class PmoService {
     private final RaidItemRepository raidItemRepository;
     private final PhaseRepository phaseRepository;
     private final DeliverableRepository deliverableRepository;
-    private final PhasePaymentRepository phasePaymentRepository;
+    private final ClientPaymentRepository clientPaymentRepository;
+    private final ProjectExpenseRepository expenseRepository;
 
     public PmoService(ProjectRepository projectRepository,
                       TaskRepository taskRepository,
@@ -46,7 +48,8 @@ public class PmoService {
                       RaidItemRepository raidItemRepository,
                       PhaseRepository phaseRepository,
                       DeliverableRepository deliverableRepository,
-                      PhasePaymentRepository phasePaymentRepository) {
+                      ClientPaymentRepository clientPaymentRepository,
+                      ProjectExpenseRepository expenseRepository) {
         this.projectRepository = projectRepository;
         this.taskRepository = taskRepository;
         this.taskStatusRepository = taskStatusRepository;
@@ -55,7 +58,8 @@ public class PmoService {
         this.raidItemRepository = raidItemRepository;
         this.phaseRepository = phaseRepository;
         this.deliverableRepository = deliverableRepository;
-        this.phasePaymentRepository = phasePaymentRepository;
+        this.clientPaymentRepository = clientPaymentRepository;
+        this.expenseRepository = expenseRepository;
     }
 
     @Transactional(readOnly = true)
@@ -93,16 +97,23 @@ public class PmoService {
         // Earned Value (EV) = completion% × plannedValue
         BigDecimal earnedValue = completionPct.multiply(plannedValue).setScale(2, RoundingMode.HALF_UP);
 
-        // Actual Cost (AC) = labor cost + project budget spent (external costs)
-        BigDecimal laborCost = computeLaborCost(projectId);
-        BigDecimal budgetSpent = project.getBudgetSpent() != null ? project.getBudgetSpent() : BigDecimal.ZERO;
-        BigDecimal actualCost = laborCost.add(budgetSpent).setScale(2, RoundingMode.HALF_UP);
+        // Actual Cost (AC) = labor cost + project expenses (non-labor costs)
+        List<TimeLog> logs = timeLogRepository.findByProjectId(projectId);
+        BigDecimal laborCost = sumLaborCost(logs);
+        long missingRateCount = 0;
+        for (TimeLog log : logs) {
+            if (userRateRepository.findEffectiveRate(log.getUser().getId(), log.getLogDate()).isEmpty()) {
+                missingRateCount++;
+            }
+        }
+        BigDecimal expenseCost = computeExpenseCost(projectId);
+        BigDecimal actualCost = laborCost.add(expenseCost).setScale(2, RoundingMode.HALF_UP);
 
         // Total paid by client (sum of phase payments)
         List<Long> phaseIds = phases.stream().map(Phase::getId).toList();
         BigDecimal totalPaid = BigDecimal.ZERO;
         if (!phaseIds.isEmpty()) {
-            List<Object[]> paidSums = phasePaymentRepository.sumPaidByPhaseIds(phaseIds);
+            List<Object[]> paidSums = clientPaymentRepository.sumPaidByPhaseIds(phaseIds);
             for (Object[] row : paidSums) {
                 if (row[1] != null) totalPaid = totalPaid.add((BigDecimal) row[1]);
             }
@@ -140,19 +151,24 @@ public class PmoService {
                 plannedValue, earnedValue, actualCost,
                 pvToday, costVariance, scheduleVariance,
                 cpi, spi,
-                project.getBudget(), laborCost,
+                project.getBudget(), laborCost, expenseCost,
                 project.getStage() != null ? project.getStage().name() : null,
                 project.getStrategicScore(),
                 project.getTargetStartDate() != null ? project.getTargetStartDate().toString() : null,
                 project.getTargetEndDate() != null ? project.getTargetEndDate().toString() : null,
                 openRisks, mitigatingRisks, maxRiskScore, avgRiskScore,
-                derivedPlannedValue, totalPaid
+                derivedPlannedValue, totalPaid,
+                missingRateCount
         );
     }
 
     private BigDecimal computeLaborCost(Long projectId) {
         List<TimeLog> logs = timeLogRepository.findByProjectId(projectId);
         return sumLaborCost(logs);
+    }
+
+    private BigDecimal computeExpenseCost(Long projectId) {
+        return expenseRepository.sumByProjectId(projectId);
     }
 
     private BigDecimal sumLaborCost(List<TimeLog> logs) {
@@ -191,11 +207,12 @@ public class PmoService {
             BigDecimal plannedValue, BigDecimal earnedValue, BigDecimal actualCost,
             BigDecimal pvToday, BigDecimal costVariance, BigDecimal scheduleVariance,
             BigDecimal cpi, BigDecimal spi,
-            BigDecimal budget, BigDecimal laborCost,
+            BigDecimal budget, BigDecimal laborCost, BigDecimal expenseCost,
             String stage, Integer strategicScore,
             String targetStartDate, String targetEndDate,
             long openRisks, long mitigatingRisks, int maxRiskScore, double avgRiskScore,
-            BigDecimal derivedPlannedValue, BigDecimal totalPaid
+            BigDecimal derivedPlannedValue, BigDecimal totalPaid,
+            long missingRateCount
     ) {}
 
     @Transactional(readOnly = true)
@@ -236,11 +253,11 @@ public class PmoService {
             totalEarnedValue = totalEarnedValue.add(projCompletion.multiply(projPv).setScale(2, RoundingMode.HALF_UP));
 
             BigDecimal projLaborCost = computeLaborCost(project.getId());
-            BigDecimal projBudgetSpent = project.getBudgetSpent() != null ? project.getBudgetSpent() : BigDecimal.ZERO;
-            totalActualCost = totalActualCost.add(projLaborCost.add(projBudgetSpent).setScale(2, RoundingMode.HALF_UP));
+            BigDecimal projExpenseCost = computeExpenseCost(project.getId());
+            totalActualCost = totalActualCost.add(projLaborCost.add(projExpenseCost).setScale(2, RoundingMode.HALF_UP));
+            totalBudgetSpent = totalBudgetSpent.add(projExpenseCost);
 
             if (project.getBudget() != null) totalBudget = totalBudget.add(project.getBudget());
-            if (project.getBudgetSpent() != null) totalBudgetSpent = totalBudgetSpent.add(project.getBudgetSpent());
 
             totalOpenRisks += raidItemRepository.countByProjectIdAndStatus(project.getId(), RaidItem.RaidStatus.OPEN);
             totalMitigatingRisks += raidItemRepository.countByProjectIdAndStatus(project.getId(), RaidItem.RaidStatus.MITIGATING);
@@ -269,7 +286,7 @@ public class PmoService {
     public record PortfolioSummary(
             int totalProjects, long totalTasks, long totalCompleted,
             BigDecimal totalPlannedValue, BigDecimal totalEarnedValue, BigDecimal totalActualCost,
-            BigDecimal totalBudget, BigDecimal totalBudgetSpent,
+            BigDecimal totalBudget, BigDecimal totalExpenseCost,
             BigDecimal portfolioCv, BigDecimal portfolioSv,
             long totalOpenRisks, long totalMitigatingRisks,
             Map<String, Long> stageDistribution
@@ -278,7 +295,7 @@ public class PmoService {
     public record CompanyPortfolioSummary(
             Long companyId, String companyName, String companyKey,
             int totalProjects, long totalTasks, long totalCompleted,
-            BigDecimal totalBudget, BigDecimal totalBudgetSpent,
+            BigDecimal totalBudget, BigDecimal totalExpenseCost,
             long totalOpenRisks, long totalMitigatingRisks,
             Map<String, Long> stageDistribution
     ) {}
@@ -318,7 +335,7 @@ public class PmoService {
             long totalTasks = 0;
             long totalCompleted = 0;
             BigDecimal totalBudget = BigDecimal.ZERO;
-            BigDecimal totalBudgetSpent = BigDecimal.ZERO;
+            BigDecimal totalExpenseCost = BigDecimal.ZERO;
             long totalOpenRisks = 0;
             long totalMitigatingRisks = 0;
 
@@ -332,7 +349,7 @@ public class PmoService {
                 totalCompleted += projCompleted;
 
                 if (p.getBudget() != null) totalBudget = totalBudget.add(p.getBudget());
-                if (p.getBudgetSpent() != null) totalBudgetSpent = totalBudgetSpent.add(p.getBudgetSpent());
+                totalExpenseCost = totalExpenseCost.add(computeExpenseCost(p.getId()));
 
                 totalOpenRisks += raidItemRepository.countByProjectIdAndStatus(p.getId(), RaidItem.RaidStatus.OPEN);
                 totalMitigatingRisks += raidItemRepository.countByProjectIdAndStatus(p.getId(), RaidItem.RaidStatus.MITIGATING);
@@ -346,7 +363,7 @@ public class PmoService {
             result.add(new CompanyPortfolioSummary(
                     cid == 0L ? null : cid, companyName, companyKey,
                     totalProjects, totalTasks, totalCompleted,
-                    totalBudget, totalBudgetSpent,
+                    totalBudget, totalExpenseCost,
                     totalOpenRisks, totalMitigatingRisks,
                     stageDistribution
             ));

@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import type { ProjectDto, WikiTreeItem, WikiPageDto, WikiSearchHit } from '@/types';
+import type { ProjectDto, WikiTreeItem, WikiPageDto, WikiSearchHit, EvmMetrics } from '@/types';
 import { getProject } from '@/api/projects';
+import { getEvmMetrics } from '@/api/pmo';
 import { getWikiPageTree, getWikiPage, createWikiPage, updateWikiPage, deleteWikiPage, searchWikiPages } from '@/api/wiki';
 import { useAuth } from '@/hooks/useAuth';
 import { stageBadge, stageLabel, formatDate, formatCurrency } from '@/utils/format';
@@ -12,17 +13,19 @@ import TasksTab from './TasksTab';
 import BoardTab from './BoardTab';
 import RaidTab from './RaidTab';
 import PhasesTab from './PhasesTab';
+import ExpensesTab from './ExpensesTab';
 import SettingsTab from './SettingsTab';
 import MembersTab from './MembersTab';
 import SummaryTab from './SummaryTab';
 import SprintsTab from './SprintsTab';
 import MarkdownRenderer from '@/components/common/MarkdownRenderer';
 
-type Tab = 'summary' | 'tasks' | 'board' | 'docs' | 'raid' | 'phases' | 'members' | 'settings' | 'sprints';
+type Tab = 'summary' | 'tasks' | 'board' | 'docs' | 'raid' | 'phases' | 'expenses' | 'members' | 'settings' | 'sprints';
 
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [project, setProject] = useState<ProjectDto | null>(null);
+  const [evm, setEvm] = useState<EvmMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>('summary');
   const { user } = useAuth();
@@ -34,7 +37,10 @@ export default function ProjectDetailPage() {
   useEffect(() => {
     if (!id) return;
     setLoading(true);
-    getProject(Number(id)).then(setProject).finally(() => setLoading(false));
+    getProject(Number(id)).then(p => {
+      setProject(p);
+      getEvmMetrics(Number(id)).then(setEvm).catch(() => {});
+    }).finally(() => setLoading(false));
   }, [id]);
 
   if (loading) return <div className="flex items-center justify-center h-64"><Spinner className="h-8 w-8 text-primary-600" /></div>;
@@ -59,6 +65,7 @@ export default function ProjectDetailPage() {
     { key: 'tasks', label: 'Tasks' },
     { key: 'docs', label: 'Docs' },
     { key: 'phases', label: 'Phases' },
+    { key: 'expenses', label: 'Expenses' },
     { key: 'members', label: 'Members' },
     { key: 'settings', label: 'Settings' },
   ] : role === 'HR' ? [
@@ -89,7 +96,14 @@ export default function ProjectDetailPage() {
           <span>Manager: {project.managerName}</span>
           {project.clientName && <span>Client: {project.clientName}</span>}
           {project.programName && <span>Program: {project.programName}</span>}
-          {!isExternal && project.budget && <span>Budget: {formatCurrency(Number(project.budget))}</span>}
+          {!isExternal && project.budget && (
+            <span>
+              Budget: {formatCurrency(Number(project.budget))}
+              {evm && (
+                <> &middot; Spent: {formatCurrency(evm.actualCost)} (Labor: {formatCurrency(evm.laborCost)} &middot; Expenses: {formatCurrency(evm.expenseCost)})</>
+              )}
+            </span>
+          )}
           {!isExternal && project.strategicScore != null && <span>Score: {project.strategicScore}/10</span>}
         </div>
       </div>
@@ -116,6 +130,7 @@ export default function ProjectDetailPage() {
       {activeTab === 'docs' && <DocsTab projectId={project.id} canEdit={canEdit || role === 'CONTRIBUTOR'} />}
       {activeTab === 'raid' && <RaidTab projectId={project.id} canEdit={canEdit} />}
       {activeTab === 'phases' && <PhasesTab projectId={project.id} canEdit={canEdit} />}
+      {activeTab === 'expenses' && <ExpensesTab projectId={project.id} canEdit={canEdit} />}
       {activeTab === 'settings' && <SettingsTab project={project} onUpdate={(p) => setProject(p)} canEdit={canEdit} />}
       {activeTab === 'members' && <MembersTab projectId={project.id} managerId={project.managerId} canEdit={canEdit} canSeeScores={canSeeScores} />}
       {activeTab === 'sprints' && <SprintsTab projectId={project.id} canEdit={canEdit} />}

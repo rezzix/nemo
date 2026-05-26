@@ -9,8 +9,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "phase_payment")
-public class PhasePayment {
+@Table(name = "client_payment")
+public class ClientPayment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,7 +40,7 @@ public class PhasePayment {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    public PhasePayment() {}
+    public ClientPayment() {}
 
     public Long getId() { return id; }
     public Phase getPhase() { return phase; }

@@ -61,6 +61,7 @@ export interface EvmMetrics {
   spi: number | null;
   budget: number;
   laborCost: number;
+  expenseCost: number;
   stage: string | null;
   strategicScore: number | null;
   targetStartDate: string | null;
@@ -71,6 +72,7 @@ export interface EvmMetrics {
   avgRiskScore: number;
   derivedPlannedValue: number;
   totalPaid: number;
+  missingRateCount: number;
 }
 
 export interface PortfolioSummary {
@@ -81,7 +83,7 @@ export interface PortfolioSummary {
   totalEarnedValue: number;
   totalActualCost: number;
   totalBudget: number;
-  totalBudgetSpent: number;
+  totalExpenseCost: number;
   portfolioCv: number;
   portfolioSv: number;
   totalOpenRisks: number;
@@ -97,7 +99,7 @@ export interface CompanyPortfolioSummary {
   totalTasks: number;
   totalCompleted: number;
   totalBudget: number;
-  totalBudgetSpent: number;
+  totalExpenseCost: number;
   totalOpenRisks: number;
   totalMitigatingRisks: number;
   stageDistribution: Record<string, number>;

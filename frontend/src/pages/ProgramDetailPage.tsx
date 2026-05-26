@@ -75,7 +75,6 @@ export default function ProgramDetailPage() {
 
 function ProjectCard({ project, onClick }: { project: ProjectDto; onClick: () => void }) {
   const budgetVal = project.budget ? Number(project.budget) : null;
-  const spentVal = project.budgetSpent ? Number(project.budgetSpent) : null;
   const pvVal = project.plannedValue ? Number(project.plannedValue) : null;
 
   return (
@@ -112,15 +111,11 @@ function ProjectCard({ project, onClick }: { project: ProjectDto; onClick: () =>
       )}
 
       {/* Financials */}
-      {(budgetVal !== null || pvVal !== null || spentVal !== null) && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-3 border-t border-gray-100">
+      {(budgetVal !== null || pvVal !== null) && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-3 border-t border-gray-100">
           <div>
             <div className="text-[10px] text-gray-400 font-medium uppercase">Budget</div>
             <div className="text-sm font-medium text-gray-900">{formatCurrency(budgetVal)}</div>
-          </div>
-          <div>
-            <div className="text-[10px] text-gray-400 font-medium uppercase">Spent</div>
-            <div className="text-sm font-medium text-gray-900">{formatCurrency(spentVal)}</div>
           </div>
           <div>
             <div className="text-[10px] text-gray-400 font-medium uppercase">PV</div>

@@ -12,7 +12,7 @@ public record ProjectDto(
         Long companyId, String companyName,
         Long clientId, String clientName,
         String stage, Integer strategicScore,
-        String plannedValue, String budget, String budgetSpent,
+        String plannedValue, String budget,
         String targetStartDate, String targetEndDate,
         Boolean favorite,
         String createdAt, String updatedAt
