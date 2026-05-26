@@ -42,6 +42,6 @@ public interface TimeLogRepository extends JpaRepository<TimeLog, Long> {
     List<TimeLog> findByPresaleId(Long presaleId);
 
     @Query("SELECT tl FROM TimeLog tl WHERE tl.logDate BETWEEN :startDate AND :endDate " +
-           "AND (:companyId IS NULL OR tl.task.project.company.id = :companyId OR tl.task.project.company.id IS NULL)")
+           "AND (:companyId IS NULL OR tl.task.project.company.id = :companyId)")
     List<TimeLog> findByDateRangeAndCompany(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate, @Param("companyId") Long companyId);
 }
