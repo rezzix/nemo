@@ -265,7 +265,7 @@ public class DataSeeder implements CommandLineRunner {
         // Projects with PMO fields
         Project fse = createProject("FSE", "FSE", "Full Stack Engineering platform",
                 ehealth, majid, Project.Stage.EXECUTION, 8,
-                new BigDecimal("500000"), new BigDecimal("500000"), new BigDecimal("12000"),
+                new BigDecimal("500000"), new BigDecimal("500000"), new BigDecimal("240000"),
                 LocalDate.of(2025, 1, 15), LocalDate.of(2025, 9, 30), company1);
         fse.setClient(cnss); fse = projectRepository.save(fse);
 
@@ -276,7 +276,7 @@ public class DataSeeder implements CommandLineRunner {
 
         Project mobileApp = createProject("Mobile App", "MA", "Cross-platform mobile application",
                 mobilePlatform, pmHarmony, Project.Stage.EXECUTION, 7,
-                new BigDecimal("200000"), new BigDecimal("200000"), new BigDecimal("45000"),
+                new BigDecimal("200000"), new BigDecimal("200000"), new BigDecimal("65000"),
                 LocalDate.of(2025, 2, 1), LocalDate.of(2025, 10, 31), company2);
         mobileApp.setClient(minds); mobileApp = projectRepository.save(mobileApp);
 
@@ -309,8 +309,8 @@ public class DataSeeder implements CommandLineRunner {
                 LocalDate.of(2025, 1, 1), LocalDate.of(2025, 12, 31), company4);
 
         Project footballTeam = createProject("Football Team Manager", "FTM", "Football team management and player tracking platform",
-                null, youssef, Project.Stage.EXECUTION, 7,
-                new BigDecimal("120000"), new BigDecimal("120000"), new BigDecimal("18000"),
+                null, youssef, Project.Stage.CLOSING, 7,
+                new BigDecimal("120000"), new BigDecimal("120000"), new BigDecimal("100000"),
                 LocalDate.of(2025, 3, 1), LocalDate.of(2025, 11, 30), company3);
         footballTeam.setClient(frmf); footballTeam = projectRepository.save(footballTeam);
 
@@ -518,14 +518,14 @@ public class DataSeeder implements CommandLineRunner {
 
         createTask("FSE-1", "User authentication flow", fse, done, Task.Priority.HIGH, dev, dev1, admin, sprint1, 0, LocalDate.of(2025, 3, 15), fseExec);
         createTask("FSE-2", "Dashboard layout", fse, done, Task.Priority.HIGH, dev, dev2, admin, sprint1, 1, LocalDate.of(2025, 4, 1), fseExec);
-        createTask("FSE-3", "Profile management", fse, inProgress, Task.Priority.MEDIUM, dev, dev1, admin, sprint1, 2, LocalDate.of(2025, 6, 30), fseExec);
+        createTask("FSE-3", "Profile management", fse, done, Task.Priority.MEDIUM, dev, dev1, admin, sprint1, 2, LocalDate.of(2025, 6, 30), fseExec);
         createTask("FSE-4", "Search functionality", fse, inProgress, Task.Priority.MEDIUM, dev, dev2, admin, sprint2, 3, LocalDate.of(2025, 7, 31), fseExec);
         createTask("FSE-5", "Notification system", fse, todo, Task.Priority.LOW, dev, null, admin, sprint2, 4, LocalDate.of(2025, 8, 31), fseExec);
         createTask("FSE-6", "Payment integration", fse, todo, Task.Priority.HIGH, dev, null, admin, null, 5, LocalDate.of(2025, 9, 15), fseExec);
         createTask("FSE-7", "Analytics reporting", fse, todo, Task.Priority.MEDIUM, dev, null, majid, null, 6, null, fseClose);
 
         // Additional tasks for ismail in Sprint 1 (multi-project sprint visibility)
-        createTask("FSE-9", "API error handling", fse, inProgress, Task.Priority.HIGH, dev, dev1, admin, sprint1, 8, LocalDate.of(2025, 7, 15), fseExec);
+        createTask("FSE-9", "API error handling", fse, done, Task.Priority.HIGH, dev, dev1, admin, sprint1, 8, LocalDate.of(2025, 7, 15), fseExec);
         createTask("FSE-10", "Database migration scripts", fse, todo, Task.Priority.MEDIUM, dev, dev1, admin, sprint1, 9, LocalDate.of(2025, 8, 15), fseExec);
 
         // Tasks for Mobile App
@@ -536,9 +536,14 @@ public class DataSeeder implements CommandLineRunner {
         createTask("MA-5", "Camera integration", mobileApp, todo, Task.Priority.LOW, dev, null, pmHarmony, null, 4, null, null);
 
         // Tasks for API Gateway
-        createTask("AG-1", "Rate limiting module", apiGateway, inProgress, Task.Priority.HIGH, dev, dev1, majid, null, 0, LocalDate.of(2026, 6, 30), apiExec);
+        createTask("AG-1", "Rate limiting module", apiGateway, done, Task.Priority.HIGH, dev, dev1, majid, null, 0, LocalDate.of(2026, 6, 30), apiExec);
         createTask("AG-2", "Service discovery", apiGateway, todo, Task.Priority.HIGH, dev, null, majid, null, 1, LocalDate.of(2026, 9, 30), apiExec);
         createTask("AG-3", "Load balancer config", apiGateway, todo, Task.Priority.MEDIUM, dev, null, majid, null, 2, LocalDate.of(2026, 11, 15), apiPlan);
+
+        // Tasks for Data Warehouse
+        createTask("DW-1", "Data model design", dataWarehouse, done, Task.Priority.HIGH, dev, dev1, salim, null, 0, LocalDate.of(2025, 10, 31), null);
+        createTask("DW-2", "ETL pipeline setup", dataWarehouse, inProgress, Task.Priority.HIGH, dev, dev1, salim, null, 1, LocalDate.of(2026, 3, 31), null);
+        createTask("DW-3", "Analytics dashboard", dataWarehouse, todo, Task.Priority.MEDIUM, dev, null, salim, null, 2, LocalDate.of(2026, 6, 30), null);
 
         // Task for hanane in eHealthPortal (multi-project assignment for Log Time dropdown)
         createTask("PP-1", "Patient portal UI design", eHealthPortal, inProgress, Task.Priority.HIGH, dev, dev2, majid, null, 0, LocalDate.of(2025, 12, 31), null);
@@ -557,11 +562,11 @@ public class DataSeeder implements CommandLineRunner {
 
         // Tasks for Football Team Manager
         createTask("FTM-1", "Player registration module", footballTeam, done, Task.Priority.HIGH, dev, walid, youssef, null, 0, LocalDate.of(2025, 5, 31), ftmExec);
-        createTask("FTM-2", "Match scheduling system", footballTeam, inProgress, Task.Priority.HIGH, dev, walid, youssef, null, 1, LocalDate.of(2025, 10, 31), ftmExec);
-        createTask("FTM-3", "Training session planner", footballTeam, inProgress, Task.Priority.MEDIUM, dev, dev1, youssef, null, 2, LocalDate.of(2025, 11, 15), ftmExec);
-        createTask("FTM-4", "Player statistics dashboard", footballTeam, todo, Task.Priority.HIGH, dev, null, youssef, null, 3, LocalDate.of(2025, 11, 30), ftmExec);
-        createTask("FTM-5", "Team lineup builder", footballTeam, todo, Task.Priority.MEDIUM, dev, null, youssef, null, 4, null, ftmExec);
-        createTask("FTM-6", "Injury tracking", footballTeam, todo, Task.Priority.MEDIUM, dev, null, youssef, null, 5, LocalDate.of(2026, 1, 31), null);
+        createTask("FTM-2", "Match scheduling system", footballTeam, done, Task.Priority.HIGH, dev, walid, youssef, null, 1, LocalDate.of(2025, 10, 31), ftmExec);
+        createTask("FTM-3", "Training session planner", footballTeam, done, Task.Priority.MEDIUM, dev, dev1, youssef, null, 2, LocalDate.of(2025, 11, 15), ftmExec);
+        createTask("FTM-4", "Player statistics dashboard", footballTeam, done, Task.Priority.HIGH, dev, null, youssef, null, 3, LocalDate.of(2025, 11, 30), ftmExec);
+        createTask("FTM-5", "Team lineup builder", footballTeam, done, Task.Priority.MEDIUM, dev, null, youssef, null, 4, null, ftmExec);
+        createTask("FTM-6", "Injury tracking", footballTeam, done, Task.Priority.MEDIUM, dev, null, youssef, null, 5, LocalDate.of(2026, 1, 31), null);
 
         // Labels
         createLabel(fse, "Frontend", "#3B82F6");
