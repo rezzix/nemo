@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import type { ProjectDto, WikiTreeItem, WikiPageDto, WikiSearchHit } from '@/types';
 import { getProject } from '@/api/projects';
 import { getWikiPageTree, getWikiPage, createWikiPage, updateWikiPage, deleteWikiPage, searchWikiPages } from '@/api/wiki';
@@ -21,31 +21,17 @@ import MarkdownRenderer from '@/components/common/MarkdownRenderer';
 type Tab = 'summary' | 'tasks' | 'board' | 'docs' | 'raid' | 'phases' | 'members' | 'settings' | 'sprints';
 
 export default function ProjectDetailPage() {
-  const { id } = useParams<{ id: string }>();
+  const { id, tab: tabParam } = useParams<{ id: string; tab?: string }>();
+  const navigate = useNavigate();
   const [project, setProject] = useState<ProjectDto | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<Tab>('summary');
   const { user } = useAuth();
   const role = user?.role;
   const canEdit = role === 'ADMIN' || role === 'MANAGER';
   const isExternal = role === 'EXTERNAL';
   const canSeeScores = canEdit || role === 'EXECUTIVE' || role === 'HR';
 
-  useEffect(() => {
-    if (!id) return;
-    setLoading(true);
-    getProject(Number(id)).then(setProject).finally(() => setLoading(false));
-  }, [id]);
-
-  if (loading) return <div className="flex items-center justify-center h-64"><Spinner className="h-8 w-8 text-primary-600" /></div>;
-  if (!project) return <div className="text-center text-gray-500 py-8">Project not found.</div>;
-
-  // Role-based tab visibility:
-  // EXECUTIVE: summary, board, raid, docs
-  // MANAGER:   summary, board, raid, tasks, docs, phases, members, settings
-  // HR:        summary, members, docs
-  // CONTRIBUTOR: tasks, board, docs
-  // EXTERNAL: tasks, board (existing behavior)
+  // Build role-based tab list
   const tabs: { key: Tab; label: string }[] = role === 'EXECUTIVE' ? [
     { key: 'summary', label: 'Summary' },
     { key: 'board', label: 'Board' },
@@ -75,6 +61,35 @@ export default function ProjectDetailPage() {
     { key: 'board', label: 'Board' },
     { key: 'sprints', label: 'Sprints' },
   ];
+
+  const validTabKeys = tabs.map((t) => t.key);
+  const resolvedTab = (tabParam && validTabKeys.includes(tabParam as Tab)) ? (tabParam as Tab) : validTabKeys[0];
+  const [activeTab, setActiveTabState] = useState<Tab>(resolvedTab);
+
+  // Sync active tab with URL param changes (e.g. browser back/forward)
+  useEffect(() => {
+    if (tabParam && validTabKeys.includes(tabParam as Tab)) {
+      setActiveTabState(tabParam as Tab);
+    } else if (!tabParam) {
+      setActiveTabState(validTabKeys[0]);
+      // Add tab segment to URL so deep links work for the current tab
+      navigate(`/projects/${id}/${validTabKeys[0]}`, { replace: true });
+    }
+  }, [tabParam, validTabKeys.join(',')]);
+
+  const setActiveTab = (tab: Tab) => {
+    setActiveTabState(tab);
+    navigate(`/projects/${id}/${tab}`, { replace: true });
+  };
+
+  useEffect(() => {
+    if (!id) return;
+    setLoading(true);
+    getProject(Number(id)).then(setProject).finally(() => setLoading(false));
+  }, [id]);
+
+  if (loading) return <div className="flex items-center justify-center h-64"><Spinner className="h-8 w-8 text-primary-600" /></div>;
+  if (!project) return <div className="text-center text-gray-500 py-8">Project not found.</div>;
 
   return (
     <div className="space-y-6">
