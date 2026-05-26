@@ -56,6 +56,21 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+// ACCESS CONTROL EXPECTATIONS (for PM-Agent testing)
+// admin     (ADMIN)       → CAN access all routes including /admin
+// majid    (MANAGER)     → CAN access /reports; CANNOT access /admin
+// ismail   (CONTRIBUTOR) → MUST NOT access /reports, /pmo, /admin
+// hanane   (CONTRIBUTOR) → MUST NOT access /reports, /pmo, /admin
+// wadii    (CONTRIBUTOR) → MUST NOT access /reports, /pmo, /admin
+// ahmed    (CONTRIBUTOR) → MUST NOT access /reports, /pmo, /admin
+// karima   (MANAGER)     → CAN access /reports; CANNOT access /admin
+// salim    (EXECUTIVE)  → CAN access /reports cross-company; CANNOT access /admin
+// basma    (EXTERNAL)    → MUST NOT access /reports, /pmo, /admin; sees only FSE and Mobile App
+// younes   (CONTRIBUTOR) → MUST NOT access /reports, /pmo, /admin
+// youssef  (MANAGER)     → CAN access /reports; CANNOT access /admin
+// walid    (CONTRIBUTOR) → MUST NOT access /reports, /pmo, /admin
+// mehdi    (HR)          → CAN access /reports; CANNOT access /admin
+
 @Component
 @Order(1)
 public class DataSeeder implements CommandLineRunner {
@@ -232,6 +247,7 @@ public class DataSeeder implements CommandLineRunner {
         createUserRate(youssef, new BigDecimal("80.00"), LocalDate.of(2025, 1, 1));
         createUserRate(walid, new BigDecimal("60.00"), LocalDate.of(2025, 1, 1));
         createUserRate(mehdi, new BigDecimal("80.00"), LocalDate.of(2025, 1, 1));
+        createUserRate(basma, new BigDecimal("100.00"), LocalDate.of(2025, 1, 1));
 
         // Programs
         Program ehealth = createProgram("eHealth", "EH", "Digital health transformation initiative", majid, company1);
@@ -249,7 +265,7 @@ public class DataSeeder implements CommandLineRunner {
         // Projects with PMO fields
         Project fse = createProject("FSE", "FSE", "Full Stack Engineering platform",
                 ehealth, majid, Project.Stage.EXECUTION, 8,
-                new BigDecimal("150000"), new BigDecimal("150000"), new BigDecimal("12000"),
+                new BigDecimal("500000"), new BigDecimal("500000"), new BigDecimal("12000"),
                 LocalDate.of(2025, 1, 15), LocalDate.of(2025, 9, 30), company1);
         fse.setClient(cnss); fse = projectRepository.save(fse);
 
@@ -323,10 +339,11 @@ public class DataSeeder implements CommandLineRunner {
         addMember(footballTeam, walid, 100);
         addMember(footballTeam, dev1, 10);
 
-        // External user assigned to FSE
+        // External user assigned to FSE and Mobile App
         basma.setAssignedProject(fse);
         userRepository.save(basma);
         addMember(fse, basma);
+        addMember(mobileApp, basma);
 
         // Favorites (per-user) — each user favorites 1-2 projects from their company (or any if global)
         addFavorite(admin, fse);
@@ -350,17 +367,23 @@ public class DataSeeder implements CommandLineRunner {
         // Phases with deliverables
         Phase fseInit = createPhase("Initiation", "Project kickoff and requirements gathering", fse, 0,
                 LocalDate.of(2025, 1, 15), LocalDate.of(2025, 2, 15));
+        fseInit.setPlannedAmount(new BigDecimal("75000"));
+        phaseRepository.save(fseInit);
         createDeliverable("Project Charter", "Defines scope, objectives, and stakeholders", fseInit, DeliverableState.VALIDATED, LocalDate.of(2025, 2, 1));
         createDeliverable("Requirements Document", "Functional and non-functional requirements", fseInit, DeliverableState.VALIDATED, LocalDate.of(2025, 2, 15));
 
         Phase fseExec = createPhase("Execution", "Core development and implementation", fse, 1,
                 LocalDate.of(2025, 2, 16), LocalDate.of(2025, 8, 31));
+        fseExec.setPlannedAmount(new BigDecimal("350000"));
+        phaseRepository.save(fseExec);
         createDeliverable("MVP Release", "Minimum viable product with core features", fseExec, DeliverableState.DELIVERED, LocalDate.of(2025, 5, 1));
         createDeliverable("API Layer", "RESTful API endpoints for all modules", fseExec, DeliverableState.DELIVERED, LocalDate.of(2025, 6, 15));
         createDeliverable("Integration Tests", "End-to-end test suite for all services", fseExec, DeliverableState.DRAFT, LocalDate.of(2025, 8, 31));
 
         Phase fseClose = createPhase("Closing", "Project wrap-up and handover", fse, 2,
                 LocalDate.of(2025, 9, 1), LocalDate.of(2025, 9, 30));
+        fseClose.setPlannedAmount(new BigDecimal("75000"));
+        phaseRepository.save(fseClose);
         createDeliverable("Final Documentation", "Complete project documentation package", fseClose, DeliverableState.DRAFT, LocalDate.of(2025, 9, 15));
         createDeliverable("Handover Report", "Lessons learned and operational guide", fseClose, DeliverableState.DRAFT, LocalDate.of(2025, 9, 30));
 
@@ -501,6 +524,10 @@ public class DataSeeder implements CommandLineRunner {
         createTask("FSE-6", "Payment integration", fse, todo, Task.Priority.HIGH, dev, null, admin, null, 5, LocalDate.of(2025, 9, 15), fseExec);
         createTask("FSE-7", "Analytics reporting", fse, todo, Task.Priority.MEDIUM, dev, null, majid, null, 6, null, fseClose);
 
+        // Additional tasks for ismail in Sprint 1 (multi-project sprint visibility)
+        createTask("FSE-9", "API error handling", fse, inProgress, Task.Priority.HIGH, dev, dev1, admin, sprint1, 8, LocalDate.of(2025, 7, 15), fseExec);
+        createTask("FSE-10", "Database migration scripts", fse, todo, Task.Priority.MEDIUM, dev, dev1, admin, sprint1, 9, LocalDate.of(2025, 8, 15), fseExec);
+
         // Tasks for Mobile App
         createTask("MA-1", "Login screen", mobileApp, done, Task.Priority.HIGH, dev, dev3, pmHarmony, sprintM1, 0, LocalDate.of(2025, 4, 15), mobileExec);
         createTask("MA-2", "Navigation framework", mobileApp, done, Task.Priority.HIGH, dev, dev4, pmHarmony, sprintM1, 1, LocalDate.of(2025, 5, 1), mobileExec);
@@ -512,6 +539,12 @@ public class DataSeeder implements CommandLineRunner {
         createTask("AG-1", "Rate limiting module", apiGateway, inProgress, Task.Priority.HIGH, dev, dev1, majid, null, 0, LocalDate.of(2026, 6, 30), apiExec);
         createTask("AG-2", "Service discovery", apiGateway, todo, Task.Priority.HIGH, dev, null, majid, null, 1, LocalDate.of(2026, 9, 30), apiExec);
         createTask("AG-3", "Load balancer config", apiGateway, todo, Task.Priority.MEDIUM, dev, null, majid, null, 2, LocalDate.of(2026, 11, 15), apiPlan);
+
+        // Task for hanane in eHealthPortal (multi-project assignment for Log Time dropdown)
+        createTask("PP-1", "Patient portal UI design", eHealthPortal, inProgress, Task.Priority.HIGH, dev, dev2, majid, null, 0, LocalDate.of(2025, 12, 31), null);
+
+        // Task for basma in Mobile App (multi-project EXTERNAL assignment)
+        createTask("MA-6", "Client UX review", mobileApp, todo, Task.Priority.MEDIUM, dev, basma, pmHarmony, null, 5, LocalDate.of(2025, 10, 31), mobileExec);
 
         // External tasks (visible only to EXTERNAL users)
         Task extTask = createTask("FSE-8", "Client feedback on login flow", fse, todo, Task.Priority.MEDIUM, dev, basma, basma, null, 7, LocalDate.of(2025, 8, 15), fseExec);
