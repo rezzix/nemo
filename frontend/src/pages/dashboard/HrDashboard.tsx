@@ -1,17 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { listAllUsers } from '@/api/users';
-import { listCompanies } from '@/api/companies';
 import { listProjects, getMembers } from '@/api/projects';
 import { listHolidays } from '@/api/holidays';
 import { scoreLabel, scoreColor } from '@/utils/format';
 import BarChart from '@/pages/reports/BarChart';
-import type { UserDto, CompanyDto, ProjectDto, HolidayDto } from '@/types';
+import type { UserDto, ProjectDto, HolidayDto } from '@/types';
 import Spinner from '@/components/common/Spinner';
 
 export default function HrDashboard() {
   const [users, setUsers] = useState<UserDto[]>([]);
-  const [companies, setCompanies] = useState<CompanyDto[]>([]);
   const [projects, setProjects] = useState<ProjectDto[]>([]);
   const [holidays, setHolidays] = useState<HolidayDto[]>([]);
   const [evaluations, setEvaluations] = useState<{ projectKey: string; projectName: string; username: string; fullName: string; score: number | null }[]>([]);
@@ -21,7 +19,6 @@ export default function HrDashboard() {
   useEffect(() => {
     Promise.all([
       listAllUsers({ size: 200 }).then(setUsers).catch(() => {}),
-      listCompanies().then((res) => setCompanies(res.data)).catch(() => {}),
       listProjects().then(setProjects).catch(() => {}),
       listHolidays({ year: new Date().getFullYear() }).then(setHolidays).catch(() => {}),
     ]).finally(() => setLoading(false));
@@ -78,7 +75,7 @@ export default function HrDashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard label="Total Users" value={String(users.length)} />
         <KpiCard label="Active Users" value={String(activeUsers.length)} />
-        <KpiCard label="Companies" value={String(companies.length)} />
+        <KpiCard label="Companies" value={String(Object.keys(companyUserCounts).length)} />
         <KpiCard label="Upcoming Holidays" value={String(upcomingHolidays.length)} />
       </div>
 
