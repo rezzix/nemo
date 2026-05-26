@@ -127,15 +127,27 @@ public class PmoService {
         BigDecimal pvToday = computePlannedValueToday(project, plannedValue);
         BigDecimal scheduleVariance = earnedValue.subtract(pvToday).setScale(2, RoundingMode.HALF_UP);
 
-        // CPI = EV / AC (null when EV = 0 or AC = 0 — no meaningful ratio)
-        BigDecimal cpi = earnedValue.compareTo(BigDecimal.ZERO) > 0 && actualCost.compareTo(BigDecimal.ZERO) > 0
-                ? earnedValue.divide(actualCost, 2, RoundingMode.HALF_UP)
-                : null;
+        // CPI = EV / AC
+        // Both zero → null (no activity). AC>0 with EV=0 → 0.00 (spending with no delivery).
+        BigDecimal cpi;
+        if (earnedValue.compareTo(BigDecimal.ZERO) > 0 && actualCost.compareTo(BigDecimal.ZERO) > 0) {
+            cpi = earnedValue.divide(actualCost, 2, RoundingMode.HALF_UP);
+        } else if (actualCost.compareTo(BigDecimal.ZERO) > 0) {
+            cpi = BigDecimal.ZERO;
+        } else {
+            cpi = null;
+        }
 
-        // SPI = EV / PV (null when EV = 0 or PV = 0 — no meaningful ratio)
-        BigDecimal spi = earnedValue.compareTo(BigDecimal.ZERO) > 0 && pvToday.compareTo(BigDecimal.ZERO) > 0
-                ? earnedValue.divide(pvToday, 2, RoundingMode.HALF_UP)
-                : null;
+        // SPI = EV / PV
+        // Both zero → null (no activity). PV>0 with EV=0 → 0.00 (behind schedule).
+        BigDecimal spi;
+        if (earnedValue.compareTo(BigDecimal.ZERO) > 0 && pvToday.compareTo(BigDecimal.ZERO) > 0) {
+            spi = earnedValue.divide(pvToday, 2, RoundingMode.HALF_UP);
+        } else if (pvToday.compareTo(BigDecimal.ZERO) > 0) {
+            spi = BigDecimal.ZERO;
+        } else {
+            spi = null;
+        }
 
         // Risk summary
         long openRisks = raidItemRepository.countByProjectIdAndStatus(projectId, RaidItem.RaidStatus.OPEN);
