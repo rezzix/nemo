@@ -3,11 +3,14 @@ package com.nemo.timetracking;
 import com.nemo.common.dto.ApiResponse;
 import com.nemo.project.Project;
 import com.nemo.project.ProjectRepository;
+import com.nemo.security.AuthHelper;
 import com.nemo.user.User;
 import com.nemo.user.UserRepository;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -23,11 +26,18 @@ public class ReportController {
     private final TimeLogRepository timeLogRepository;
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
+    private final AuthHelper authHelper;
 
-    public ReportController(TimeLogRepository timeLogRepository, UserRepository userRepository, ProjectRepository projectRepository) {
+    public ReportController(TimeLogRepository timeLogRepository, UserRepository userRepository,
+                            ProjectRepository projectRepository, AuthHelper authHelper) {
         this.timeLogRepository = timeLogRepository;
         this.userRepository = userRepository;
         this.projectRepository = projectRepository;
+        this.authHelper = authHelper;
+    }
+
+    private Long resolveCompanyId(UserDetails currentUser) {
+        return authHelper.hasAnyRole(currentUser, "ADMIN") ? null : authHelper.getCurrentCompanyId(currentUser);
     }
 
     @GetMapping("/time-by-project")
@@ -36,15 +46,17 @@ public class ReportController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false) Long projectId,
-            @RequestParam(required = false) Long userId) {
+            @RequestParam(required = false) Long userId,
+            @AuthenticationPrincipal UserDetails currentUser) {
 
+        Long companyId = resolveCompanyId(currentUser);
         List<TimeLog> logs;
         if (userId != null) {
             logs = timeLogRepository.findByUserIdAndDateRange(userId, startDate, endDate);
         } else if (projectId != null) {
             logs = timeLogRepository.findByProjectIdAndDateRange(projectId, startDate, endDate);
         } else {
-            logs = timeLogRepository.findByDateRange(startDate, endDate);
+            logs = timeLogRepository.findByDateRangeAndCompany(startDate, endDate, companyId);
         }
 
         Map<Long, BigDecimal> byProject = logs.stream()
@@ -75,15 +87,17 @@ public class ReportController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false) Long projectId,
-            @RequestParam(required = false) Long userId) {
+            @RequestParam(required = false) Long userId,
+            @AuthenticationPrincipal UserDetails currentUser) {
 
+        Long companyId = resolveCompanyId(currentUser);
         List<TimeLog> logs;
         if (userId != null) {
             logs = timeLogRepository.findByUserIdAndDateRange(userId, startDate, endDate);
         } else if (projectId != null) {
             logs = timeLogRepository.findByProjectIdAndDateRange(projectId, startDate, endDate);
         } else {
-            logs = timeLogRepository.findByDateRange(startDate, endDate);
+            logs = timeLogRepository.findByDateRangeAndCompany(startDate, endDate, companyId);
         }
 
         Map<Long, BigDecimal> byUser = logs.stream()
@@ -136,9 +150,11 @@ public class ReportController {
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EXECUTIVE', 'HR')")
     public ResponseEntity<ApiResponse<Map<String, Object>>> attendance(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @AuthenticationPrincipal UserDetails currentUser) {
 
-        List<TimeLog> logs = timeLogRepository.findByDateRange(startDate, endDate);
+        Long companyId = resolveCompanyId(currentUser);
+        List<TimeLog> logs = timeLogRepository.findByDateRangeAndCompany(startDate, endDate, companyId);
 
         // Group by user
         Map<Long, List<TimeLog>> byUser = logs.stream()
@@ -222,7 +238,7 @@ public class ReportController {
         }
 
         // Overall summary
-        long totalInternalUsers = userRepository.countByActiveStatus().stream()
+        long totalInternalUsers = userRepository.countByActiveStatusByCompany(companyId).stream()
                 .filter(r -> Boolean.TRUE.equals(r[0]))
                 .mapToLong(r -> (Long) r[1])
                 .sum();
@@ -238,14 +254,17 @@ public class ReportController {
 
     @GetMapping("/headcount")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EXECUTIVE', 'HR')")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> headcount() {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> headcount(
+            @AuthenticationPrincipal UserDetails currentUser) {
 
-        long totalUsers = userRepository.count();
-        long activeUsers = userRepository.countByActive(true);
-        long inactiveUsers = userRepository.countByActive(false);
+        Long companyId = resolveCompanyId(currentUser);
+
+        long totalUsers = userRepository.countByCompanyOrNull(companyId);
+        long activeUsers = userRepository.countByActiveAndCompany(true, companyId);
+        long inactiveUsers = userRepository.countByActiveAndCompany(false, companyId);
 
         // By role
-        List<Object[]> roleCounts = userRepository.countByRole();
+        List<Object[]> roleCounts = userRepository.countByRoleByCompany(companyId);
         List<Map<String, Object>> byRole = new ArrayList<>();
         for (Object[] row : roleCounts) {
             Map<String, Object> entry = new LinkedHashMap<>();
@@ -265,7 +284,7 @@ public class ReportController {
         }
 
         // By company
-        List<Object[]> companyCounts = userRepository.countByCompany();
+        List<Object[]> companyCounts = userRepository.countByCompanyFiltered(companyId);
         List<Map<String, Object>> byCompany = new ArrayList<>();
         for (Object[] row : companyCounts) {
             Map<String, Object> entry = new LinkedHashMap<>();
@@ -276,7 +295,7 @@ public class ReportController {
         }
 
         // By active status
-        List<Object[]> activeCounts = userRepository.countByActiveStatus();
+        List<Object[]> activeCounts = userRepository.countByActiveStatusByCompany(companyId);
         List<Map<String, Object>> byActiveStatus = new ArrayList<>();
         for (Object[] row : activeCounts) {
             Map<String, Object> entry = new LinkedHashMap<>();
