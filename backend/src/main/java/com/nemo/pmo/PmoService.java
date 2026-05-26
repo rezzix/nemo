@@ -116,8 +116,8 @@ public class PmoService {
         BigDecimal pvToday = computePlannedValueToday(project, plannedValue);
         BigDecimal scheduleVariance = earnedValue.subtract(pvToday).setScale(2, RoundingMode.HALF_UP);
 
-        // CPI = EV / AC (null when AC = 0 — no costs recorded yet)
-        BigDecimal cpi = actualCost.compareTo(BigDecimal.ZERO) > 0
+        // CPI = EV / AC (null when EV = 0 or AC = 0 — no meaningful ratio)
+        BigDecimal cpi = earnedValue.compareTo(BigDecimal.ZERO) > 0 && actualCost.compareTo(BigDecimal.ZERO) > 0
                 ? earnedValue.divide(actualCost, 2, RoundingMode.HALF_UP)
                 : null;
 
