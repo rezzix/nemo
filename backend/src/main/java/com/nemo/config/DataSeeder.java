@@ -42,6 +42,9 @@ import com.nemo.timetracking.TimeLog;
 import com.nemo.timetracking.TimeLogRepository;
 import com.nemo.timetracking.UserRate;
 import com.nemo.timetracking.UserRateRepository;
+import com.nemo.expense.ProjectExpense;
+import com.nemo.expense.ProjectExpense.ExpenseCategory;
+import com.nemo.expense.ProjectExpenseRepository;
 import com.nemo.user.User;
 import com.nemo.user.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -104,6 +107,7 @@ public class DataSeeder implements CommandLineRunner {
     private final ClientRepository clientRepository;
     private final LeaveEntitlementRepository leaveEntitlementRepository;
     private final LeaveRequestRepository leaveRequestRepository;
+    private final ProjectExpenseRepository projectExpenseRepository;
 
     public DataSeeder(UserRepository userRepository,
                       PasswordEncoder passwordEncoder,
@@ -130,7 +134,8 @@ public class DataSeeder implements CommandLineRunner {
                       AssetRepository assetRepository,
                       ClientRepository clientRepository,
                       LeaveEntitlementRepository leaveEntitlementRepository,
-                      LeaveRequestRepository leaveRequestRepository) {
+                      LeaveRequestRepository leaveRequestRepository,
+                      ProjectExpenseRepository projectExpenseRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.companyRepository = companyRepository;
@@ -157,6 +162,7 @@ public class DataSeeder implements CommandLineRunner {
         this.clientRepository = clientRepository;
         this.leaveEntitlementRepository = leaveEntitlementRepository;
         this.leaveRequestRepository = leaveRequestRepository;
+        this.projectExpenseRepository = projectExpenseRepository;
     }
 
     @Override
@@ -265,52 +271,52 @@ public class DataSeeder implements CommandLineRunner {
         // Projects with PMO fields
         Project fse = createProject("FSE", "FSE", "Full Stack Engineering platform",
                 ehealth, majid, Project.Stage.EXECUTION, 8,
-                new BigDecimal("500000"), new BigDecimal("500000"), new BigDecimal("240000"),
+                new BigDecimal("500000"), new BigDecimal("500000"),
                 LocalDate.of(2025, 1, 15), LocalDate.of(2025, 9, 30), company1);
         fse.setClient(cnss); fse = projectRepository.save(fse);
 
         Project apiGateway = createProject("API Gateway", "AG", "Central API gateway and service mesh",
                 ehealth, majid, Project.Stage.PLANNING, 6,
-                new BigDecimal("80000"), new BigDecimal("80000"), new BigDecimal("3500"),
+                new BigDecimal("80000"), new BigDecimal("80000"),
                 LocalDate.of(2025, 3, 1), LocalDate.of(2026, 12, 15), company1);
 
         Project mobileApp = createProject("Mobile App", "MA", "Cross-platform mobile application",
                 mobilePlatform, pmHarmony, Project.Stage.EXECUTION, 7,
-                new BigDecimal("200000"), new BigDecimal("200000"), new BigDecimal("65000"),
+                new BigDecimal("200000"), new BigDecimal("200000"),
                 LocalDate.of(2025, 2, 1), LocalDate.of(2025, 10, 31), company2);
         mobileApp.setClient(minds); mobileApp = projectRepository.save(mobileApp);
 
         Project infraUpgrade = createProject("Infrastructure Upgrade", "IU", "Cloud infrastructure modernization",
                 globalInit, salim, Project.Stage.INITIATION, 5,
-                new BigDecimal("50000"), new BigDecimal("50000"), BigDecimal.ZERO,
+                new BigDecimal("50000"), new BigDecimal("50000"),
                 LocalDate.of(2025, 6, 1), LocalDate.of(2025, 11, 30), null);
 
         // Additional project per program
         Project eHealthPortal = createProject("Patient Portal", "PP", "Patient-facing health information portal",
                 ehealth, majid, Project.Stage.INITIATION, 6,
-                new BigDecimal("95000"), new BigDecimal("95000"), BigDecimal.ZERO,
+                new BigDecimal("95000"), new BigDecimal("95000"),
                 LocalDate.of(2025, 7, 1), LocalDate.of(2027, 3, 31), company1);
         eHealthPortal.setClient(msps); eHealthPortal = projectRepository.save(eHealthPortal);
 
         Project mobilePay = createProject("Mobile Payments", "MP", "In-app payment and billing integration",
                 mobilePlatform, pmHarmony, Project.Stage.PLANNING, 7,
-                new BigDecimal("120000"), new BigDecimal("120000"), new BigDecimal("5000"),
+                new BigDecimal("120000"), new BigDecimal("120000"),
                 LocalDate.of(2025, 5, 1), LocalDate.of(2026, 12, 31), company2);
         mobilePay.setClient(iam); mobilePay = projectRepository.save(mobilePay);
 
         Project dataWarehouse = createProject("Data Warehouse", "DW", "Enterprise data warehouse and analytics platform",
                 globalInit, salim, Project.Stage.PLANNING, 8,
-                new BigDecimal("180000"), new BigDecimal("180000"), new BigDecimal("10000"),
+                new BigDecimal("180000"), new BigDecimal("180000"),
                 LocalDate.of(2025, 8, 1), LocalDate.of(2026, 6, 30), null);
 
         Project erpProject = createProject("medERP", "MER", "Healthcare ERP platform for hospital and clinic management",
                 erpProgram, younes, Project.Stage.EXECUTION, 7,
-                new BigDecimal("250000"), new BigDecimal("250000"), new BigDecimal("30000"),
+                new BigDecimal("250000"), new BigDecimal("250000"),
                 LocalDate.of(2025, 1, 1), LocalDate.of(2025, 12, 31), company4);
 
         Project footballTeam = createProject("Football Team Manager", "FTM", "Football team management and player tracking platform",
                 null, youssef, Project.Stage.CLOSING, 7,
-                new BigDecimal("120000"), new BigDecimal("120000"), new BigDecimal("100000"),
+                new BigDecimal("120000"), new BigDecimal("120000"),
                 LocalDate.of(2025, 3, 1), LocalDate.of(2025, 11, 30), company3);
         footballTeam.setClient(frmf); footballTeam = projectRepository.save(footballTeam);
 
@@ -657,6 +663,35 @@ public class DataSeeder implements CommandLineRunner {
                 "Infrastructure upgrade depends on cloud contract renewal",
                 RaidItem.RaidStatus.OPEN, null, null, null, majid, today.plusMonths(2));
 
+        // Project expenses — replacing old budgetSpent static values with dynamic expense records
+        createExpense(fse, ExpenseCategory.SOFTWARE, new BigDecimal("15000"), "Dev tools and cloud services", today.minusMonths(5), majid);
+        createExpense(fse, ExpenseCategory.EXPERTISE, new BigDecimal("25000"), "External consultants — architecture review", today.minusMonths(4), majid);
+        createExpense(fse, ExpenseCategory.INFRASTRUCTURE, new BigDecimal("10000"), "Server hardware upgrade", today.minusMonths(3), dev1);
+        createExpense(fse, ExpenseCategory.TRAVEL, new BigDecimal("5000"), "Team offsite workshop", today.minusMonths(2), majid);
+
+        createExpense(apiGateway, ExpenseCategory.SOFTWARE, new BigDecimal("2000"), "API management platform license", today.minusMonths(3), majid);
+        createExpense(apiGateway, ExpenseCategory.INFRASTRUCTURE, new BigDecimal("1500"), "Load balancer provisioning", today.minusMonths(2), dev1);
+
+        createExpense(mobileApp, ExpenseCategory.EQUIPMENT, new BigDecimal("8000"), "Test devices — iOS and Android", today.minusMonths(6), pmHarmony);
+        createExpense(mobileApp, ExpenseCategory.SOFTWARE, new BigDecimal("12000"), "Cross-platform framework license", today.minusMonths(4), dev3);
+        createExpense(mobileApp, ExpenseCategory.TRAVEL, new BigDecimal("5000"), "User testing travel", today.minusMonths(2), pmHarmony);
+
+        createExpense(mobilePay, ExpenseCategory.EXPERTISE, new BigDecimal("3000"), "Payment gateway consulting", today.minusMonths(3), pmHarmony);
+        createExpense(mobilePay, ExpenseCategory.SOFTWARE, new BigDecimal("2000"), "PCI compliance tools", today.minusMonths(2), dev3);
+
+        createExpense(dataWarehouse, ExpenseCategory.INFRASTRUCTURE, new BigDecimal("6000"), "Data lake storage", today.minusMonths(2), salim);
+        createExpense(dataWarehouse, ExpenseCategory.SOFTWARE, new BigDecimal("4000"), "ETL tooling license", today.minusMonths(1), salim);
+
+        createExpense(erpProject, ExpenseCategory.EXPERTISE, new BigDecimal("15000"), "Healthcare domain consultants", today.minusMonths(8), younes);
+        createExpense(erpProject, ExpenseCategory.SOFTWARE, new BigDecimal("10000"), "ERP platform licenses", today.minusMonths(5), younes);
+        createExpense(erpProject, ExpenseCategory.TRAVEL, new BigDecimal("5000"), "Hospital site visits", today.minusMonths(3), younes);
+
+        createExpense(footballTeam, ExpenseCategory.EQUIPMENT, new BigDecimal("20000"), "GPS tracking devices for players", today.minusMonths(5), youssef);
+        createExpense(footballTeam, ExpenseCategory.SOFTWARE, new BigDecimal("30000"), "Platform development tools", today.minusMonths(4), youssef);
+        createExpense(footballTeam, ExpenseCategory.TRAVEL, new BigDecimal("10000"), "Away match logistics", today.minusMonths(2), youssef);
+        createExpense(footballTeam, ExpenseCategory.INFRASTRUCTURE, new BigDecimal("15000"), "Server hosting and CDN", today.minusMonths(1), youssef);
+        createExpense(footballTeam, ExpenseCategory.EXPERTISE, new BigDecimal("25000"), "Sports analytics consultancy", today.minusMonths(6), youssef);
+
         // Public holidays (Morocco 2025)
         createHoliday(LocalDate.of(2025, 1, 1), "New Year's Day", null);
         createHoliday(LocalDate.of(2025, 1, 11), "Independence Manifesto Day", null);
@@ -817,7 +852,7 @@ public class DataSeeder implements CommandLineRunner {
 
     private Project createProject(String name, String key, String description, Program program,
                                   User manager, Project.Stage stage, int strategicScore,
-                                  BigDecimal plannedValue, BigDecimal budget, BigDecimal budgetSpent,
+                                  BigDecimal plannedValue, BigDecimal budget,
                                   LocalDate targetStartDate, LocalDate targetEndDate, Company company) {
         Project project = new Project();
         project.setName(name);
@@ -829,7 +864,6 @@ public class DataSeeder implements CommandLineRunner {
         project.setStrategicScore(strategicScore);
         project.setPlannedValue(plannedValue);
         project.setBudget(budget);
-        project.setBudgetSpent(budgetSpent);
         project.setTargetStartDate(targetStartDate);
         project.setTargetEndDate(targetEndDate);
         project.setCompany(company);
@@ -927,6 +961,18 @@ public class DataSeeder implements CommandLineRunner {
         item.setOwner(owner);
         item.setDueDate(dueDate);
         return raidItemRepository.save(item);
+    }
+
+    private ProjectExpense createExpense(Project project, ExpenseCategory category, BigDecimal amount,
+                                          String description, LocalDate expenseDate, User createdBy) {
+        ProjectExpense expense = new ProjectExpense();
+        expense.setProject(project);
+        expense.setCategory(category);
+        expense.setAmount(amount);
+        expense.setDescription(description);
+        expense.setExpenseDate(expenseDate);
+        expense.setCreatedBy(createdBy);
+        return projectExpenseRepository.save(expense);
     }
 
     private void createHoliday(LocalDate date, String name, Company company) {

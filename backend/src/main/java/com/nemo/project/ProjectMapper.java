@@ -20,7 +20,6 @@ public interface ProjectMapper {
     @Mapping(target = "strategicScore", source = "strategicScore")
     @Mapping(target = "plannedValue", source = "plannedValue")
     @Mapping(target = "budget", source = "budget")
-    @Mapping(target = "budgetSpent", source = "budgetSpent")
     @Mapping(target = "targetStartDate", source = "targetStartDate", dateFormat = "yyyy-MM-dd")
     @Mapping(target = "targetEndDate", source = "targetEndDate", dateFormat = "yyyy-MM-dd")
     @Mapping(target = "createdAt", source = "createdAt", dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'")

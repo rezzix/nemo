@@ -74,7 +74,7 @@ export default function PmoDashboardPage() {
       {portfolio && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard label="Total Projects" value={String(portfolio.totalProjects)} icon={ProjectIcon} />
-          <StatCard label="Portfolio Budget" value={formatCurrency(portfolio.totalBudget)} sub={`Spent: ${formatCurrency(portfolio.totalBudgetSpent)}`} icon={BudgetIcon} />
+          <StatCard label="Portfolio Budget" value={formatCurrency(portfolio.totalBudget)} sub={`Spent: ${formatCurrency(portfolio.totalExpenseCost)}`} icon={BudgetIcon} />
           <StatCard label="Active Risks" value={String(portfolio.totalOpenRisks + portfolio.totalMitigatingRisks)} sub={`${portfolio.totalOpenRisks} open · ${portfolio.totalMitigatingRisks} mitigating`} icon={RiskIcon} />
           <StatCard label="Completion" value={`${portfolio.totalTasks > 0 ? Math.round((portfolio.totalCompleted / portfolio.totalTasks) * 100) : 0}%`} sub={`${portfolio.totalCompleted} / ${portfolio.totalTasks} tasks`} icon={ProgressIcon} />
         </div>

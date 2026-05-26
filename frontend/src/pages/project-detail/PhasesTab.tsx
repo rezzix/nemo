@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { PhaseDto, PhasePaymentDto, DeliverableDto } from '@/types';
-import { listPhases, createPhase, updatePhase, deletePhase, listDeliverables, createDeliverable, updateDeliverable, deleteDeliverable, uploadDeliverableAttachment, deleteDeliverableAttachment, getDeliverableAttachmentDownloadUrl, listPhasePayments, createPhasePayment, updatePhasePayment, deletePhasePayment } from '@/api/phases';
+import type { PhaseDto, ClientPaymentDto, DeliverableDto } from '@/types';
+import { listPhases, createPhase, updatePhase, deletePhase, listDeliverables, createDeliverable, updateDeliverable, deleteDeliverable, uploadDeliverableAttachment, deleteDeliverableAttachment, getDeliverableAttachmentDownloadUrl, listClientPayments, createClientPayment, updateClientPayment, deleteClientPayment } from '@/api/phases';
 import axios from 'axios';
 import { formatDate, formatCurrency, deliverableStateBadge, deliverableStateLabel, deadlineBadge, deadlineLabel } from '@/utils/format';
 import Spinner from '@/components/common/Spinner';
@@ -9,7 +9,7 @@ import Modal from '@/components/common/Modal';
 export default function PhasesTab({ projectId, canEdit }: { projectId: number; canEdit: boolean }) {
   const [phases, setPhases] = useState<PhaseDto[]>([]);
   const [deliverables, setDeliverables] = useState<DeliverableDto[]>([]);
-  const [payments, setPayments] = useState<Record<number, PhasePaymentDto[]>>({});
+  const [payments, setPayments] = useState<Record<number, ClientPaymentDto[]>>({});
   const [loading, setLoading] = useState(true);
   const [expandedPhaseId, setExpandedPhaseId] = useState<number | null>(null);
 
@@ -29,7 +29,7 @@ export default function PhasesTab({ projectId, canEdit }: { projectId: number; c
 
   // Payment form state
   const [showPaymentForm, setShowPaymentForm] = useState(false);
-  const [editingPayment, setEditingPayment] = useState<PhasePaymentDto | null>(null);
+  const [editingPayment, setEditingPayment] = useState<ClientPaymentDto | null>(null);
   const [paymentFormPhaseId, setPaymentFormPhaseId] = useState<number>(0);
   const [paymentForm, setPaymentForm] = useState({ amount: '', paymentDate: '', reference: '', notes: '' });
   const [paymentSaving, setPaymentSaving] = useState(false);
@@ -53,7 +53,7 @@ export default function PhasesTab({ projectId, canEdit }: { projectId: number; c
 
   const fetchPayments = async (phaseId: number) => {
     try {
-      const p = await listPhasePayments(projectId, phaseId);
+      const p = await listClientPayments(projectId, phaseId);
       setPayments(prev => ({ ...prev, [phaseId]: p }));
     } catch { /* ignore */ }
   };
@@ -193,12 +193,12 @@ export default function PhasesTab({ projectId, canEdit }: { projectId: number; c
     setPaymentSaving(true); setPaymentError(null);
     try {
       if (editingPayment) {
-        await updatePhasePayment(projectId, paymentFormPhaseId, editingPayment.id, {
+        await updateClientPayment(projectId, paymentFormPhaseId, editingPayment.id, {
           amount: paymentForm.amount, paymentDate: paymentForm.paymentDate || undefined,
           reference: paymentForm.reference || undefined, notes: paymentForm.notes || undefined,
         });
       } else {
-        await createPhasePayment(projectId, paymentFormPhaseId, {
+        await createClientPayment(projectId, paymentFormPhaseId, {
           amount: paymentForm.amount, paymentDate: paymentForm.paymentDate || undefined,
           reference: paymentForm.reference || undefined, notes: paymentForm.notes || undefined,
         });
@@ -215,7 +215,7 @@ export default function PhasesTab({ projectId, canEdit }: { projectId: number; c
 
   const handlePaymentDelete = async (phaseId: number, paymentId: number) => {
     if (!confirm('Delete this payment?')) return;
-    await deletePhasePayment(projectId, phaseId, paymentId);
+    await deleteClientPayment(projectId, phaseId, paymentId);
     fetchPayments(phaseId);
     fetchData();
   };
