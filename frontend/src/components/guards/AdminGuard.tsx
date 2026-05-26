@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom';
+import AccessDenied from '@/components/common/AccessDenied';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function AdminGuard({ children }: { children: React.ReactNode }) {
@@ -8,7 +8,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
   if (isLoading) return null;
 
   if (user?.role !== 'ADMIN') {
-    return <Navigate to="/" replace />;
+    return <AccessDenied requiredRoles={['ADMIN']} />;
   }
 
   return <>{children}</>;
