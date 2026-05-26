@@ -47,7 +47,7 @@ export default function PortfolioReport() {
   }
 
   const totalBudget = portfolio?.totalBudget ?? projects.reduce((s, p) => s + Number(p.budget || 0), 0);
-  const totalSpent = portfolio?.totalBudgetSpent ?? projects.reduce((s, p) => s + Number(p.budgetSpent || 0), 0);
+  const totalSpent = portfolio?.totalExpenseCost ?? 0;
   const topRisks = [...risks].filter(r => r.status === 'OPEN' || r.status === 'MITIGATING').sort((a, b) => b.riskScore - a.riskScore).slice(0, 5);
 
   return (
@@ -110,7 +110,7 @@ export default function PortfolioReport() {
                   <td className="px-5 py-3 font-medium text-gray-900">{c.companyName}</td>
                   <td className="px-3 py-3 text-right text-gray-700">{c.totalProjects}</td>
                   <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(c.totalBudget)}</td>
-                  <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(c.totalBudgetSpent)}</td>
+                  <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(c.totalExpenseCost)}</td>
                   <td className="px-3 py-3 text-right text-gray-700">{c.totalTasks > 0 ? ((c.totalCompleted / c.totalTasks) * 100).toFixed(0) + '%' : '-'}</td>
                   <td className="px-3 py-3 text-right">{c.totalOpenRisks + c.totalMitigatingRisks > 0 ? (
                     <span className="text-amber-600 font-medium">{c.totalOpenRisks + c.totalMitigatingRisks}</span>

@@ -226,7 +226,7 @@ public class PmoService {
         BigDecimal totalEarnedValue = BigDecimal.ZERO;
         BigDecimal totalActualCost = BigDecimal.ZERO;
         BigDecimal totalBudget = BigDecimal.ZERO;
-        BigDecimal totalBudgetSpent = BigDecimal.ZERO;
+        BigDecimal totalExpenseCost = BigDecimal.ZERO;
         long totalOpenRisks = 0;
         long totalMitigatingRisks = 0;
 
@@ -255,7 +255,7 @@ public class PmoService {
             BigDecimal projLaborCost = computeLaborCost(project.getId());
             BigDecimal projExpenseCost = computeExpenseCost(project.getId());
             totalActualCost = totalActualCost.add(projLaborCost.add(projExpenseCost).setScale(2, RoundingMode.HALF_UP));
-            totalBudgetSpent = totalBudgetSpent.add(projExpenseCost);
+            totalExpenseCost = totalExpenseCost.add(projExpenseCost);
 
             if (project.getBudget() != null) totalBudget = totalBudget.add(project.getBudget());
 
@@ -276,7 +276,7 @@ public class PmoService {
         return new PortfolioSummary(
                 totalProjects, totalTasks, totalCompleted,
                 totalPlannedValue, totalEarnedValue, totalActualCost,
-                totalBudget, totalBudgetSpent,
+                totalBudget, totalExpenseCost,
                 portfolioCv, portfolioSv,
                 totalOpenRisks, totalMitigatingRisks,
                 stageDistribution
