@@ -15,9 +15,10 @@ import PhasesTab from './PhasesTab';
 import SettingsTab from './SettingsTab';
 import MembersTab from './MembersTab';
 import SummaryTab from './SummaryTab';
+import SprintsTab from './SprintsTab';
 import MarkdownRenderer from '@/components/common/MarkdownRenderer';
 
-type Tab = 'summary' | 'tasks' | 'board' | 'docs' | 'raid' | 'phases' | 'members' | 'settings';
+type Tab = 'summary' | 'tasks' | 'board' | 'docs' | 'raid' | 'phases' | 'members' | 'settings' | 'sprints';
 
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -53,6 +54,7 @@ export default function ProjectDetailPage() {
   ] : role === 'MANAGER' ? [
     { key: 'summary', label: 'Summary' },
     { key: 'board', label: 'Board' },
+    { key: 'sprints', label: 'Sprints' },
     { key: 'raid', label: 'RAID' },
     { key: 'tasks', label: 'Tasks' },
     { key: 'docs', label: 'Docs' },
@@ -66,10 +68,12 @@ export default function ProjectDetailPage() {
   ] : role === 'CONTRIBUTOR' ? [
     { key: 'tasks', label: 'Tasks' },
     { key: 'board', label: 'Board' },
+    { key: 'sprints', label: 'Sprints' },
     { key: 'docs', label: 'Docs' },
   ] : [ // EXTERNAL or fallback
     { key: 'tasks', label: 'Tasks' },
     { key: 'board', label: 'Board' },
+    { key: 'sprints', label: 'Sprints' },
   ];
 
   return (
@@ -114,6 +118,7 @@ export default function ProjectDetailPage() {
       {activeTab === 'phases' && <PhasesTab projectId={project.id} canEdit={canEdit} />}
       {activeTab === 'settings' && <SettingsTab project={project} onUpdate={(p) => setProject(p)} canEdit={canEdit} />}
       {activeTab === 'members' && <MembersTab projectId={project.id} managerId={project.managerId} canEdit={canEdit} canSeeScores={canSeeScores} />}
+      {activeTab === 'sprints' && <SprintsTab projectId={project.id} canEdit={canEdit} />}
     </div>
   );
 }
