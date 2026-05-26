@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
-import type { ProjectDto, WikiTreeItem, WikiPageDto, WikiSearchHit } from '@/types';
+import { useParams, useNavigate } from 'react-router-dom';
+import type { ProjectDto, WikiTreeItem, WikiPageDto, WikiSearchHit, EvmMetrics } from '@/types';
 import { getProject } from '@/api/projects';
+import { getEvmMetrics } from '@/api/pmo';
 import { getWikiPageTree, getWikiPage, createWikiPage, updateWikiPage, deleteWikiPage, searchWikiPages } from '@/api/wiki';
 import { useAuth } from '@/hooks/useAuth';
 import { stageBadge, stageLabel, formatDate, formatCurrency } from '@/utils/format';
@@ -12,39 +13,28 @@ import TasksTab from './TasksTab';
 import BoardTab from './BoardTab';
 import RaidTab from './RaidTab';
 import PhasesTab from './PhasesTab';
+import ExpensesTab from './ExpensesTab';
 import SettingsTab from './SettingsTab';
 import MembersTab from './MembersTab';
 import SummaryTab from './SummaryTab';
+import SprintsTab from './SprintsTab';
 import MarkdownRenderer from '@/components/common/MarkdownRenderer';
 
-type Tab = 'summary' | 'tasks' | 'board' | 'docs' | 'raid' | 'phases' | 'members' | 'settings';
+type Tab = 'summary' | 'tasks' | 'board' | 'docs' | 'raid' | 'phases' | 'expenses' | 'members' | 'settings' | 'sprints';
 
 export default function ProjectDetailPage() {
-  const { id } = useParams<{ id: string }>();
+  const { id, tab: tabParam } = useParams<{ id: string; tab?: string }>();
+  const navigate = useNavigate();
   const [project, setProject] = useState<ProjectDto | null>(null);
+  const [evm, setEvm] = useState<EvmMetrics | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<Tab>('summary');
   const { user } = useAuth();
   const role = user?.role;
   const canEdit = role === 'ADMIN' || role === 'MANAGER';
   const isExternal = role === 'EXTERNAL';
   const canSeeScores = canEdit || role === 'EXECUTIVE' || role === 'HR';
 
-  useEffect(() => {
-    if (!id) return;
-    setLoading(true);
-    getProject(Number(id)).then(setProject).finally(() => setLoading(false));
-  }, [id]);
-
-  if (loading) return <div className="flex items-center justify-center h-64"><Spinner className="h-8 w-8 text-primary-600" /></div>;
-  if (!project) return <div className="text-center text-gray-500 py-8">Project not found.</div>;
-
-  // Role-based tab visibility:
-  // EXECUTIVE: summary, board, raid, docs
-  // MANAGER:   summary, board, raid, tasks, docs, phases, members, settings
-  // HR:        summary, members, docs
-  // CONTRIBUTOR: tasks, board, docs
-  // EXTERNAL: tasks, board (existing behavior)
+  // Build role-based tab list
   const tabs: { key: Tab; label: string }[] = role === 'EXECUTIVE' ? [
     { key: 'summary', label: 'Summary' },
     { key: 'board', label: 'Board' },
@@ -53,10 +43,12 @@ export default function ProjectDetailPage() {
   ] : role === 'MANAGER' ? [
     { key: 'summary', label: 'Summary' },
     { key: 'board', label: 'Board' },
+    { key: 'sprints', label: 'Sprints' },
     { key: 'raid', label: 'RAID' },
     { key: 'tasks', label: 'Tasks' },
     { key: 'docs', label: 'Docs' },
     { key: 'phases', label: 'Phases' },
+    { key: 'expenses', label: 'Expenses' },
     { key: 'members', label: 'Members' },
     { key: 'settings', label: 'Settings' },
   ] : role === 'HR' ? [
@@ -66,11 +58,42 @@ export default function ProjectDetailPage() {
   ] : role === 'CONTRIBUTOR' ? [
     { key: 'tasks', label: 'Tasks' },
     { key: 'board', label: 'Board' },
+    { key: 'sprints', label: 'Sprints' },
     { key: 'docs', label: 'Docs' },
   ] : [ // EXTERNAL or fallback
     { key: 'tasks', label: 'Tasks' },
     { key: 'board', label: 'Board' },
+    { key: 'sprints', label: 'Sprints' },
   ];
+
+  const validTabKeys = tabs.map((t) => t.key);
+  const resolvedTab = (tabParam && validTabKeys.includes(tabParam as Tab)) ? (tabParam as Tab) : validTabKeys[0];
+  const [activeTab, setActiveTabState] = useState<Tab>(resolvedTab);
+
+  // Sync active tab with URL param changes (e.g. browser back/forward)
+  useEffect(() => {
+    if (tabParam && validTabKeys.includes(tabParam as Tab)) {
+      setActiveTabState(tabParam as Tab);
+    } else if (!tabParam) {
+      setActiveTabState(validTabKeys[0]);
+      // Add tab segment to URL so deep links work for the current tab
+      navigate(`/projects/${id}/${validTabKeys[0]}`, { replace: true });
+    }
+  }, [tabParam, validTabKeys.join(',')]);
+
+  const setActiveTab = (tab: Tab) => {
+    setActiveTabState(tab);
+    navigate(`/projects/${id}/${tab}`, { replace: true });
+  };
+
+  useEffect(() => {
+    if (!id) return;
+    setLoading(true);
+    getProject(Number(id)).then(setProject).finally(() => setLoading(false));
+  }, [id]);
+
+  if (loading) return <div className="flex items-center justify-center h-64"><Spinner className="h-8 w-8 text-primary-600" /></div>;
+  if (!project) return <div className="text-center text-gray-500 py-8">Project not found.</div>;
 
   return (
     <div className="space-y-6">
@@ -85,8 +108,15 @@ export default function ProjectDetailPage() {
           <span>Manager: {project.managerName}</span>
           {project.clientName && <span>Client: {project.clientName}</span>}
           {project.programName && <span>Program: {project.programName}</span>}
-          {project.budget && <span>Budget: {formatCurrency(Number(project.budget))}</span>}
-          {project.strategicScore != null && <span>Score: {project.strategicScore}/10</span>}
+          {!isExternal && project.budget && (
+            <span>
+              Budget: {formatCurrency(Number(project.budget))}
+              {evm && (
+                <> &middot; Spent: {formatCurrency(evm.actualCost)} (Labor: {formatCurrency(evm.laborCost)} &middot; Expenses: {formatCurrency(evm.expenseCost)})</>
+              )}
+            </span>
+          )}
+          {!isExternal && project.strategicScore != null && <span>Score: {project.strategicScore}/10</span>}
         </div>
       </div>
 
@@ -109,18 +139,20 @@ export default function ProjectDetailPage() {
       {activeTab === 'summary' && <SummaryTab project={project} projectId={project.id} managerId={project.managerId} onNavigate={setActiveTab} />}
       {activeTab === 'tasks' && <TasksTab projectId={project.id} projectKey={project.key} canEdit={canEdit} isExternal={isExternal} />}
       {activeTab === 'board' && <BoardTab projectId={project.id} projectKey={project.key} isExternal={isExternal} />}
-      {activeTab === 'docs' && <DocsTab projectId={project.id} />}
+      {activeTab === 'docs' && <DocsTab projectId={project.id} canEdit={canEdit || role === 'CONTRIBUTOR'} />}
       {activeTab === 'raid' && <RaidTab projectId={project.id} canEdit={canEdit} />}
       {activeTab === 'phases' && <PhasesTab projectId={project.id} canEdit={canEdit} />}
+      {activeTab === 'expenses' && <ExpensesTab projectId={project.id} canEdit={canEdit} />}
       {activeTab === 'settings' && <SettingsTab project={project} onUpdate={(p) => setProject(p)} canEdit={canEdit} />}
       {activeTab === 'members' && <MembersTab projectId={project.id} managerId={project.managerId} canEdit={canEdit} canSeeScores={canSeeScores} />}
+      {activeTab === 'sprints' && <SprintsTab projectId={project.id} canEdit={canEdit} />}
     </div>
   );
 }
 
 // ─── Docs Tab ──────────────────────────────────────────────────────────────────
 
-function DocsTab({ projectId }: { projectId: number }) {
+function DocsTab({ projectId, canEdit }: { projectId: number; canEdit: boolean }) {
   const [tree, setTree] = useState<WikiTreeItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -235,11 +267,13 @@ function DocsTab({ projectId }: { projectId: number }) {
             ))
           )}
         </div>
-        <div className="p-2 border-t border-gray-200">
-          <button onClick={() => setShowNewPage(true)} className="w-full bg-primary-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-primary-700">
-            New Page
-          </button>
-        </div>
+        {canEdit && (
+          <div className="p-2 border-t border-gray-200">
+            <button onClick={() => setShowNewPage(true)} className="w-full bg-primary-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-primary-700">
+              New Page
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Right panel — content */}
@@ -271,8 +305,8 @@ function DocsTab({ projectId }: { projectId: number }) {
             <div className="flex items-start justify-between mb-4">
               <h2 className="text-2xl font-bold text-gray-900">{page.title}</h2>
               <div className="flex items-center gap-2">
-                <button onClick={startEditing} className="bg-primary-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-primary-700">Edit</button>
-                <button onClick={handleDelete} className="text-red-600 hover:text-red-800 text-sm font-medium px-3 py-1.5">Delete</button>
+                {canEdit && <button onClick={startEditing} className="bg-primary-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-primary-700">Edit</button>}
+                {canEdit && <button onClick={handleDelete} className="text-red-600 hover:text-red-800 text-sm font-medium px-3 py-1.5">Delete</button>}
               </div>
             </div>
             <div className="flex items-center gap-3 text-xs text-gray-400 mb-6">
@@ -282,7 +316,7 @@ function DocsTab({ projectId }: { projectId: number }) {
             <div>
               {page.content
                 ? <MarkdownRenderer content={page.content} />
-                : <span className="text-gray-400 italic">No content yet. Click Edit to add content.</span>
+                : <span className="text-gray-400 italic">No content yet.{canEdit ? ' Click Edit to add content.' : ''}</span>
               }
             </div>
           </div>

@@ -9,14 +9,19 @@ import type { PortfolioSummary, EvmMetrics, RaidItemDto, ProjectDto, CompanyPort
 import BarChart from '@/pages/reports/BarChart';
 import Spinner from '@/components/common/Spinner';
 
-interface Alert {
-  projectId: number;
-  projectKey: string;
-  projectName: string;
+interface AlertItem {
   type: 'cpi' | 'spi' | 'budget' | 'risk';
   message: string;
   value: string;
   severity: 'red' | 'yellow';
+}
+
+interface Alert {
+  projectId: number;
+  projectKey: string;
+  projectName: string;
+  items: AlertItem[];
+  worstSeverity: 'red' | 'yellow';
 }
 
 function computeAlerts(
@@ -24,7 +29,14 @@ function computeAlerts(
   evmMap: Record<number, EvmMetrics>,
   allRisks: RaidItemDto[],
 ): Alert[] {
-  const alerts: Alert[] = [];
+  const alertMap: Record<number, Alert> = {};
+  const getOrCreate = (project: ProjectDto): Alert => {
+    if (!alertMap[project.id]) {
+      alertMap[project.id] = { projectId: project.id, projectKey: project.key, projectName: project.name, items: [], worstSeverity: 'yellow' };
+    }
+    return alertMap[project.id];
+  };
+
   for (const project of projects) {
     const evm = evmMap[project.id];
     const projectRisks = allRisks.filter((r) => r.projectId === project.id);
@@ -32,39 +44,35 @@ function computeAlerts(
 
     if (evm) {
       if (evm.cpi != null && evm.cpi < 0.9) {
-        alerts.push({
-          projectId: project.id, projectKey: project.key, projectName: project.name,
-          type: 'cpi', message: 'Cost performance below threshold',
-          value: `CPI ${evm.cpi.toFixed(2)}`, severity: evm.cpi < 0.8 ? 'red' : 'yellow',
-        });
+        const severity = evm.cpi < 0.8 ? 'red' : 'yellow';
+        const a = getOrCreate(project);
+        a.items.push({ type: 'cpi', message: 'Cost performance below threshold', value: `CPI ${evm.cpi.toFixed(2)}`, severity });
+        if (severity === 'red') a.worstSeverity = 'red';
       }
       if (evm.spi != null && evm.spi < 0.9) {
-        alerts.push({
-          projectId: project.id, projectKey: project.key, projectName: project.name,
-          type: 'spi', message: 'Schedule performance below threshold',
-          value: `SPI ${evm.spi.toFixed(2)}`, severity: evm.spi < 0.8 ? 'red' : 'yellow',
-        });
+        const severity = evm.spi < 0.8 ? 'red' : 'yellow';
+        const a = getOrCreate(project);
+        a.items.push({ type: 'spi', message: 'Schedule performance below threshold', value: `SPI ${evm.spi.toFixed(2)}`, severity });
+        if (severity === 'red') a.worstSeverity = 'red';
       }
       if (project.budget && Number(project.budget) > 0) {
         const spentRatio = evm.actualCost / Number(project.budget);
         if (spentRatio > 0.8) {
-          alerts.push({
-            projectId: project.id, projectKey: project.key, projectName: project.name,
-            type: 'budget', message: 'Budget consumption exceeds 80%',
-            value: `${(spentRatio * 100).toFixed(0)}% spent`, severity: spentRatio > 1 ? 'red' : 'yellow',
-          });
+          const severity = spentRatio > 1 ? 'red' : 'yellow';
+          const a = getOrCreate(project);
+          a.items.push({ type: 'budget', message: 'Budget consumption exceeds 80%', value: `${(spentRatio * 100).toFixed(0)}% spent`, severity });
+          if (severity === 'red') a.worstSeverity = 'red';
         }
       }
     }
     if (maxRisk >= 15) {
-      alerts.push({
-        projectId: project.id, projectKey: project.key, projectName: project.name,
-        type: 'risk', message: 'High-severity risk identified',
-        value: `Max risk score ${maxRisk}`, severity: maxRisk >= 20 ? 'red' : 'yellow',
-      });
+      const severity = maxRisk >= 20 ? 'red' : 'yellow';
+      const a = getOrCreate(project);
+      a.items.push({ type: 'risk', message: 'High-severity risk identified', value: `Max risk score ${maxRisk}`, severity });
+      if (severity === 'red') a.worstSeverity = 'red';
     }
   }
-  return alerts.sort((a, b) => (a.severity === 'red' ? 0 : 1) - (b.severity === 'red' ? 0 : 1));
+  return Object.values(alertMap).sort((a, b) => (a.worstSeverity === 'red' ? 0 : 1) - (b.worstSeverity === 'red' ? 0 : 1));
 }
 
 const alertIcons: Record<Alert['type'], string> = {
@@ -288,7 +296,7 @@ export default function ExecutiveDashboard() {
             </div>
             <p className="text-sm font-bold text-gray-900">{projects.length} projects</p>
           </button>
-          {companyCards.filter((c) => c.id !== null).map((card) => {
+          {companyCards.map((card) => {
             const cs = companyData.find((c) => c.companyId === card.id);
             const isSelected = selectedCompanyId === card.id;
             return (
@@ -351,22 +359,24 @@ export default function ExecutiveDashboard() {
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Attention Needed</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {alerts.map((a, i) => (
+            {alerts.map((a) => (
               <Link
-                key={i}
+                key={a.projectId}
                 to={`/projects/${a.projectId}`}
-                className={`flex items-start gap-3 px-4 py-3 rounded-xl border ${alertSeverityStyles[a.severity]} hover:opacity-80 transition-opacity`}
+                className={`flex items-start gap-3 px-4 py-3 rounded-xl border ${alertSeverityStyles[a.worstSeverity]} hover:opacity-80 transition-opacity`}
               >
-                <span className="text-lg mt-0.5">{alertIcons[a.type]}</span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-mono text-gray-600">{a.projectKey}</span>
                     <span className="text-sm font-medium text-gray-900 truncate">{a.projectName}</span>
                   </div>
-                  <p className="text-xs text-gray-600 mt-0.5">{a.message}</p>
-                  <span className={`text-xs font-semibold mt-1 inline-block ${a.severity === 'red' ? 'text-red-700' : 'text-amber-700'}`}>
-                    {a.value}
-                  </span>
+                  <div className="flex flex-wrap gap-1.5 mt-1.5">
+                    {a.items.map((item, i) => (
+                      <span key={i} className={`text-xs font-semibold px-1.5 py-0.5 rounded ${item.severity === 'red' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                        {alertIcons[item.type]} {item.value}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </Link>
             ))}
@@ -392,7 +402,7 @@ export default function ExecutiveDashboard() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Spent</span>
-                      <span className="font-medium text-gray-900">{formatCurrency(c.totalBudgetSpent)}</span>
+                      <span className="font-medium text-gray-900">{formatCurrency(c.totalExpenseCost)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Completion</span>

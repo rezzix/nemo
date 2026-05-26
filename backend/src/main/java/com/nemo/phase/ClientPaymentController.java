@@ -13,14 +13,14 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/projects/{projectId}/phases/{phaseId}/payments")
-public class PhasePaymentController {
+public class ClientPaymentController {
 
-    private final PhasePaymentService paymentService;
-    private final PhasePaymentMapper paymentMapper;
+    private final ClientPaymentService paymentService;
+    private final ClientPaymentMapper paymentMapper;
     private final PhaseService phaseService;
     private final AuthHelper authHelper;
 
-    public PhasePaymentController(PhasePaymentService paymentService, PhasePaymentMapper paymentMapper,
+    public ClientPaymentController(ClientPaymentService paymentService, ClientPaymentMapper paymentMapper,
                                   PhaseService phaseService, AuthHelper authHelper) {
         this.paymentService = paymentService;
         this.paymentMapper = paymentMapper;
@@ -29,7 +29,7 @@ public class PhasePaymentController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<PhasePaymentDto>>> list(
+    public ResponseEntity<ApiResponse<List<ClientPaymentDto>>> list(
             @PathVariable Long projectId,
             @PathVariable Long phaseId,
             @AuthenticationPrincipal UserDetails currentUser) {
@@ -39,26 +39,26 @@ public class PhasePaymentController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<ApiResponse<PhasePaymentDto>> create(
+    public ResponseEntity<ApiResponse<ClientPaymentDto>> create(
             @PathVariable Long projectId,
             @PathVariable Long phaseId,
-            @RequestBody PhasePaymentDto.CreateRequest request,
+            @RequestBody ClientPaymentDto.CreateRequest request,
             @AuthenticationPrincipal UserDetails currentUser) {
         authHelper.requireProjectReadAccess(currentUser, projectId);
-        PhasePayment created = paymentService.create(phaseId, request);
+        ClientPayment created = paymentService.create(phaseId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.of(paymentMapper.toDto(created)));
     }
 
     @PutMapping("/{paymentId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<ApiResponse<PhasePaymentDto>> update(
+    public ResponseEntity<ApiResponse<ClientPaymentDto>> update(
             @PathVariable Long projectId,
             @PathVariable Long phaseId,
             @PathVariable Long paymentId,
-            @RequestBody PhasePaymentDto.UpdateRequest request,
+            @RequestBody ClientPaymentDto.UpdateRequest request,
             @AuthenticationPrincipal UserDetails currentUser) {
         authHelper.requireProjectReadAccess(currentUser, projectId);
-        PhasePayment updated = paymentService.update(paymentId, request);
+        ClientPayment updated = paymentService.update(paymentId, request);
         return ResponseEntity.ok(ApiResponse.of(paymentMapper.toDto(updated)));
     }
 

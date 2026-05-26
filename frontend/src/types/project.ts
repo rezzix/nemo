@@ -15,7 +15,6 @@ export interface ProjectDto {
   strategicScore: number | null;
   plannedValue: string | null;
   budget: string | null;
-  budgetSpent: string | null;
   targetStartDate: string | null;
   targetEndDate: string | null;
   favorite: boolean;

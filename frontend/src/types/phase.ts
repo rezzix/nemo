@@ -33,7 +33,7 @@ export interface UpdatePhaseRequest {
   status?: string;
 }
 
-export interface PhasePaymentDto {
+export interface ClientPaymentDto {
   id: number;
   phaseId: number;
   amount: string;
@@ -44,14 +44,14 @@ export interface PhasePaymentDto {
   updatedAt: string;
 }
 
-export interface CreatePhasePaymentRequest {
+export interface CreateClientPaymentRequest {
   amount: string;
   paymentDate?: string;
   reference?: string;
   notes?: string;
 }
 
-export interface UpdatePhasePaymentRequest {
+export interface UpdateClientPaymentRequest {
   amount?: string;
   paymentDate?: string | null;
   reference?: string | null;

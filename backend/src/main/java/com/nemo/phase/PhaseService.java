@@ -19,18 +19,18 @@ public class PhaseService {
     private final ProjectRepository projectRepository;
     private final DeliverableRepository deliverableRepository;
     private final AttachmentService attachmentService;
-    private final PhasePaymentRepository phasePaymentRepository;
+    private final ClientPaymentRepository clientPaymentRepository;
 
     public PhaseService(PhaseRepository phaseRepository,
                         ProjectRepository projectRepository,
                         DeliverableRepository deliverableRepository,
                         AttachmentService attachmentService,
-                        PhasePaymentRepository phasePaymentRepository) {
+                        ClientPaymentRepository clientPaymentRepository) {
         this.phaseRepository = phaseRepository;
         this.projectRepository = projectRepository;
         this.deliverableRepository = deliverableRepository;
         this.attachmentService = attachmentService;
-        this.phasePaymentRepository = phasePaymentRepository;
+        this.clientPaymentRepository = clientPaymentRepository;
     }
 
     @Transactional(readOnly = true)
@@ -105,7 +105,7 @@ public class PhaseService {
             attachmentService.deleteByDeliverableIds(deliverableIds);
         }
         deliverableRepository.deleteByPhaseId(id);
-        phasePaymentRepository.deleteByPhaseId(id);
+        clientPaymentRepository.deleteByPhaseId(id);
         phaseRepository.deleteById(id);
     }
 
@@ -115,7 +115,7 @@ public class PhaseService {
         List<Long> phaseIds = dtos.stream().map(PhaseDto::id).toList();
         Map<Long, Long> deliverableCounts = deliverableRepository.countByPhaseIds(phaseIds).stream()
                 .collect(Collectors.toMap(arr -> (Long) arr[0], arr -> (Long) arr[1]));
-        Map<Long, BigDecimal> paidSums = phasePaymentRepository.sumPaidByPhaseIds(phaseIds).stream()
+        Map<Long, BigDecimal> paidSums = clientPaymentRepository.sumPaidByPhaseIds(phaseIds).stream()
                 .collect(Collectors.toMap(arr -> (Long) arr[0], arr -> (BigDecimal) arr[1]));
 
         return dtos.stream().map(dto -> {
