@@ -127,8 +127,8 @@ public class PmoService {
         BigDecimal pvToday = computePlannedValueToday(project, plannedValue);
         BigDecimal scheduleVariance = earnedValue.subtract(pvToday).setScale(2, RoundingMode.HALF_UP);
 
-        // CPI = EV / AC (null when AC = 0 — no costs recorded yet)
-        BigDecimal cpi = actualCost.compareTo(BigDecimal.ZERO) > 0
+        // CPI = EV / AC (null when EV = 0 or AC = 0 — no meaningful ratio)
+        BigDecimal cpi = earnedValue.compareTo(BigDecimal.ZERO) > 0 && actualCost.compareTo(BigDecimal.ZERO) > 0
                 ? earnedValue.divide(actualCost, 2, RoundingMode.HALF_UP)
                 : null;
 
@@ -216,8 +216,8 @@ public class PmoService {
     ) {}
 
     @Transactional(readOnly = true)
-    public PortfolioSummary getPortfolioSummary() {
-        List<Project> projects = projectRepository.findAll();
+    public PortfolioSummary getPortfolioSummary(Long companyId) {
+        List<Project> projects = projectRepository.findAllByCompanyIdOrNull(companyId);
 
         int totalProjects = projects.size();
         long totalTasks = 0;
@@ -301,8 +301,8 @@ public class PmoService {
     ) {}
 
     @Transactional(readOnly = true)
-    public List<CompanyPortfolioSummary> getPortfolioByCompany() {
-        List<Project> projects = projectRepository.findAll();
+    public List<CompanyPortfolioSummary> getPortfolioByCompany(Long companyId) {
+        List<Project> projects = projectRepository.findAllByCompanyIdOrNull(companyId);
 
         List<TaskStatus> completedStatuses = new java.util.ArrayList<>();
         completedStatuses.addAll(taskStatusRepository.findByCategory(TaskStatus.Category.DONE));
@@ -373,11 +373,11 @@ public class PmoService {
     }
 
     @Transactional(readOnly = true)
-    public List<RaidItem> getPortfolioRaidItems(RaidItem.RaidType type) {
+    public List<RaidItem> getPortfolioRaidItems(RaidItem.RaidType type, Long companyId) {
         if (type != null) {
-            return raidItemRepository.findByType(type);
+            return raidItemRepository.findByCompanyIdAndType(companyId, type);
         }
-        return raidItemRepository.findAll();
+        return raidItemRepository.findByCompanyIdOrNull(companyId);
     }
 
     public record PhaseTimelineEntry(
@@ -395,8 +395,8 @@ public class PmoService {
     ) {}
 
     @Transactional(readOnly = true)
-    public List<ProjectTimelineEntry> getPortfolioTimeline() {
-        List<Project> projects = projectRepository.findAll();
+    public List<ProjectTimelineEntry> getPortfolioTimeline(Long companyId) {
+        List<Project> projects = projectRepository.findAllByCompanyIdOrNull(companyId);
         List<Long> projectIds = projects.stream().map(Project::getId).toList();
         List<Phase> allPhases = projectIds.isEmpty() ? List.of() : phaseRepository.findByProjectIdInOrderByProjectIdAscPositionAsc(projectIds);
 

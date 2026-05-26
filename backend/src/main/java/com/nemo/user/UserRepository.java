@@ -53,4 +53,19 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u.active, COUNT(u) FROM User u WHERE u.role <> 'EXTERNAL' GROUP BY u.active")
     List<Object[]> countByActiveStatus();
+
+    @Query("SELECT u.role, COUNT(u) FROM User u WHERE (:companyId IS NULL OR u.company.id = :companyId OR u.company.id IS NULL) GROUP BY u.role")
+    List<Object[]> countByRoleByCompany(Long companyId);
+
+    @Query("SELECT u.company.name, COUNT(u) FROM User u WHERE u.role <> 'EXTERNAL' AND (:companyId IS NULL OR u.company.id = :companyId OR u.company.id IS NULL) GROUP BY u.company.name")
+    List<Object[]> countByCompanyFiltered(Long companyId);
+
+    @Query("SELECT u.active, COUNT(u) FROM User u WHERE u.role <> 'EXTERNAL' AND (:companyId IS NULL OR u.company.id = :companyId OR u.company.id IS NULL) GROUP BY u.active")
+    List<Object[]> countByActiveStatusByCompany(Long companyId);
+
+    @Query("SELECT COUNT(u) FROM User u WHERE (:companyId IS NULL OR u.company.id = :companyId OR u.company.id IS NULL)")
+    long countByCompanyOrNull(Long companyId);
+
+    @Query("SELECT COUNT(u) FROM User u WHERE u.active = :active AND (:companyId IS NULL OR u.company.id = :companyId OR u.company.id IS NULL)")
+    long countByActiveAndCompany(boolean active, Long companyId);
 }
