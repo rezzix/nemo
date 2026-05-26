@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import ProjectSelector from './ProjectSelector';
 import OverviewReport from './OverviewReport';
@@ -42,7 +41,6 @@ export default function TimeReportsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">Reports</h2>
-        {user?.role !== 'HR' && <Link to="/pmo" className="text-sm text-gray-500 hover:text-gray-700 font-medium">PMO Dashboard</Link>}
       </div>
 
       {section !== 'portfolio' && section !== 'attendance' && section !== 'headcount' && (

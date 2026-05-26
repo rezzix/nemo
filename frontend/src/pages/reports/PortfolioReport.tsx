@@ -47,7 +47,7 @@ export default function PortfolioReport() {
   }
 
   const totalBudget = portfolio?.totalBudget ?? projects.reduce((s, p) => s + Number(p.budget || 0), 0);
-  const totalSpent = portfolio?.totalExpenseCost ?? 0;
+  const totalSpent = portfolio?.totalBudgetSpent ?? projects.reduce((s, p) => s + Number(p.budgetSpent || 0), 0);
   const topRisks = [...risks].filter(r => r.status === 'OPEN' || r.status === 'MITIGATING').sort((a, b) => b.riskScore - a.riskScore).slice(0, 5);
 
   return (
@@ -106,11 +106,11 @@ export default function PortfolioReport() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {companyData.map((c) => (
-                <tr key={c.companyId ?? 'global'} className="hover:bg-gray-50">
+                <tr key={c.companyId ?? 'unassigned'} className="hover:bg-gray-50">
                   <td className="px-5 py-3 font-medium text-gray-900">{c.companyName}</td>
                   <td className="px-3 py-3 text-right text-gray-700">{c.totalProjects}</td>
                   <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(c.totalBudget)}</td>
-                  <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(c.totalExpenseCost)}</td>
+                  <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(c.totalBudgetSpent)}</td>
                   <td className="px-3 py-3 text-right text-gray-700">{c.totalTasks > 0 ? ((c.totalCompleted / c.totalTasks) * 100).toFixed(0) + '%' : '-'}</td>
                   <td className="px-3 py-3 text-right">{c.totalOpenRisks + c.totalMitigatingRisks > 0 ? (
                     <span className="text-amber-600 font-medium">{c.totalOpenRisks + c.totalMitigatingRisks}</span>
@@ -132,7 +132,7 @@ export default function PortfolioReport() {
                 <th className="text-left px-5 py-3 font-medium text-gray-600">Project</th>
                 <th className="text-left px-3 py-3 font-medium text-gray-600">Stage</th>
                 <th className="text-right px-3 py-3 font-medium text-gray-600">Budget</th>
-                <th className="text-right px-3 py-3 font-medium text-gray-600" title="Budgeted Cost of Work Scheduled — time-phased planned value used to compute SV and SPI">BCWS</th>
+                <th className="text-right px-3 py-3 font-medium text-gray-600">PV</th>
                 <th className="text-right px-3 py-3 font-medium text-gray-600">EV</th>
                 <th className="text-right px-3 py-3 font-medium text-gray-600">AC</th>
                 <th className="text-right px-3 py-3 font-medium text-gray-600">CPI</th>
@@ -151,11 +151,11 @@ export default function PortfolioReport() {
                   <tr key={p.id} className="hover:bg-gray-50">
                     <td className="px-5 py-3 font-medium"><Link to={`/projects/${p.id}`} className="text-primary-600 hover:text-primary-800">{p.name}</Link></td>
                     <td className="px-3 py-3">
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${stageBadge(evm.stage)}`}>{evm.stage}</span>
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${stageBadge(evm.stage)}">{evm.stage}</span>
                       {p.targetEndDate && deadlineLabel(p.targetEndDate) && <span className={`inline-block ml-1 px-2 py-0.5 rounded-full text-xs font-medium ${deadlineBadge(p.targetEndDate)}`}>{deadlineLabel(p.targetEndDate)}</span>}
                     </td>
                     <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(evm.budget)}</td>
-                    <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(evm.pvToday)}</td>
+                    <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(evm.plannedValue)}</td>
                     <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(evm.earnedValue)}</td>
                     <td className="px-3 py-3 text-right text-gray-700">{formatCurrency(evm.actualCost)}</td>
                     <td className={`px-3 py-3 text-right font-semibold ${evm.cpi != null ? eviColor(evm.cpi) : ''}`}>{evm.cpi != null ? evm.cpi.toFixed(2) : '—'}</td>
