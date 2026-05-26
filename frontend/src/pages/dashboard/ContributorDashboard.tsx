@@ -56,12 +56,8 @@ export default function ContributorDashboard() {
     );
   }
 
-  const todoCount = myTasks.filter(
-    (i) => i.statusName.toLowerCase().includes('todo') || i.statusName.toLowerCase().includes('open'),
-  ).length;
-  const inProgressCount = myTasks.filter(
-    (i) => i.statusName.toLowerCase().includes('progress') || i.statusName.toLowerCase().includes('active'),
-  ).length;
+  const todoCount = myTasks.filter((i) => i.statusCategory === 'TODO').length;
+  const inProgressCount = myTasks.filter((i) => i.statusCategory === 'IN_PROGRESS').length;
 
   const stats = [
     { label: 'Assigned to me', value: myTasks.length, color: 'bg-primary-50 text-primary-700' },
@@ -125,10 +121,10 @@ export default function ContributorDashboard() {
             {projects.map((project) => {
               const projectTasks = tasksByProject.get(project.id) || [];
               const projectInProgress = projectTasks.filter(
-                (i) => i.statusName.toLowerCase().includes('progress') || i.statusName.toLowerCase().includes('active'),
+                (i) => i.statusCategory === 'IN_PROGRESS',
               );
               const projectTodo = projectTasks.filter(
-                (i) => i.statusName.toLowerCase().includes('todo') || i.statusName.toLowerCase().includes('open'),
+                (i) => i.statusCategory === 'TODO',
               );
               return (
                 <div key={project.id} className="bg-white rounded-xl border border-gray-200">
@@ -158,7 +154,7 @@ export default function ContributorDashboard() {
                   {projectTasks.length > 0 && (
                     <div className="border-t border-gray-100 divide-y divide-gray-50">
                       {projectTasks.map((task) => {
-                        const isProgress = task.statusName.toLowerCase().includes('progress') || task.statusName.toLowerCase().includes('active');
+                        const isProgress = task.statusCategory === 'IN_PROGRESS';
                         return (
                           <Link
                             key={task.id}
