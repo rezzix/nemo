@@ -19,8 +19,9 @@ public interface TimeLogRepository extends JpaRepository<TimeLog, Long> {
            "(:projectId IS NULL OR tl.task.project.id = :projectId) AND " +
            "(:presaleId IS NULL OR tl.presale.id = :presaleId) AND " +
            "(:startDate IS NULL OR tl.logDate >= :startDate) AND " +
-           "(:endDate IS NULL OR tl.logDate <= :endDate)")
-    Page<TimeLog> search(Long userId, Long taskId, Long projectId, Long presaleId, LocalDate startDate, LocalDate endDate, Pageable pageable);
+           "(:endDate IS NULL OR tl.logDate <= :endDate) AND " +
+           "(:companyId IS NULL OR tl.task.project.company.id = :companyId)")
+    Page<TimeLog> search(Long userId, Long taskId, Long projectId, Long presaleId, LocalDate startDate, LocalDate endDate, Long companyId, Pageable pageable);
 
     List<TimeLog> findByUserIdAndLogDateBetween(Long userId, LocalDate startDate, LocalDate endDate);
 

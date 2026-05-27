@@ -67,10 +67,10 @@ public class TimeLogService {
     }
 
     @Transactional(readOnly = true)
-    public Page<TimeLog> search(Long userId, Long taskId, Long projectId, Long presaleId, LocalDate startDate, LocalDate endDate, int page, int size, String sort) {
+    public Page<TimeLog> search(Long userId, Long taskId, Long projectId, Long presaleId, LocalDate startDate, LocalDate endDate, Long companyId, int page, int size, String sort) {
         Sort.Direction direction = Sort.Direction.fromString(sort.split(",")[1]);
         PageRequest pageRequest = PageRequest.of(page, size, direction, sort.split(",")[0]);
-        return timeLogRepository.search(userId, taskId, projectId, presaleId, startDate, endDate, pageRequest);
+        return timeLogRepository.search(userId, taskId, projectId, presaleId, startDate, endDate, companyId, pageRequest);
     }
 
     @Transactional(readOnly = true)
