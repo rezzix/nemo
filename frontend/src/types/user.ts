@@ -28,6 +28,13 @@ export interface LoginRequest {
   captcha?: string;
 }
 
+export interface DevUserDto {
+  username: string;
+  displayName: string;
+  role: string;
+  company: string | null;
+}
+
 export interface UpdateProfileRequest {
   email?: string;
   firstName?: string;

@@ -20,6 +20,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -96,7 +98,20 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.of(userMapper.toDto(user)));
     }
 
-    @PostMapping("/logout")
+    @GetMapping("/dev-users")
+    public ResponseEntity<ApiResponse<List<DevUserDto>>> devUsers() {
+        if (!"dev".equals(mode) && !"demo".equals(mode)) {
+            return ResponseEntity.ok(ApiResponse.of(List.of()));
+        }
+        List<DevUserDto> users = userRepository.findAll().stream()
+                .map(u -> new DevUserDto(u.getUsername(), u.getFirstName() + " " + u.getLastName(), u.getRole().name(),
+                        u.getCompany() != null ? u.getCompany().getName() : null))
+                .toList();
+        return ResponseEntity.ok(ApiResponse.of(users));
+    }
+
+    public record DevUserDto(String username, String displayName, String role, String company) {}
+
     public ResponseEntity<ApiResponse<Object>> logout() {
         SecurityContextHolder.clearContext();
         return ResponseEntity.ok(ApiResponse.of("Logged out"));

@@ -1,10 +1,19 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { getCaptcha } from '@/api/auth';
+import { getCaptcha, getDevUsers } from '@/api/auth';
 import { getPublicOrganization } from '@/api/organization';
-import type { OrganizationConfig } from '@/types';
+import type { OrganizationConfig, DevUserDto } from '@/types';
 import Spinner from '@/components/common/Spinner';
+
+const roleBadge: Record<string, string> = {
+  ADMIN: 'bg-red-100 text-red-700',
+  MANAGER: 'bg-blue-100 text-blue-700',
+  CONTRIBUTOR: 'bg-green-100 text-green-700',
+  EXECUTIVE: 'bg-purple-100 text-purple-700',
+  EXTERNAL: 'bg-gray-100 text-gray-600',
+  HR: 'bg-amber-100 text-amber-700',
+};
 
 const features = [
   { icon: '▸', label: 'Program & Portfolio Management' },
@@ -27,6 +36,8 @@ export default function LoginPage() {
   const [mode, setMode] = useState('prod');
   const [version, setVersion] = useState('');
   const [build, setBuild] = useState('');
+  const [devUsers, setDevUsers] = useState<DevUserDto[]>([]);
+  const [showQuickLogin, setShowQuickLogin] = useState(false);
   const { login, error, clearError, isLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -51,6 +62,18 @@ export default function LoginPage() {
     });
   }, []);
 
+  useEffect(() => {
+    if (mode !== 'prod') {
+      getDevUsers().then(setDevUsers).catch(() => {});
+    }
+  }, [mode]);
+
+  const handleSelectUser = (u: DevUserDto) => {
+    setUsername(u.username);
+    setPassword('password123');
+    clearError();
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     try {
@@ -61,6 +84,8 @@ export default function LoginPage() {
       if (mode === 'prod') fetchCaptcha();
     }
   };
+
+  const relaxedAuth = mode !== 'prod';
 
   return (
     <div className="min-h-screen bg-surface flex flex-col">
@@ -75,7 +100,7 @@ export default function LoginPage() {
               </span>
             )}
           </div>
-          {mode !== 'prod' && (
+          {relaxedAuth && (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
               {mode === 'dev' ? 'Dev' : 'Demo'}Mode
@@ -141,6 +166,44 @@ export default function LoginPage() {
                 </div>
               )}
 
+              {/* User picker for dev/demo mode */}
+              {relaxedAuth && devUsers.length > 0 && (
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setShowQuickLogin(!showQuickLogin)}
+                    className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5 hover:text-primary-600 transition-colors"
+                  >
+                    <span className={`text-xs transition-transform ${showQuickLogin ? 'rotate-90' : ''}`}>▸</span>
+                    Quick login
+                  </button>
+                  {showQuickLogin && (
+                    <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-1.5">
+                      {devUsers.map((u) => (
+                        <button
+                          key={u.username}
+                          type="button"
+                          onClick={() => handleSelectUser(u)}
+                          className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs text-left transition-colors ${
+                            username === u.username
+                              ? 'bg-primary-50 border border-primary-300 text-primary-800'
+                              : 'hover:bg-gray-50 border border-transparent text-gray-700'
+                          }`}
+                        >
+                          <span className={`shrink-0 px-1.5 py-0.5 rounded text-[10px] font-semibold ${roleBadge[u.role] || 'bg-gray-100 text-gray-600'}`}>
+                            {u.role}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <span className="truncate font-medium block">{u.displayName}</span>
+                            {u.company && <span className="truncate text-[10px] text-gray-400 block">{u.company}</span>}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div>
                 <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1.5">
                   Username
@@ -170,9 +233,9 @@ export default function LoginPage() {
                   minLength={mode !== 'prod' ? undefined : 6}
                   autoComplete="current-password"
                   className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-shadow"
-                  placeholder={mode !== 'prod' ? `Any password works in ${mode} mode` : 'Enter your password'}
+                  placeholder={relaxedAuth ? `Any password works in ${mode} mode` : 'Enter your password'}
                 />
-                {mode !== 'prod' && (
+                {relaxedAuth && (
                   <p className="mt-1.5 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
                     {mode === 'dev' ? 'Dev' : 'Demo'}Mode active — any password is accepted for existing users.
                   </p>

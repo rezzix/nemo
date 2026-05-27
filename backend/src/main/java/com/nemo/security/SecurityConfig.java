@@ -37,7 +37,7 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/login", "/api/auth/logout", "/api/auth/captcha").permitAll()
+                .requestMatchers("/api/auth/login", "/api/auth/logout", "/api/auth/captcha", "/api/auth/dev-users").permitAll()
                 .requestMatchers("/api/organization/public").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/ws/**").permitAll()

@@ -1,6 +1,6 @@
 export type { ApiResponse, PaginatedResponse, PaginationInfo, ApiError, ValidationError, FieldError } from './api';
 export type { CompanyDto, CreateCompanyRequest, UpdateCompanyRequest } from './company';
-export type { UserDto, UserRole, LoginRequest, UpdateProfileRequest, PasswordChangeRequest, AllocationSummaryDto } from './user';
+export type { UserDto, UserRole, LoginRequest, DevUserDto, UpdateProfileRequest, PasswordChangeRequest, AllocationSummaryDto } from './user';
 export type { ProjectDto, CreateProjectRequest, UpdateProjectRequest, MemberDto, LabelDto, LabelCreateRequest, BoardColumnDto, BoardConfigDto, BoardUpdateRequest, InstructionDto, CreateInstructionRequest, UpdateInstructionRequest, NoteDto, CreateNoteRequest, UpdateNoteRequest } from './project';
 export type { TaskDto, TaskPriority, CreateTaskRequest, UpdateTaskRequest, CommentDto, CreateCommentRequest, UpdateCommentRequest } from './task';
 export type { ProgramDto, CreateProgramRequest, UpdateProgramRequest, ProgramEvmMetrics } from './program';
