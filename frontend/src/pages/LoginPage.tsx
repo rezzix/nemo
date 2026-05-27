@@ -68,10 +68,16 @@ export default function LoginPage() {
     }
   }, [mode]);
 
-  const handleSelectUser = (u: DevUserDto) => {
+  const handleSelectUser = async (u: DevUserDto) => {
     setUsername(u.username);
     setPassword('password123');
     clearError();
+    try {
+      await login(u.username, 'password123', undefined);
+      navigate(from, { replace: true });
+    } catch {
+      // login will set error state
+    }
   };
 
   const handleSubmit = async (e: FormEvent) => {
