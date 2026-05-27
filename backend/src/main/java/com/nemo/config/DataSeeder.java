@@ -692,16 +692,19 @@ public class DataSeeder implements CommandLineRunner {
         createExpense(footballTeam, ExpenseCategory.INFRASTRUCTURE, new BigDecimal("15000"), "Server hosting and CDN", today.minusMonths(1), youssef);
         createExpense(footballTeam, ExpenseCategory.EXPERTISE, new BigDecimal("25000"), "Sports analytics consultancy", today.minusMonths(6), youssef);
 
-        // Public holidays (Morocco 2025)
-        createHoliday(LocalDate.of(2025, 1, 1), "New Year's Day", null);
-        createHoliday(LocalDate.of(2025, 1, 11), "Independence Manifesto Day", null);
-        createHoliday(LocalDate.of(2025, 5, 1), "Labour Day", null);
-        createHoliday(LocalDate.of(2025, 7, 30), "Throne Day", null);
-        createHoliday(LocalDate.of(2025, 8, 14), "Oued Ed-Dahab Day", null);
-        createHoliday(LocalDate.of(2025, 8, 20), "Revolution Day", null);
-        createHoliday(LocalDate.of(2025, 8, 21), "Youth Day", null);
-        createHoliday(LocalDate.of(2025, 11, 6), "Green March Day", null);
-        createHoliday(LocalDate.of(2025, 11, 18), "Independence Day", null);
+        // Public holidays (Morocco, current year)
+        int year = today.getYear();
+        createHoliday(LocalDate.of(year, 1, 1), "New Year's Day", null);
+        createHoliday(LocalDate.of(year, 1, 11), "Independence Manifesto Day", null);
+        createHoliday(LocalDate.of(year, 3, 20), "Eid al-Fitr", null);
+        createHoliday(LocalDate.of(year, 5, 1), "Labour Day", null);
+        createHoliday(LocalDate.of(year, 5, 27), "Eid al-Adha", null);
+        createHoliday(LocalDate.of(year, 7, 30), "Throne Day", null);
+        createHoliday(LocalDate.of(year, 8, 14), "Oued Ed-Dahab Day", null);
+        createHoliday(LocalDate.of(year, 8, 20), "Revolution Day", null);
+        createHoliday(LocalDate.of(year, 8, 21), "Youth Day", null);
+        createHoliday(LocalDate.of(year, 11, 6), "Green March Day", null);
+        createHoliday(LocalDate.of(year, 11, 18), "Independence Day", null);
 
         // Locations
         Location plateauHightech = createLocation("Plateau 19 Imb Hightech", c1Name + " main office at Hay Riad", null, company1, 1);
