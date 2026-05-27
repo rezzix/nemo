@@ -1,37 +1,38 @@
 import { useState, useEffect, useCallback } from 'react';
-import { listSprints } from '@/api/sprints';
-import { listProjectTasks } from '@/api/tasks';
-import type { SprintDto, TaskDto } from '@/types';
+import { listSprints, getSprintVelocity } from '@/api/sprints';
+import type { SprintDto, SprintVelocityDto } from '@/types';
 import { formatDate, deadlineBadge, deadlineLabel } from '@/utils/format';
 import Spinner from '@/components/common/Spinner';
 
 export default function VelocityReport({ projectId }: { projectId: number | null }) {
   const [sprints, setSprints] = useState<SprintDto[]>([]);
-  const [tasks, setTasks] = useState<TaskDto[]>([]);
+  const [velocity, setVelocity] = useState<SprintVelocityDto[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetch = useCallback(async () => {
-    if (!projectId) { setSprints([]); setTasks([]); return; }
+    if (!projectId) { setSprints([]); setVelocity([]); return; }
     setLoading(true);
     try {
-      const [sprintData, taskData] = await Promise.all([
+      const [sprintData, velocityData] = await Promise.all([
         listSprints(projectId),
-        listProjectTasks(projectId, { size: 200 }),
+        getSprintVelocity(projectId),
       ]);
       setSprints(sprintData);
-      setTasks(taskData);
-    } catch { setSprints([]); setTasks([]); } finally { setLoading(false); }
+      setVelocity(velocityData);
+    } catch { setSprints([]); setVelocity([]); } finally { setLoading(false); }
   }, [projectId]);
 
   useEffect(() => { fetch(); }, [fetch]);
 
-  const sprintStats = sprints.map((sprint) => {
-    const sprintTasks = tasks.filter((i) => i.sprintId === sprint.id);
-    const completed = sprintTasks.filter((i) => { const st = i.statusName.toLowerCase(); return st.includes('done') || st.includes('complete'); }).length;
-    return { sprint, total: sprintTasks.length, completed, remaining: sprintTasks.length - completed };
+  const velocityMap = new Map(velocity.map(v => [v.sprintId, v]));
+  const sprintStats = sprints.map(sprint => {
+    const v = velocityMap.get(sprint.id);
+    const total = v?.totalTasks ?? 0;
+    const completed = v?.completedTasks ?? 0;
+    return { sprint, total, completed, remaining: total - completed };
   });
 
-  const maxTasks = Math.max(...sprintStats.map((s) => s.total), 1);
+  const maxTasks = Math.max(...sprintStats.map(s => s.total), 1);
 
   return (
     <div className="space-y-6">
