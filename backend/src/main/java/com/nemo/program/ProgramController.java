@@ -54,7 +54,9 @@ public class ProgramController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ProgramDto>> get(@PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.of(programMapper.toDto(programService.getById(id))));
+        ProgramDto dto = programMapper.toDto(programService.getById(id));
+        dto = programService.enrichWithProjectCount(List.of(dto)).getFirst();
+        return ResponseEntity.ok(ApiResponse.of(dto));
     }
 
     @PostMapping
