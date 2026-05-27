@@ -165,81 +165,238 @@ public class DataSeeder implements CommandLineRunner {
         this.projectExpenseRepository = projectExpenseRepository;
     }
 
+    // --- Seeding profile records ---
+
+    private record SeedingProfile(
+            String groupName, String currency,
+            String[] companyNames, String[] companyKeys, String[] companyDescriptions,
+            String[] companyAddresses, String[] companyWebsites, String[] companyDomains,
+            String[] userFirstNames, String[] userLastNames,
+            String[] userEmails, String[] userPhones,
+            String[] userJobTitles, String[] userDepartments,
+            String[] clientNames, String[] clientIndustries,
+            String[][] locationNames, String[][] locationDescriptions,
+            List<HolidayData> holidays
+    ) {}
+
+    private record HolidayData(LocalDate date, String name) {}
+
+    private static SeedingProfile devProfile(int year) {
+        return new SeedingProfile(
+                "SIGroup", "USD",
+                new String[]{"Sione", "Partion", "Sportfull", "Medocode"},
+                new String[]{"SIO", "PAR", "SPO", "MDC"},
+                new String[]{"Digital innovation and technology solutions",
+                        "Consulting and organizational development",
+                        "Team collaboration and productivity tools",
+                        "Healthcare ERP solutions and medical information systems"},
+                new String[]{"45 Innovation Drive, San Francisco",
+                        "78 Tech Boulevard, Austin",
+                        "12 Market Street, New York",
+                        "33 Commerce Ave, London"},
+                new String[]{"http://www.sione.io", "http://www.partion.io",
+                        "http://www.sportfull.io", "http://www.medocode.io"},
+                new String[]{"sione.io", "partion.io", "sportfull.io", "medocode.io"},
+                new String[]{"Alex", "Jordan", "Taylor", "Morgan", "Casey",
+                        "Riley", "Drew", "Avery", "Quinn", "Blake",
+                        "Reese", "Jamie"},
+                new String[]{"Johnson", "Williams", "Chen", "Patel", "Smith",
+                        "Garcia", "Kim", "Muller", "Brown", "Davis",
+                        "Wilson", "Lee"},
+                new String[]{"admin@sione.io", "jordan@sione.io", "taylor@sione.io", "morgan@sione.io",
+                        "casey@partion.io", "riley@partion.io", "drew@partion.io", "avery@sione.io",
+                        "quinn@medocode.io", "blake@sportfull.io", "reese@sportfull.io", "jamie@sione.io"},
+                new String[]{"+1 (555) 100-0001", "+1 (555) 100-0002", "+1 (555) 100-0003", "+1 (555) 100-0004",
+                        "+1 (555) 200-0005", "+1 (555) 200-0006", "+1 (555) 200-0007", "+1 (555) 100-0008",
+                        "+1 (555) 400-0010", "+1 (555) 300-0011", "+1 (555) 300-0012", "+1 (555) 100-0013"},
+                new String[]{"System Administrator", "Project Manager", "Senior Developer", "Frontend Developer",
+                        "Backend Developer", "Full-Stack Developer", "Delivery Manager", "CEO",
+                        "DevOps Engineer", "Team Lead", "QA Engineer", "HR Director"},
+                new String[]{"IT", "Engineering", "Engineering", "Engineering",
+                        "Engineering", "Engineering", "Operations", "Executive",
+                        "Infrastructure", "Engineering", "Quality", "Human Resources"},
+                new String[]{"GlobalTech Corp", "Sportify Inc", "TeleConnect",
+                        "HealthFirst", "IndusCo"},
+                new String[]{"Technology", "Sports", "Telecommunications",
+                        "Healthcare", "Industrial"},
+                new String[][]{
+                        {"Sione HQ", "Sione Innovation Campus"},
+                        {"Partion Office", "Partion Downtown"},
+                        {"Sportfull Workspace",},
+                        {"Medocode Lab"}
+                },
+                new String[][]{
+                        {"Main office", "Secondary office"},
+                        {"Headquarters", "Branch office"},
+                        {"Office",},
+                        {"Office"}
+                },
+                // International holidays (US-observed)
+                List.of(
+                        new HolidayData(LocalDate.of(year, 1, 1), "New Year's Day"),
+                        new HolidayData(LocalDate.of(year, 1, 20), "Martin Luther King Jr. Day"),
+                        new HolidayData(LocalDate.of(year, 2, 17), "Presidents' Day"),
+                        new HolidayData(computeGoodFriday(year), "Good Friday"),
+                        new HolidayData(computeEasterMonday(year), "Easter Monday"),
+                        new HolidayData(LocalDate.of(year, 5, 26), "Memorial Day"),
+                        new HolidayData(LocalDate.of(year, 7, 4), "Independence Day"),
+                        new HolidayData(LocalDate.of(year, 9, 1), "Labour Day"),
+                        new HolidayData(LocalDate.of(year, 11, 27), "Thanksgiving"),
+                        new HolidayData(LocalDate.of(year, 12, 25), "Christmas Day")
+                )
+        );
+    }
+
+    private static SeedingProfile demoProfile(int year) {
+        return new SeedingProfile(
+                "Netopia Group", "DH",
+                new String[]{"Netopia", "Harmony", "MyTeam", "medERP"},
+                new String[]{"NTO", "HRM", "MTM", "MER"},
+                new String[]{"Digital innovation and technology solutions",
+                        "Consulting and organizational development",
+                        "Team collaboration and productivity tools",
+                        "Healthcare ERP solutions and medical information systems"},
+                new String[]{"Imb hightech, av Ennakhil, Hay Riad, Rabat",
+                        "14 Rue Annasim, Hay Riad, Rabat",
+                        "Imb 5, Bouskoura, Casablanca",
+                        "601, technopark, Rabat"},
+                new String[]{"http://www.netopia.ma", "http://www.harmony.ma",
+                        "http://www.myteam.ma", "http://www.mederp.ma"},
+                new String[]{"netopia.ma", "harmony.ma", "myteam.ma", "mederp.net"},
+                new String[]{"Majid", "Ismail", "Hanane", "Wadii", "Ahmed",
+                        "Karima", "Salim", "Basma", "Younes", "Youssef",
+                        "Walid", "Mehdi"},
+                new String[]{"Hassan", "Baraka", "Machkour", "Mokhtari", "Azouzi",
+                        "Chari", "Rachidi", "Tayeb", "Alami", "Bennani",
+                        "El Idrissi", "El Amrani"},
+                new String[]{"admin@netopia.ma", "majid@netopia.ma", "ismail@netopia.ma", "hanane@netopia.ma",
+                        "wadii@harmony.ma", "ahmed@harmony.ma", "karima@harmony.ma", "salim@netopia.ma",
+                        "younes@mederp.net", "youssef@myteam.ma", "walid@myteam.ma", "mehdi@netopia.ma"},
+                new String[]{"+212 600 000 001", "+212 600 000 002", "+212 600 000 003", "+212 600 000 004",
+                        "+212 600 000 005", "+212 600 000 006", "+212 600 000 007", "+212 600 000 008",
+                        "+212 600 000 010", "+212 600 000 011", "+212 600 000 012", "+212 600 000 013"},
+                new String[]{"System Administrator", "Project Manager", "Senior Developer", "Frontend Developer",
+                        "Backend Developer", "Full-Stack Developer", "Delivery Manager", "CEO",
+                        "DevOps Engineer", "Team Lead", "QA Engineer", "HR Director"},
+                new String[]{"IT", "Engineering", "Engineering", "Engineering",
+                        "Engineering", "Engineering", "Operations", "Executive",
+                        "Infrastructure", "Engineering", "Quality", "Human Resources"},
+                new String[]{"CNSS", "FRMF", "IAM", "MSPS", "M INDS"},
+                new String[]{"Government", "Sports", "Telecommunications",
+                        "Government", "Industrial"},
+                new String[][]{
+                        {"Plateau 19 Imb Hightech", "Camelias"},
+                        {"Villa Annasim", "Centre Al Kassous"},
+                        {"Plateau Bouskoura"},
+                        {"Bureau technoparc"}
+                },
+                new String[][]{
+                        {"Main office at Hay Riad", "Secondary office"},
+                        {"Main office", "Branch office"},
+                        {"Office"},
+                        {"Office"}
+                },
+                // Moroccan + Islamic holidays
+                List.of(
+                        new HolidayData(LocalDate.of(year, 1, 1), "New Year's Day"),
+                        new HolidayData(LocalDate.of(year, 1, 11), "Independence Manifesto Day"),
+                        new HolidayData(LocalDate.of(year, 3, 20), "Eid al-Fitr"),
+                        new HolidayData(LocalDate.of(year, 5, 1), "Labour Day"),
+                        new HolidayData(LocalDate.of(year, 5, 27), "Eid al-Adha"),
+                        new HolidayData(LocalDate.of(year, 7, 30), "Throne Day"),
+                        new HolidayData(LocalDate.of(year, 8, 14), "Oued Ed-Dahab Day"),
+                        new HolidayData(LocalDate.of(year, 8, 20), "Revolution Day"),
+                        new HolidayData(LocalDate.of(year, 8, 21), "Youth Day"),
+                        new HolidayData(LocalDate.of(year, 11, 6), "Green March Day"),
+                        new HolidayData(LocalDate.of(year, 11, 18), "Independence Day")
+                )
+        );
+    }
+
+    // Easter computation (Anonymous Gregorian algorithm)
+    private static LocalDate computeEasterMonday(int year) {
+        return computeEaster(year).plusDays(1);
+    }
+
+    private static LocalDate computeGoodFriday(int year) {
+        return computeEaster(year).minusDays(2);
+    }
+
+    private static LocalDate computeEaster(int year) {
+        int a = year % 19;
+        int b = year / 100;
+        int c = year % 100;
+        int d = b / 4;
+        int e = b % 4;
+        int f = (b + 8) / 25;
+        int g = (b - f + 1) / 3;
+        int h = (19 * a + b - d - g + 15) % 30;
+        int i = c / 4;
+        int k = c % 4;
+        int l = (32 + 2 * e + 2 * i - h - k) % 7;
+        int m = (a + 11 * h + 22 * l) / 451;
+        int month = (h + l - 7 * m + 114) / 31;
+        int day = ((h + l - 7 * m + 114) % 31) + 1;
+        return LocalDate.of(year, month, day);
+    }
+
     @Override
     public void run(String... args) {
         if (userRepository.count() > 1) return;
         if ("prod".equals(mode)) return;
 
         LocalDate today = LocalDate.now();
+        int year = today.getYear();
+        SeedingProfile p = "dev".equals(mode) ? devProfile(year) : demoProfile(year);
 
         // Companies
-        String gName = "dev".equals(mode) ? "SIGroup" : "Netopia Group";
-        String c1Name = "dev".equals(mode) ? "Sione" : "Netopia";
-        String c1Key = "dev".equals(mode) ? "SIO" : "NTO";
-        String c1Site = "dev".equals(mode) ? "http://www.sione.ma" : "http://www.netopia.ma";
-        String c1Addr = "dev".equals(mode) ? "45 Avenue Mohammed V, Casablanca" : "Imb hightech, av Ennakhil, Hay Riad, Rabat";
-        String c1Logo = "https://mederp.net/downloads/nemo/" + c1Name.toLowerCase() + ".jpg";
-        String c2Name = "dev".equals(mode) ? "Partion" : "Harmony";
-        String c2Key = "dev".equals(mode) ? "PAR" : "HRM";
-        String c2Addr = "dev".equals(mode) ? "78 Boulevard Zerktouni, Casablanca" : "14 Rue Annasim, Hay Riad, Rabat";
-        String c2Site = "dev".equals(mode) ? "http://www.partion.ma" : "http://www.harmony.ma";
-        String c2Logo = "https://mederp.net/downloads/nemo/" + c2Name.toLowerCase() + ".jpg";
-        String c3Name = "dev".equals(mode) ? "Sportfull" : "MyTeam";
-        String c3Key = "dev".equals(mode) ? "SPO" : "MTM";
-        String c3Addr = "dev".equals(mode) ? "12 Rue Ibn Sina, Marrakech" : "Imb 5, Bouskoura, Casablanca";
-        String c3Site = "dev".equals(mode) ? "http://www.sportfull.ma" : "http://www.myteam.ma";
-        String c3Logo = "https://mederp.net/downloads/nemo/" + c3Name.toLowerCase() + ".jpg";
-        String c4Name = "dev".equals(mode) ? "Medocode" : "medERP";
-        String c4Key = "dev".equals(mode) ? "MDC" : "MER";
-        String c4Addr = "dev".equals(mode) ? "33 Avenue Hassan II, Tanger" : "601, technopark, Rabat";
-        String c4Site = "dev".equals(mode) ? "http://www.medocode.ma" : "http://www.mederp.ma";
-        String c4Logo = "https://mederp.net/downloads/nemo/" + c4Name.toLowerCase() + ".jpg";
+        String c1Logo = "https://mederp.net/downloads/nemo/" + p.companyNames()[0].toLowerCase() + ".jpg";
+        String c2Logo = "https://mederp.net/downloads/nemo/" + p.companyNames()[1].toLowerCase() + ".jpg";
+        String c3Logo = "https://mederp.net/downloads/nemo/" + p.companyNames()[2].toLowerCase() + ".jpg";
+        String c4Logo = "https://mederp.net/downloads/nemo/" + p.companyNames()[3].toLowerCase() + ".jpg";
 
-        Company company1 = createCompany(c1Name, c1Key, "Digital innovation and technology solutions",
-                c1Addr, c1Site, c1Logo, 1);
-        Company company2 = createCompany(c2Name, c2Key, "Consulting and organizational development",
-                c2Addr, c2Site, c2Logo, 2);
-        Company company3 = createCompany(c3Name, c3Key, "Team collaboration and productivity tools",
-                c3Addr, c3Site, c3Logo, 3);
-        Company company4 = createCompany(c4Name, c4Key, "Healthcare ERP solutions and medical information systems",
-                c4Addr, c4Site, c4Logo, 4);
+        Company company1 = createCompany(p.companyNames()[0], p.companyKeys()[0], p.companyDescriptions()[0],
+                p.companyAddresses()[0], p.companyWebsites()[0], c1Logo, 1);
+        Company company2 = createCompany(p.companyNames()[1], p.companyKeys()[1], p.companyDescriptions()[1],
+                p.companyAddresses()[1], p.companyWebsites()[1], c2Logo, 2);
+        Company company3 = createCompany(p.companyNames()[2], p.companyKeys()[2], p.companyDescriptions()[2],
+                p.companyAddresses()[2], p.companyWebsites()[2], c3Logo, 3);
+        Company company4 = createCompany(p.companyNames()[3], p.companyKeys()[3], p.companyDescriptions()[3],
+                p.companyAddresses()[3], p.companyWebsites()[3], c4Logo, 4);
 
-        // Organization config (global only — companies use their own address/website/logo fields)
-        createOrgConfig(gName, null,
-                c1Addr, c1Site, "https://mederp.net/downloads/nemo/" + gName.split(" ")[0].toLowerCase() + ".jpg");
+        // Organization config (global only)
+        createOrgConfig(p.groupName(), null,
+                p.companyAddresses()[0], p.companyWebsites()[0],
+                "https://mederp.net/downloads/nemo/" + p.groupName().split(" ")[0].toLowerCase() + ".jpg",
+                p.currency());
 
         // Users
-        String c1Domain = "dev".equals(mode) ? "sione.ma" : "netopia.ma";
-        String c2Domain = "dev".equals(mode) ? "partion.ma" : "harmony.ma";
-        String c3Domain = "dev".equals(mode) ? "sportfull.ma" : "myteam.ma";
-        String c4Domain = "dev".equals(mode) ? "medocode.ma" : "mederp.net";
-
-        User admin = createUser("admin", "admin@" + c1Domain, "Admin", "User", User.Role.ADMIN, null,
-                "System Administrator", "IT", "+212 600 000 001", LocalDate.of(2023, 1, 15));
-        User majid = createUser("majid", "majid@" + c1Domain, "Majid", "Hassan", User.Role.MANAGER, company1,
-                "Project Manager", "Engineering", "+212 600 000 002", LocalDate.of(2023, 3, 1));
-        User dev1 = createUser("ismail", "ismail@" + c1Domain, "Ismail", "Baraka", User.Role.CONTRIBUTOR, company1,
-                "Senior Developer", "Engineering", "+212 600 000 003", LocalDate.of(2023, 5, 15));
-        User dev2 = createUser("hanane", "hanane@" + c1Domain, "Hanane", "Machkour", User.Role.CONTRIBUTOR, company1,
-                "Frontend Developer", "Engineering", "+212 600 000 004", LocalDate.of(2024, 1, 10));
-        User dev3 = createUser("wadii", "wadii@" + c2Domain, "Wadii", "Mokhtari", User.Role.CONTRIBUTOR, company2,
-                "Backend Developer", "Engineering", "+212 600 000 005", LocalDate.of(2024, 2, 1));
-        User dev4 = createUser("ahmed", "ahmed@" + c2Domain, "Ahmed", "Azouzi", User.Role.CONTRIBUTOR, company2,
-                "Full-Stack Developer", "Engineering", "+212 600 000 006", LocalDate.of(2024, 3, 15));
-        User pmHarmony = createUser("karima", "karima@" + c2Domain, "Karima", "Chari", User.Role.MANAGER, company2,
-                "Delivery Manager", "Operations", "+212 600 000 007", LocalDate.of(2023, 6, 1));
-        User salim = createUser("salim", "salim@" + c1Domain, "Salim", "Rachidi", User.Role.EXECUTIVE, null,
-                "CEO", "Executive", "+212 600 000 008", LocalDate.of(2022, 1, 1));
-        User basma = createUser("basma", "basma@" + c1Domain, "Basma", "Tayeb", User.Role.EXTERNAL, null,
-                "Consultant", null, null, LocalDate.of(2025, 1, 10));
-        User younes = createUser("younes", "younes@" + c4Domain, "Younes", "Alami", User.Role.CONTRIBUTOR, company4,
-                "DevOps Engineer", "Infrastructure", "+212 600 000 010", LocalDate.of(2024, 7, 1));
-        User youssef = createUser("youssef", "youssef@" + c3Domain, "Youssef", "Bennani", User.Role.MANAGER, company3,
-                "Team Lead", "Engineering", "+212 600 000 011", LocalDate.of(2023, 9, 1));
-        User walid = createUser("walid", "walid@" + c3Domain, "Walid", "El Idrissi", User.Role.CONTRIBUTOR, company3,
-                "QA Engineer", "Quality", "+212 600 000 012", LocalDate.of(2024, 4, 15));
-        User mehdi = createUser("mehdi", "mehdi@" + c1Domain, "Mehdi", "El Amrani", User.Role.HR, null,
-                "HR Director", "Human Resources", "+212 600 000 013", LocalDate.of(2022, 6, 1));
+        User admin = createUser("admin", p.userEmails()[0], p.userFirstNames()[0], p.userLastNames()[0], User.Role.ADMIN, null,
+                p.userJobTitles()[0], p.userDepartments()[0], p.userPhones()[0], LocalDate.of(2023, 1, 15));
+        User majid = createUser("majid", p.userEmails()[1], p.userFirstNames()[1], p.userLastNames()[1], User.Role.MANAGER, company1,
+                p.userJobTitles()[1], p.userDepartments()[1], p.userPhones()[1], LocalDate.of(2023, 3, 1));
+        User dev1 = createUser("ismail", p.userEmails()[2], p.userFirstNames()[2], p.userLastNames()[2], User.Role.CONTRIBUTOR, company1,
+                p.userJobTitles()[2], p.userDepartments()[2], p.userPhones()[2], LocalDate.of(2023, 5, 15));
+        User dev2 = createUser("hanane", p.userEmails()[3], p.userFirstNames()[3], p.userLastNames()[3], User.Role.CONTRIBUTOR, company1,
+                p.userJobTitles()[3], p.userDepartments()[3], p.userPhones()[3], LocalDate.of(2024, 1, 10));
+        User dev3 = createUser("wadii", p.userEmails()[4], p.userFirstNames()[4], p.userLastNames()[4], User.Role.CONTRIBUTOR, company2,
+                p.userJobTitles()[4], p.userDepartments()[4], p.userPhones()[4], LocalDate.of(2024, 2, 1));
+        User dev4 = createUser("ahmed", p.userEmails()[5], p.userFirstNames()[5], p.userLastNames()[5], User.Role.CONTRIBUTOR, company2,
+                p.userJobTitles()[5], p.userDepartments()[5], p.userPhones()[5], LocalDate.of(2024, 3, 15));
+        User pmHarmony = createUser("karima", p.userEmails()[6], p.userFirstNames()[6], p.userLastNames()[6], User.Role.MANAGER, company2,
+                p.userJobTitles()[6], p.userDepartments()[6], p.userPhones()[6], LocalDate.of(2023, 6, 1));
+        User salim = createUser("salim", p.userEmails()[7], p.userFirstNames()[7], p.userLastNames()[7], User.Role.EXECUTIVE, null,
+                p.userJobTitles()[7], p.userDepartments()[7], p.userPhones()[7], LocalDate.of(2022, 1, 1));
+        User basma = createUser("basma", p.userEmails()[8], p.userFirstNames()[8], p.userLastNames()[8], User.Role.EXTERNAL, null,
+                p.userJobTitles()[8], p.userDepartments()[8], null, LocalDate.of(2025, 1, 10));
+        User younes = createUser("younes", p.userEmails()[9], p.userFirstNames()[9], p.userLastNames()[9], User.Role.CONTRIBUTOR, company4,
+                p.userJobTitles()[9], p.userDepartments()[9], p.userPhones()[9], LocalDate.of(2024, 7, 1));
+        User youssef = createUser("youssef", p.userEmails()[10], p.userFirstNames()[10], p.userLastNames()[10], User.Role.MANAGER, company3,
+                p.userJobTitles()[10], p.userDepartments()[10], p.userPhones()[10], LocalDate.of(2023, 9, 1));
+        User walid = createUser("walid", p.userEmails()[11], p.userFirstNames()[11], p.userLastNames()[11], User.Role.CONTRIBUTOR, company3,
+                p.userJobTitles()[11], p.userDepartments()[11], p.userPhones()[11], LocalDate.of(2024, 4, 15));
+        User mehdi = createUser("mehdi", p.userEmails()[12], p.userFirstNames()[12], p.userLastNames()[12], User.Role.HR, null,
+                p.userJobTitles()[12], p.userDepartments()[12], p.userPhones()[12], LocalDate.of(2022, 6, 1));
 
         // User rates for EVM
         createUserRate(admin, new BigDecimal("75.00"), LocalDate.of(2025, 1, 1));
@@ -259,21 +416,21 @@ public class DataSeeder implements CommandLineRunner {
         Program ehealth = createProgram("eHealth", "EH", "Digital health transformation initiative", majid, company1);
         Program mobilePlatform = createProgram("Mobile Platform", "MOB", "Mobile app platform development", pmHarmony, company2);
         Program globalInit = createProgram("Global Initiative", "GI", "Cross-company strategic initiative", salim, null);
-        Program erpProgram = createProgram("medERP", "MER", "Healthcare ERP and medical information systems", salim, company4);
+        Program erpProgram = createProgram(p.companyNames()[3], p.companyKeys()[3], "Healthcare ERP and medical information systems", salim, company4);
 
         // Clients
-        Client cnss = createClient("CNSS", "Government", company1);
-        Client frmf = createClient("FRMF", "Sports", null);
-        Client iam = createClient("IAM", "Telecommunications", company2);
-        Client msps = createClient("MSPS", "Government", company1);
-        Client minds = createClient("M INDS", "Industrial", company2);
+        Client client0 = createClient(p.clientNames()[0], p.clientIndustries()[0], company1);
+        Client client1 = createClient(p.clientNames()[1], p.clientIndustries()[1], null);
+        Client client2 = createClient(p.clientNames()[2], p.clientIndustries()[2], company2);
+        Client client3 = createClient(p.clientNames()[3], p.clientIndustries()[3], company1);
+        Client client4 = createClient(p.clientNames()[4], p.clientIndustries()[4], company2);
 
         // Projects with PMO fields
         Project fse = createProject("FSE", "FSE", "Full Stack Engineering platform",
                 ehealth, majid, Project.Stage.EXECUTION, 8,
                 new BigDecimal("500000"), new BigDecimal("500000"),
                 LocalDate.of(2025, 1, 15), LocalDate.of(2025, 9, 30), company1);
-        fse.setClient(cnss); fse = projectRepository.save(fse);
+        fse.setClient(client0); fse = projectRepository.save(fse);
 
         Project apiGateway = createProject("API Gateway", "AG", "Central API gateway and service mesh",
                 ehealth, majid, Project.Stage.PLANNING, 6,
@@ -284,32 +441,31 @@ public class DataSeeder implements CommandLineRunner {
                 mobilePlatform, pmHarmony, Project.Stage.EXECUTION, 7,
                 new BigDecimal("200000"), new BigDecimal("200000"),
                 LocalDate.of(2025, 2, 1), LocalDate.of(2025, 10, 31), company2);
-        mobileApp.setClient(minds); mobileApp = projectRepository.save(mobileApp);
+        mobileApp.setClient(client4); mobileApp = projectRepository.save(mobileApp);
 
         Project infraUpgrade = createProject("Infrastructure Upgrade", "IU", "Cloud infrastructure modernization",
                 globalInit, salim, Project.Stage.INITIATION, 5,
                 new BigDecimal("50000"), new BigDecimal("50000"),
                 LocalDate.of(2025, 6, 1), LocalDate.of(2025, 11, 30), null);
 
-        // Additional project per program
         Project eHealthPortal = createProject("Patient Portal", "PP", "Patient-facing health information portal",
                 ehealth, majid, Project.Stage.INITIATION, 6,
                 new BigDecimal("95000"), new BigDecimal("95000"),
                 LocalDate.of(2025, 7, 1), LocalDate.of(2027, 3, 31), company1);
-        eHealthPortal.setClient(msps); eHealthPortal = projectRepository.save(eHealthPortal);
+        eHealthPortal.setClient(client3); eHealthPortal = projectRepository.save(eHealthPortal);
 
         Project mobilePay = createProject("Mobile Payments", "MP", "In-app payment and billing integration",
                 mobilePlatform, pmHarmony, Project.Stage.PLANNING, 7,
                 new BigDecimal("120000"), new BigDecimal("120000"),
                 LocalDate.of(2025, 5, 1), LocalDate.of(2026, 12, 31), company2);
-        mobilePay.setClient(iam); mobilePay = projectRepository.save(mobilePay);
+        mobilePay.setClient(client2); mobilePay = projectRepository.save(mobilePay);
 
         Project dataWarehouse = createProject("Data Warehouse", "DW", "Enterprise data warehouse and analytics platform",
                 globalInit, salim, Project.Stage.PLANNING, 8,
                 new BigDecimal("180000"), new BigDecimal("180000"),
                 LocalDate.of(2025, 8, 1), LocalDate.of(2026, 6, 30), null);
 
-        Project erpProject = createProject("medERP", "MER", "Healthcare ERP platform for hospital and clinic management",
+        Project erpProject = createProject(p.companyNames()[3], p.companyKeys()[3], "Healthcare ERP platform for hospital and clinic management",
                 erpProgram, younes, Project.Stage.EXECUTION, 7,
                 new BigDecimal("250000"), new BigDecimal("250000"),
                 LocalDate.of(2025, 1, 1), LocalDate.of(2025, 12, 31), company4);
@@ -318,10 +474,9 @@ public class DataSeeder implements CommandLineRunner {
                 null, youssef, Project.Stage.CLOSING, 7,
                 new BigDecimal("120000"), new BigDecimal("120000"),
                 LocalDate.of(2025, 3, 1), LocalDate.of(2025, 11, 30), company3);
-        footballTeam.setClient(frmf); footballTeam = projectRepository.save(footballTeam);
+        footballTeam.setClient(client1); footballTeam = projectRepository.save(footballTeam);
 
         // Add members with allocations
-        // majid: fse 40%, apiGateway 40%, eHealthPortal 20%
         addMember(fse, majid, 40);
         addMember(fse, dev1, 30);
         addMember(fse, dev2, 60);
@@ -345,13 +500,12 @@ public class DataSeeder implements CommandLineRunner {
         addMember(footballTeam, walid, 100);
         addMember(footballTeam, dev1, 10);
 
-        // External user assigned to FSE and Mobile App
         basma.setAssignedProject(fse);
         userRepository.save(basma);
         addMember(fse, basma);
         addMember(mobileApp, basma);
 
-        // Favorites (per-user) — each user favorites 1-2 projects from their company (or any if global)
+        // Favorites
         addFavorite(admin, fse);
         addFavorite(admin, mobileApp);
         addFavorite(majid, fse);
@@ -439,12 +593,12 @@ public class DataSeeder implements CommandLineRunner {
         createWikiPage("Getting Started", "getting-started", mobileApp, dev3,
                 "# Getting Started\n\n## Setup\n\n1. Clone the repository\n2. Run `npm install`\n3. Configure environment variables\n4. Start with `npm run dev`\n\n## Development Workflow\n\n```mermaid\ngraph TD\n    A[Feature Branch] --> B[Local Testing]\n    B --> C[Pull Request]\n    C --> D[Code Review]\n    D --> |Approved| E[Merge to Main]\n    D --> |Changes Needed| A\n    E --> F[CI/CD Pipeline]\n    F --> G[Deploy to Staging]\n    G --> H[QA Testing]\n    H --> |Pass| I[Deploy to Production]\n    H --> |Fail| A\n```\n\n## Mobile App Architecture\n\n```mermaid\ngraph TD\n    App[React Native App] --> API[Backend API]\n    App --> Push[Push Notifications]\n    App --> Cache[Local Storage]\n    API --> DB[(Database)]\n    API --> Auth[OAuth Provider]\n```");
 
-        String c4DisplayName = "dev".equals(mode) ? "Medocode" : "medERP";
+        String c4DisplayName = p.companyNames()[3];
         createWikiPage(c4DisplayName + " Roadmap", "roadmap", erpProject, younes,
                 "# " + c4DisplayName + " Roadmap\n\n## 2025 Milestones\n\n```mermaid\ngantt\n    title " + c4DisplayName + " 2025 Roadmap\n    dateFormat YYYY-MM-DD\n    section Q1\n    Patient Management  :done, q1a, 2025-01-01, 2025-03-31\n    section Q2\n    Billing Module      :active, q2a, 2025-04-01, 2025-06-30\n    section Q3\n    Lab Integration     :q3a, 2025-07-01, 2025-09-30\n    section Q4\n    Pharmacy Module     :q4a, 2025-10-01, 2025-12-31\n```\n\n## Module Dependencies\n\n```mermaid\ngraph TD\n    Patient[Patient Module] --> Billing[Billing Module]\n    Patient --> Lab[Lab Integration]\n    Billing --> Insurance[Insurance Claims]\n    Lab --> Pharmacy[Pharmacy Module]\n    Insurance --> Reports[Reporting]\n```\n\n## Integration Points\n\n```mermaid\ngraph LR\n    HIS[Hospital Info System] --> API[" + c4DisplayName + " API]\n    LIS[Lab Info System] --> API\n    PIS[Pharmacy System] --> API\n    API --> DW[Data Warehouse]\n    API --> Portal[Patient Portal]\n```");
 
         createWikiPage("Project Charter", "project-charter", apiGateway, majid,
-                "# API Gateway Project Charter\n\n## Scope\n\nCentral API gateway for service routing, rate limiting, and authentication.\n\n## Stakeholders\n\n```mermaid\ngraph TD\n    Sponsor[Salim - Executive Sponsor] --> PM[Majid - Project Manager]\n    PM --> Dev1[Ismail - Lead Developer]\n    PM --> Dev2[Wadii - Backend Developer]\n    PM --> QA[Admin - QA Lead]\n```\n\n## Risk Assessment\n\n```mermaid\nquadrantChart\n    title Risk Assessment\n    x-axis Low Impact --> High Impact\n    y-axis Low Probability --> High Probability\n    quadrant-1 High Impact Low Probability\n    quadrant-2 High Impact High Probability\n    quadrant-3 Low Impact Low Probability\n    quadrant-4 Low Impact High Probability\n    Vendor Lock-in: [0.3, 0.4]\n    Scalability: [0.8, 0.6]\n    Security Breach: [0.9, 0.3]\n    Team Turnover: [0.4, 0.5]\n```\n\n## Budget\n\n| Category | Amount (DH) |\n|----------|-------------|\n| Development | 50,000 |\n| Infrastructure | 15,000 |\n| Testing | 10,000 |\n| Contingency | 5,000 |");
+                "# API Gateway Project Charter\n\n## Scope\n\nCentral API gateway for service routing, rate limiting, and authentication.\n\n## Stakeholders\n\n```mermaid\ngraph TD\n    Sponsor[Salim - Executive Sponsor] --> PM[Majid - Project Manager]\n    PM --> Dev1[Ismail - Lead Developer]\n    PM --> Dev2[Wadii - Backend Developer]\n    PM --> QA[Admin - QA Lead]\n```\n\n## Risk Assessment\n\n```mermaid\nquadrantChart\n    title Risk Assessment\n    x-axis Low Impact --> High Impact\n    y-axis Low Probability --> High Probability\n    quadrant-1 High Impact Low Probability\n    quadrant-2 High Impact High Probability\n    quadrant-3 Low Impact Low Probability\n    quadrant-4 Low Impact High Probability\n    Vendor Lock-in: [0.3, 0.4]\n    Scalability: [0.8, 0.6]\n    Security Breach: [0.9, 0.3]\n    Team Turnover: [0.4, 0.5]\n```\n\n## Budget\n\n| Category | Amount (" + p.currency() + ") |\n|----------|-------------|\n| Development | 50,000 |\n| Infrastructure | 15,000 |\n| Testing | 10,000 |\n| Contingency | 5,000 |");
 
         // Additional RAID items for remaining projects
         createRaidItem(eHealthPortal, RaidItem.RaidType.RISK, "Patient data privacy",
@@ -530,7 +684,6 @@ public class DataSeeder implements CommandLineRunner {
         createTask("FSE-6", "Payment integration", fse, todo, Task.Priority.HIGH, dev, null, admin, null, 5, LocalDate.of(2025, 9, 15), fseExec);
         createTask("FSE-7", "Analytics reporting", fse, todo, Task.Priority.MEDIUM, dev, null, majid, null, 6, null, fseClose);
 
-        // Additional tasks for ismail in Sprint 1 (multi-project sprint visibility)
         createTask("FSE-9", "API error handling", fse, done, Task.Priority.HIGH, dev, dev1, admin, sprint1, 8, LocalDate.of(2025, 7, 15), fseExec);
         createTask("FSE-10", "Database migration scripts", fse, todo, Task.Priority.MEDIUM, dev, dev1, admin, sprint1, 9, LocalDate.of(2025, 8, 15), fseExec);
 
@@ -551,22 +704,17 @@ public class DataSeeder implements CommandLineRunner {
         createTask("DW-2", "ETL pipeline setup", dataWarehouse, inProgress, Task.Priority.HIGH, dev, dev1, salim, null, 1, LocalDate.of(2026, 3, 31), null);
         createTask("DW-3", "Analytics dashboard", dataWarehouse, todo, Task.Priority.MEDIUM, dev, null, salim, null, 2, LocalDate.of(2026, 6, 30), null);
 
-        // Task for hanane in eHealthPortal (multi-project assignment for Log Time dropdown)
         createTask("PP-1", "Patient portal UI design", eHealthPortal, inProgress, Task.Priority.HIGH, dev, dev2, majid, null, 0, LocalDate.of(2025, 12, 31), null);
 
-        // Task for basma in Mobile App (multi-project EXTERNAL assignment)
         createTask("MA-6", "Client UX review", mobileApp, todo, Task.Priority.MEDIUM, dev, basma, pmHarmony, null, 5, LocalDate.of(2025, 10, 31), mobileExec);
 
-        // External tasks (visible only to EXTERNAL users)
         Task extTask = createTask("FSE-8", "Client feedback on login flow", fse, todo, Task.Priority.MEDIUM, dev, basma, basma, null, 7, LocalDate.of(2025, 8, 15), fseExec);
         extTask.setExternal(true);
         taskRepository.save(extTask);
 
-        // Tasks for medERP
         createTask("MER-1", "Amelioration design", erpProject, inProgress, Task.Priority.HIGH, dev, younes, younes, null, 0, LocalDate.of(2025, 9, 30), erpExec);
         createTask("MER-2", "Homologation FSE", erpProject, todo, Task.Priority.HIGH, dev, younes, younes, null, 1, LocalDate.of(2025, 12, 31), erpExec);
 
-        // Tasks for Football Team Manager
         createTask("FTM-1", "Player registration module", footballTeam, done, Task.Priority.HIGH, dev, walid, youssef, null, 0, LocalDate.of(2025, 5, 31), ftmExec);
         createTask("FTM-2", "Match scheduling system", footballTeam, done, Task.Priority.HIGH, dev, walid, youssef, null, 1, LocalDate.of(2025, 10, 31), ftmExec);
         createTask("FTM-3", "Training session planner", footballTeam, done, Task.Priority.MEDIUM, dev, dev1, youssef, null, 2, LocalDate.of(2025, 11, 15), ftmExec);
@@ -581,9 +729,7 @@ public class DataSeeder implements CommandLineRunner {
         createLabel(mobileApp, "iOS", "#8B5CF6");
         createLabel(mobileApp, "Android", "#F59E0B");
 
-        // Time logs — each contributor logs 8h/day on their tasks for the last 10 days,
-        // but with 1-3 recent days without logs to simulate delayed time entry
-        // dev1 (Ismail): FSE-1 (done), FSE-3 (in progress), AG-1 (in progress), FTM-3 (in progress)
+        // Time logs
         String[] dev1Descriptions = {"Implementation", "Bug fixes and testing", "Code review", "Feature development", "Refactoring", "Unit tests", "Integration work", "Documentation", "Deployment prep", "Optimization"};
         for (int i = 10; i >= 3; i--) {
             createTimeLog(fse, "FSE-3", dev1, new BigDecimal("8"), today.minusDays(i), dev1Descriptions[10 - i] + " - profile management");
@@ -593,30 +739,25 @@ public class DataSeeder implements CommandLineRunner {
             createTimeLog(apiGateway, "AG-1", dev1, new BigDecimal("8"), today.minusDays(i), "Rate limiting work");
         }
 
-        // dev2 (Hanane): FSE-2 (done), FSE-4 (in progress)
         for (int i = 10; i >= 2; i--) {
             createTimeLog(fse, "FSE-4", dev2, new BigDecimal("8"), today.minusDays(i), "Search functionality work");
         }
         createTimeLog(fse, "FSE-2", dev2, new BigDecimal("8"), today.minusDays(10), "Dashboard layout - complete");
 
-        // dev3 (Wadii): MA-1 (done), MA-3 (in progress)
         createTimeLog(mobileApp, "MA-1", dev3, new BigDecimal("8"), today.minusDays(12), "Login screen - complete");
         for (int i = 10; i >= 4; i--) {
             createTimeLog(mobileApp, "MA-3", dev3, new BigDecimal("8"), today.minusDays(i), "Push notifications development");
         }
 
-        // dev4 (Ahmed): MA-2 (done)
         createTimeLog(mobileApp, "MA-2", dev4, new BigDecimal("8"), today.minusDays(11), "Navigation - complete");
         for (int i = 10; i >= 3; i--) {
             createTimeLog(mobileApp, "MA-3", dev4, new BigDecimal("8"), today.minusDays(i), "Mobile UI development");
         }
 
-        // younes (medERP): MER-1 (in progress), MER-2 (todo)
         for (int i = 10; i >= 4; i--) {
             createTimeLog(erpProject, "MER-1", younes, new BigDecimal("8"), today.minusDays(i), "Design amelioration work");
         }
 
-        // walid (MyTeam): FTM-1 (done), FTM-2 (in progress)
         createTimeLog(footballTeam, "FTM-1", walid, new BigDecimal("8"), today.minusDays(11), "Player registration - complete");
         for (int i = 10; i >= 3; i--) {
             createTimeLog(footballTeam, "FTM-2", walid, new BigDecimal("8"), today.minusDays(i), "Match scheduling development");
@@ -663,7 +804,7 @@ public class DataSeeder implements CommandLineRunner {
                 "Infrastructure upgrade depends on cloud contract renewal",
                 RaidItem.RaidStatus.OPEN, null, null, null, majid, today.plusMonths(2));
 
-        // Project expenses — replacing old budgetSpent static values with dynamic expense records
+        // Project expenses
         createExpense(fse, ExpenseCategory.SOFTWARE, new BigDecimal("15000"), "Dev tools and cloud services", today.minusMonths(5), majid);
         createExpense(fse, ExpenseCategory.EXPERTISE, new BigDecimal("25000"), "External consultants — architecture review", today.minusMonths(4), majid);
         createExpense(fse, ExpenseCategory.INFRASTRUCTURE, new BigDecimal("10000"), "Server hardware upgrade", today.minusMonths(3), dev1);
@@ -692,36 +833,27 @@ public class DataSeeder implements CommandLineRunner {
         createExpense(footballTeam, ExpenseCategory.INFRASTRUCTURE, new BigDecimal("15000"), "Server hosting and CDN", today.minusMonths(1), youssef);
         createExpense(footballTeam, ExpenseCategory.EXPERTISE, new BigDecimal("25000"), "Sports analytics consultancy", today.minusMonths(6), youssef);
 
-        // Public holidays (Morocco 2025)
-        createHoliday(LocalDate.of(2025, 1, 1), "New Year's Day", null);
-        createHoliday(LocalDate.of(2025, 1, 11), "Independence Manifesto Day", null);
-        createHoliday(LocalDate.of(2025, 5, 1), "Labour Day", null);
-        createHoliday(LocalDate.of(2025, 7, 30), "Throne Day", null);
-        createHoliday(LocalDate.of(2025, 8, 14), "Oued Ed-Dahab Day", null);
-        createHoliday(LocalDate.of(2025, 8, 20), "Revolution Day", null);
-        createHoliday(LocalDate.of(2025, 8, 21), "Youth Day", null);
-        createHoliday(LocalDate.of(2025, 11, 6), "Green March Day", null);
-        createHoliday(LocalDate.of(2025, 11, 18), "Independence Day", null);
+        // Public holidays
+        for (HolidayData h : p.holidays()) {
+            createHoliday(h.date(), h.name(), null);
+        }
 
         // Locations
-        Location plateauHightech = createLocation("Plateau 19 Imb Hightech", c1Name + " main office at Hay Riad", null, company1, 1);
-        Location camelias = createLocation("Camelias", c1Name + " secondary office", null, company1, 2);
-
-        Location villaAnnasim = createLocation("Villa Annasim", c2Name + " main office", null, company2, 1);
-        Location centreAlKassous = createLocation("Centre Al Kassous", c2Name + " branch office", null, company2, 2);
-
-        Location plateauBouskoura = createLocation("Plateau Bouskoura", c3Name + " office", null, company3, 1);
-
-        Location bureauTechnoparc = createLocation("Bureau technoparc", c4Name + " office", null, company4, 1);
+        Location loc1a = createLocation(p.locationNames()[0][0], p.companyNames()[0] + " " + p.locationDescriptions()[0][0], null, company1, 1);
+        Location loc1b = createLocation(p.locationNames()[0][1], p.companyNames()[0] + " " + p.locationDescriptions()[0][1], null, company1, 2);
+        Location loc2a = createLocation(p.locationNames()[1][0], p.companyNames()[1] + " " + p.locationDescriptions()[1][0], null, company2, 1);
+        Location loc2b = createLocation(p.locationNames()[1][1], p.companyNames()[1] + " " + p.locationDescriptions()[1][1], null, company2, 2);
+        Location loc3a = createLocation(p.locationNames()[2][0], p.companyNames()[2] + " " + p.locationDescriptions()[2][0], null, company3, 1);
+        Location loc4a = createLocation(p.locationNames()[3][0], p.companyNames()[3] + " " + p.locationDescriptions()[3][0], null, company4, 1);
 
         // Assets
-        createAsset("MacBook Pro 16\"", Asset.Type.COMPUTER, Asset.Status.ASSIGNED, plateauHightech, dev1, company1,
+        createAsset("MacBook Pro 16\"", Asset.Type.COMPUTER, Asset.Status.ASSIGNED, loc1a, dev1, company1,
                 "MBP-2024-001", LocalDate.of(2024, 1, 15), new BigDecimal("2400"));
-        createAsset("Dell Latitude 5540", Asset.Type.COMPUTER, Asset.Status.ASSIGNED, plateauHightech, dev2, company1,
+        createAsset("Dell Latitude 5540", Asset.Type.COMPUTER, Asset.Status.ASSIGNED, loc1a, dev2, company1,
                 "DL-5540-002", LocalDate.of(2024, 3, 1), new BigDecimal("1200"));
-        createAsset("Dell PowerEdge R740", Asset.Type.SERVER, Asset.Status.IN_USE, camelias, null, company1,
+        createAsset("Dell PowerEdge R740", Asset.Type.SERVER, Asset.Status.IN_USE, loc1b, null, company1,
                 "SRV-R740-001", LocalDate.of(2023, 6, 1), new BigDecimal("8500"));
-        createAsset("HP ProLiant DL380", Asset.Type.SERVER, Asset.Status.IN_USE, camelias, null, company1,
+        createAsset("HP ProLiant DL380", Asset.Type.SERVER, Asset.Status.IN_USE, loc1b, null, company1,
                 "SRV-DL380-002", LocalDate.of(2023, 6, 1), new BigDecimal("7200"));
         createAsset("iPhone 15 Pro", Asset.Type.MOBILE, Asset.Status.ASSIGNED, null, majid, company1,
                 "IPH-15PRO-001", LocalDate.of(2024, 2, 1), new BigDecimal("1100"));
@@ -729,15 +861,15 @@ public class DataSeeder implements CommandLineRunner {
                 "SGS-S24-002", LocalDate.of(2024, 4, 1), new BigDecimal("900"));
         createAsset("Toyota Hilux", Asset.Type.VEHICLE, Asset.Status.IN_USE, null, dev3, company2,
                 "VHC-HILUX-001", LocalDate.of(2022, 8, 1), new BigDecimal("35000"));
-        createAsset("Samsung Microwave", Asset.Type.MICROWAVE, Asset.Status.IN_USE, villaAnnasim, null, company2,
+        createAsset("Samsung Microwave", Asset.Type.MICROWAVE, Asset.Status.IN_USE, loc2a, null, company2,
                 "MCI-SAM-001", LocalDate.of(2023, 3, 1), new BigDecimal("150"));
         createAsset("ThinkPad X1 Carbon", Asset.Type.COMPUTER, Asset.Status.ASSIGNED, null, dev3, company2,
                 "TP-X1C-001", LocalDate.of(2024, 1, 10), new BigDecimal("1800"));
         createAsset("MacBook Air M2", Asset.Type.COMPUTER, Asset.Status.ASSIGNED, null, dev4, company2,
                 "MBA-M2-001", LocalDate.of(2024, 2, 15), new BigDecimal("1300"));
-        createAsset("Dell Monitor 27\"", Asset.Type.OTHER, Asset.Status.IN_USE, plateauHightech, null, company1,
+        createAsset("Dell Monitor 27\"", Asset.Type.OTHER, Asset.Status.IN_USE, loc1a, null, company1,
                 "MON-DELL27-001", LocalDate.of(2024, 1, 20), new BigDecimal("350"));
-        createAsset("Cisco Switch C9200", Asset.Type.OTHER, Asset.Status.IN_USE, camelias, null, company1,
+        createAsset("Cisco Switch C9200", Asset.Type.OTHER, Asset.Status.IN_USE, loc1b, null, company1,
                 "NET-CS9200-001", LocalDate.of(2023, 5, 1), new BigDecimal("2800"));
         createAsset("iPad Pro 12.9\"", Asset.Type.MOBILE, Asset.Status.MAINTENANCE, null, null, company3,
                 "IPD-PRO-001", LocalDate.of(2023, 11, 1), new BigDecimal("1100"));
@@ -746,7 +878,7 @@ public class DataSeeder implements CommandLineRunner {
         createAsset("Coffee Machine Jura", Asset.Type.OTHER, Asset.Status.IN_STOCK, null, null, company1,
                 "BEV-JURA-001", LocalDate.of(2024, 5, 1), new BigDecimal("800"));
 
-        // Leave entitlements — default allocations for current year
+        // Leave entitlements
         int currentYear = today.getYear();
         User[] allUsers = {admin, majid, dev1, dev2, dev3, dev4, pmHarmony, salim, basma, younes, youssef, walid, mehdi};
         for (User u : allUsers) {
@@ -813,13 +945,13 @@ public class DataSeeder implements CommandLineRunner {
         return companyRepository.save(company);
     }
 
-    private OrganizationConfig createOrgConfig(String name, Company company, String address, String website, String logo) {
+    private OrganizationConfig createOrgConfig(String name, Company company, String address, String website, String logo, String currency) {
         OrganizationConfig config = new OrganizationConfig();
         config.setName(name);
         config.setAddress(address);
         config.setWebsite(website);
         config.setLogo(logo);
-        config.setCurrency("DH");
+        config.setCurrency(currency);
         config.setCompany(company);
         return organizationConfigRepository.save(config);
     }
