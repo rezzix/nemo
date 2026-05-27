@@ -16,11 +16,11 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
            "(:search IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
            "(:programId IS NULL OR p.program.id = :programId) AND " +
            "(:managerId IS NULL OR p.manager.id = :managerId) AND " +
-           "(:companyId IS NULL OR p.company.id = :companyId OR p.company.id IS NULL)")
+           "(:companyId IS NULL OR p.company.id = :companyId)")
     Page<Project> search(String search, Long programId, Long managerId, Long companyId, Pageable pageable);
 
     @Query("SELECT p FROM Project p WHERE p.id IN (SELECT pm.project.id FROM ProjectMember pm WHERE pm.user.id = :userId) " +
-           "AND (:companyId IS NULL OR p.company.id = :companyId OR p.company.id IS NULL)")
+           "AND (:companyId IS NULL OR p.company.id = :companyId)")
     Page<Project> findByMemberUserIdAndCompany(Long userId, Long companyId, Pageable pageable);
 
     @Query("SELECT p FROM Project p WHERE (:companyId IS NULL OR p.company.id = :companyId)")

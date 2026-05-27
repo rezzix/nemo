@@ -14,7 +14,7 @@ public interface PreSaleRepository extends JpaRepository<PreSale, Long> {
            "OR LOWER(p.client.name) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
            "(:stage IS NULL OR p.stage = :stage) AND " +
            "(:managerId IS NULL OR p.manager.id = :managerId) AND " +
-           "(:companyId IS NULL OR p.company.id = :companyId OR p.company.id IS NULL)")
+           "(:companyId IS NULL OR p.company.id = :companyId)")
     Page<PreSale> search(@Param("search") String search, @Param("stage") PreSale.PreSaleStage stage,
                          @Param("managerId") Long managerId, @Param("companyId") Long companyId, Pageable pageable);
 }
