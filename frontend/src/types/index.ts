@@ -3,7 +3,7 @@ export type { CompanyDto, CreateCompanyRequest, UpdateCompanyRequest } from './c
 export type { UserDto, UserRole, LoginRequest, UpdateProfileRequest, PasswordChangeRequest, AllocationSummaryDto } from './user';
 export type { ProjectDto, CreateProjectRequest, UpdateProjectRequest, MemberDto, LabelDto, LabelCreateRequest, BoardColumnDto, BoardConfigDto, BoardUpdateRequest, InstructionDto, CreateInstructionRequest, UpdateInstructionRequest, NoteDto, CreateNoteRequest, UpdateNoteRequest } from './project';
 export type { TaskDto, TaskPriority, CreateTaskRequest, UpdateTaskRequest, CommentDto, CreateCommentRequest, UpdateCommentRequest } from './task';
-export type { ProgramDto, CreateProgramRequest, UpdateProgramRequest } from './program';
+export type { ProgramDto, CreateProgramRequest, UpdateProgramRequest, ProgramEvmMetrics } from './program';
 export type { OrganizationConfig, PublicConfigResponse } from './organization';
 export type { SprintDto, CreateSprintRequest, UpdateSprintRequest } from './sprint';
 export type { TimeLogDto, CreateTimeLogRequest, UpdateTimeLogRequest } from './timeLog';
