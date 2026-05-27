@@ -304,6 +304,121 @@ public class PmoService {
             Map<String, Long> stageDistribution
     ) {}
 
+    public record ProgramEvmMetrics(
+            Long programId, String programName,
+            int totalProjects, long totalTasks, long totalCompleted, BigDecimal completionPct,
+            BigDecimal totalBudget, BigDecimal totalPlannedValue, BigDecimal totalEarnedValue,
+            BigDecimal totalActualCost, BigDecimal totalLaborCost, BigDecimal totalExpenseCost,
+            BigDecimal pvToday, BigDecimal costVariance, BigDecimal scheduleVariance,
+            BigDecimal cpi, BigDecimal spi,
+            long totalOpenRisks, long totalMitigatingRisks
+    ) {}
+
+    @Transactional(readOnly = true)
+    public ProgramEvmMetrics computeProgramEvm(Long programId) {
+        List<Project> projects = projectRepository.findByProgramId(programId);
+        if (projects.isEmpty()) {
+            return new ProgramEvmMetrics(programId, null, 0, 0, 0,
+                    BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
+                    BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
+                    BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
+                    null, null, 0, 0);
+        }
+
+        // Derive program name from first project's program
+        String programName = projects.get(0).getProgram() != null
+                ? projects.get(0).getProgram().getName() : null;
+
+        List<TaskStatus> completedStatuses = new java.util.ArrayList<>();
+        completedStatuses.addAll(taskStatusRepository.findByCategory(TaskStatus.Category.DONE));
+        completedStatuses.addAll(taskStatusRepository.findByCategory(TaskStatus.Category.CLOSED));
+
+        long totalTasks = 0;
+        long totalCompleted = 0;
+        BigDecimal totalBudget = BigDecimal.ZERO;
+        BigDecimal totalPlannedValue = BigDecimal.ZERO;
+        BigDecimal totalEarnedValue = BigDecimal.ZERO;
+        BigDecimal totalActualCost = BigDecimal.ZERO;
+        BigDecimal totalLaborCost = BigDecimal.ZERO;
+        BigDecimal totalExpenseCost = BigDecimal.ZERO;
+        BigDecimal totalPvToday = BigDecimal.ZERO;
+        long totalOpenRisks = 0;
+        long totalMitigatingRisks = 0;
+
+        for (Project project : projects) {
+            long projTotal = taskRepository.countByProjectId(project.getId());
+            long projCompleted = 0;
+            for (TaskStatus status : completedStatuses) {
+                projCompleted += taskRepository.countByProjectIdAndStatusId(project.getId(), status.getId());
+            }
+            totalTasks += projTotal;
+            totalCompleted += projCompleted;
+
+            if (project.getBudget() != null) totalBudget = totalBudget.add(project.getBudget());
+
+            // Derived PV from phases, fallback to project.plannedValue
+            List<Phase> phases = phaseRepository.findByProjectIdOrderByPositionAsc(project.getId());
+            BigDecimal derivedPv = phases.stream()
+                    .map(p -> p.getPlannedAmount() != null ? p.getPlannedAmount() : BigDecimal.ZERO)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal projPv = derivedPv.compareTo(BigDecimal.ZERO) > 0
+                    ? derivedPv
+                    : (project.getPlannedValue() != null ? project.getPlannedValue() : BigDecimal.ZERO);
+            totalPlannedValue = totalPlannedValue.add(projPv);
+
+            BigDecimal projCompletion = projTotal > 0
+                    ? BigDecimal.valueOf(projCompleted).divide(BigDecimal.valueOf(projTotal), 4, RoundingMode.HALF_UP)
+                    : BigDecimal.ZERO;
+            totalEarnedValue = totalEarnedValue.add(projCompletion.multiply(projPv).setScale(2, RoundingMode.HALF_UP));
+
+            BigDecimal projLabor = computeLaborCost(project.getId());
+            BigDecimal projExpense = computeExpenseCost(project.getId());
+            totalLaborCost = totalLaborCost.add(projLabor);
+            totalExpenseCost = totalExpenseCost.add(projExpense);
+            totalActualCost = totalActualCost.add(projLabor.add(projExpense).setScale(2, RoundingMode.HALF_UP));
+
+            totalPvToday = totalPvToday.add(computePlannedValueToday(project, projPv));
+
+            totalOpenRisks += raidItemRepository.countByProjectIdAndStatus(project.getId(), RaidItem.RaidStatus.OPEN);
+            totalMitigatingRisks += raidItemRepository.countByProjectIdAndStatus(project.getId(), RaidItem.RaidStatus.MITIGATING);
+        }
+
+        BigDecimal completionPct = totalTasks > 0
+                ? BigDecimal.valueOf(totalCompleted).divide(BigDecimal.valueOf(totalTasks), 4, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
+
+        BigDecimal costVariance = totalEarnedValue.subtract(totalActualCost).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal scheduleVariance = totalEarnedValue.subtract(totalPvToday).setScale(2, RoundingMode.HALF_UP);
+
+        BigDecimal cpi;
+        if (totalEarnedValue.compareTo(BigDecimal.ZERO) > 0 && totalActualCost.compareTo(BigDecimal.ZERO) > 0) {
+            cpi = totalEarnedValue.divide(totalActualCost, 2, RoundingMode.HALF_UP);
+        } else if (totalActualCost.compareTo(BigDecimal.ZERO) > 0) {
+            cpi = BigDecimal.ZERO;
+        } else {
+            cpi = null;
+        }
+
+        BigDecimal spi;
+        if (totalEarnedValue.compareTo(BigDecimal.ZERO) > 0 && totalPvToday.compareTo(BigDecimal.ZERO) > 0) {
+            spi = totalEarnedValue.divide(totalPvToday, 2, RoundingMode.HALF_UP);
+        } else if (totalPvToday.compareTo(BigDecimal.ZERO) > 0) {
+            spi = BigDecimal.ZERO;
+        } else {
+            spi = null;
+        }
+
+        return new ProgramEvmMetrics(
+                programId, programName,
+                projects.size(), totalTasks, totalCompleted, completionPct,
+                totalBudget, totalPlannedValue, totalEarnedValue,
+                totalActualCost, totalLaborCost, totalExpenseCost,
+                totalPvToday, costVariance, scheduleVariance,
+                cpi, spi,
+                totalOpenRisks, totalMitigatingRisks
+        );
+    }
+
     public record CompanyPortfolioSummary(
             Long companyId, String companyName, String companyKey,
             int totalProjects, long totalTasks, long totalCompleted,

@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import type { ProgramDto, ProjectDto } from '@/types';
-import { getProgram } from '@/api/programs';
+import type { ProgramDto, ProjectDto, ProgramEvmMetrics } from '@/types';
+import { getProgram, getProgramEvm } from '@/api/programs';
 import { listProjects } from '@/api/projects';
-import { stageBadge, stageLabel, formatCurrency, formatDate, deadlineBadge, deadlineLabel } from '@/utils/format';
+import { stageBadge, stageLabel, formatCurrency, formatDate, deadlineBadge, deadlineLabel, eviColor } from '@/utils/format';
 import Spinner from '@/components/common/Spinner';
 
 export default function ProgramDetailPage() {
@@ -11,18 +11,21 @@ export default function ProgramDetailPage() {
   const navigate = useNavigate();
   const [program, setProgram] = useState<ProgramDto | null>(null);
   const [projects, setProjects] = useState<ProjectDto[]>([]);
+  const [evm, setEvm] = useState<ProgramEvmMetrics | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
     if (!id) return;
     setLoading(true);
     try {
-      const [prog, projRes] = await Promise.all([
+      const [prog, projRes, evmData] = await Promise.all([
         getProgram(Number(id)),
         listProjects({ programId: Number(id), size: 100 }),
+        getProgramEvm(Number(id)).catch(() => null),
       ]);
       setProgram(prog);
       setProjects(projRes);
+      setEvm(evmData);
     } catch {
       setProgram(null);
     } finally {
@@ -57,6 +60,62 @@ export default function ProgramDetailPage() {
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-900">Projects ({projects.length})</h3>
       </div>
+
+      {evm && (
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <h4 className="text-sm font-semibold text-gray-700 mb-3">Program EVM Summary</h4>
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
+            <div>
+              <div className="text-[10px] text-gray-400 font-medium uppercase">Budget</div>
+              <div className="text-sm font-medium text-gray-900">{formatCurrency(evm.totalBudget)}</div>
+            </div>
+            <div>
+              <div className="text-[10px] text-gray-400 font-medium uppercase">PV</div>
+              <div className="text-sm font-medium text-gray-900">{formatCurrency(evm.totalPlannedValue)}</div>
+            </div>
+            <div>
+              <div className="text-[10px] text-gray-400 font-medium uppercase">EV</div>
+              <div className="text-sm font-medium text-gray-900">{formatCurrency(evm.totalEarnedValue)}</div>
+            </div>
+            <div>
+              <div className="text-[10px] text-gray-400 font-medium uppercase">AC</div>
+              <div className="text-sm font-medium text-gray-900">{formatCurrency(evm.totalActualCost)}</div>
+            </div>
+            <div>
+              <div className="text-[10px] text-gray-400 font-medium uppercase">CPI</div>
+              <div className={'text-sm font-semibold ' + (evm.cpi != null ? eviColor(evm.cpi) : 'text-gray-400')}>
+                {evm.cpi != null ? evm.cpi.toFixed(2) : '—'}
+              </div>
+            </div>
+            <div>
+              <div className="text-[10px] text-gray-400 font-medium uppercase">SPI</div>
+              <div className={'text-sm font-semibold ' + (evm.spi != null ? eviColor(evm.spi) : 'text-gray-400')}>
+                {evm.spi != null ? evm.spi.toFixed(2) : '—'}
+              </div>
+            </div>
+            <div>
+              <div className="text-[10px] text-gray-400 font-medium uppercase">CV</div>
+              <div className={'text-sm font-medium ' + (evm.costVariance >= 0 ? 'text-green-600' : 'text-red-600')}>
+                {formatCurrency(evm.costVariance)}
+              </div>
+            </div>
+            <div>
+              <div className="text-[10px] text-gray-400 font-medium uppercase">SV</div>
+              <div className={'text-sm font-medium ' + (evm.scheduleVariance >= 0 ? 'text-green-600' : 'text-red-600')}>
+                {formatCurrency(evm.scheduleVariance)}
+              </div>
+            </div>
+            <div>
+              <div className="text-[10px] text-gray-400 font-medium uppercase">Completion</div>
+              <div className="text-sm font-medium text-gray-900">{(evm.completionPct * 100).toFixed(1)}%</div>
+            </div>
+            <div>
+              <div className="text-[10px] text-gray-400 font-medium uppercase">Risks</div>
+              <div className="text-sm font-medium text-gray-900">{evm.totalOpenRisks} open / {evm.totalMitigatingRisks} mitigating</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {projects.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center text-gray-500">

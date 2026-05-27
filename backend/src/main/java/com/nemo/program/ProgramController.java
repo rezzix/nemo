@@ -3,6 +3,7 @@ package com.nemo.program;
 import com.nemo.common.dto.ApiResponse;
 import com.nemo.common.dto.PaginatedResponse;
 import com.nemo.common.dto.PaginatedResponse.PaginationInfo;
+import com.nemo.pmo.PmoService;
 import com.nemo.security.AuthHelper;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -22,11 +23,13 @@ public class ProgramController {
     private final ProgramService programService;
     private final ProgramMapper programMapper;
     private final AuthHelper authHelper;
+    private final PmoService pmoService;
 
-    public ProgramController(ProgramService programService, ProgramMapper programMapper, AuthHelper authHelper) {
+    public ProgramController(ProgramService programService, ProgramMapper programMapper, AuthHelper authHelper, PmoService pmoService) {
         this.programService = programService;
         this.programMapper = programMapper;
         this.authHelper = authHelper;
+        this.pmoService = pmoService;
     }
 
     @GetMapping
@@ -55,6 +58,12 @@ public class ProgramController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ProgramDto>> get(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.of(programMapper.toDto(programService.getById(id))));
+    }
+
+    @GetMapping("/{id}/evm")
+    @PreAuthorize("hasAnyRole('MANAGER', 'EXECUTIVE')")
+    public ResponseEntity<ApiResponse<PmoService.ProgramEvmMetrics>> getEvm(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.of(pmoService.computeProgramEvm(id)));
     }
 
     @PostMapping
