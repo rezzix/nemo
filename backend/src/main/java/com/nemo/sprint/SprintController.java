@@ -1,6 +1,7 @@
 package com.nemo.sprint;
 
 import com.nemo.common.dto.ApiResponse;
+import com.nemo.config.TaskStatus;
 import com.nemo.task.Task;
 import com.nemo.task.TaskDto;
 import com.nemo.task.TaskMapper;
@@ -17,6 +18,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/projects/{projectId}/sprints")
@@ -79,5 +82,29 @@ public class SprintController {
             @Valid @RequestBody SprintDto.StatusUpdateRequest request) {
         Sprint updated = sprintService.updateStatus(sprintId, request);
         return ResponseEntity.ok(ApiResponse.of(sprintMapper.toDto(updated)));
+    }
+
+    @GetMapping("/velocity")
+    public ResponseEntity<ApiResponse<List<SprintVelocityDto>>> velocity(
+            @PathVariable Long projectId,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        authHelper.requireProjectReadAccess(currentUser, projectId);
+        List<Sprint> sprints = sprintService.getByProjectId(projectId, null);
+        if (sprints.isEmpty()) {
+            return ResponseEntity.ok(ApiResponse.of(List.of()));
+        }
+        List<Long> sprintIds = sprints.stream().map(Sprint::getId).toList();
+        Map<Long, Long> totalBySprint = taskRepository.countBySprintIds(sprintIds).stream()
+                .collect(Collectors.toMap(arr -> (Long) arr[0], arr -> (Long) arr[1]));
+        Map<Long, Long> completedBySprint = taskRepository.countCompletedBySprintIds(
+                sprintIds, List.of(TaskStatus.Category.DONE, TaskStatus.Category.CLOSED)).stream()
+                .collect(Collectors.toMap(arr -> (Long) arr[0], arr -> (Long) arr[1]));
+        List<SprintVelocityDto> result = sprints.stream()
+                .map(s -> new SprintVelocityDto(
+                        s.getId(), s.getName(), s.getStatus().name(),
+                        totalBySprint.getOrDefault(s.getId(), 0L).intValue(),
+                        completedBySprint.getOrDefault(s.getId(), 0L).intValue()))
+                .toList();
+        return ResponseEntity.ok(ApiResponse.of(result));
     }
 }

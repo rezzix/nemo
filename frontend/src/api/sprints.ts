@@ -1,8 +1,12 @@
 import { apiGet, apiPost, apiPut } from './client';
-import type { SprintDto, CreateSprintRequest, UpdateSprintRequest } from '@/types';
+import type { SprintDto, SprintVelocityDto, CreateSprintRequest, UpdateSprintRequest } from '@/types';
 
 export async function listSprints(projectId: number): Promise<SprintDto[]> {
   return apiGet<SprintDto[]>(`/projects/${projectId}/sprints`);
+}
+
+export async function getSprintVelocity(projectId: number): Promise<SprintVelocityDto[]> {
+  return apiGet<SprintVelocityDto[]>(`/projects/${projectId}/sprints/velocity`);
 }
 
 export async function createSprint(projectId: number, request: CreateSprintRequest): Promise<SprintDto> {

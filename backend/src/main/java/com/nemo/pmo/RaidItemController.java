@@ -1,10 +1,13 @@
 package com.nemo.pmo;
 
 import com.nemo.common.dto.ApiResponse;
+import com.nemo.security.AuthHelper;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,17 +18,21 @@ public class RaidItemController {
 
     private final RaidItemService raidItemService;
     private final RaidItemMapper raidItemMapper;
+    private final AuthHelper authHelper;
 
-    public RaidItemController(RaidItemService raidItemService, RaidItemMapper raidItemMapper) {
+    public RaidItemController(RaidItemService raidItemService, RaidItemMapper raidItemMapper, AuthHelper authHelper) {
         this.raidItemService = raidItemService;
         this.raidItemMapper = raidItemMapper;
+        this.authHelper = authHelper;
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EXECUTIVE')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'EXECUTIVE', 'CONTRIBUTOR', 'HR')")
     public ResponseEntity<ApiResponse<List<RaidItemDto>>> list(
             @PathVariable Long projectId,
-            @RequestParam(required = false) RaidItem.RaidType type) {
+            @RequestParam(required = false) RaidItem.RaidType type,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        authHelper.requireProjectReadAccess(currentUser, projectId);
         List<RaidItem> items = type != null
                 ? raidItemService.getByProjectIdAndType(projectId, type)
                 : raidItemService.getByProjectId(projectId);
@@ -33,8 +40,10 @@ public class RaidItemController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EXECUTIVE')")
-    public ResponseEntity<ApiResponse<RaidItemDto>> get(@PathVariable Long projectId, @PathVariable Long id) {
+    @PreAuthorize("hasAnyRole('MANAGER', 'EXECUTIVE', 'CONTRIBUTOR', 'HR')")
+    public ResponseEntity<ApiResponse<RaidItemDto>> get(@PathVariable Long projectId, @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        authHelper.requireProjectReadAccess(currentUser, projectId);
         return ResponseEntity.ok(ApiResponse.of(raidItemMapper.toDto(raidItemService.getById(id))));
     }
 

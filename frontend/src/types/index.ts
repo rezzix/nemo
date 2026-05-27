@@ -5,7 +5,7 @@ export type { ProjectDto, CreateProjectRequest, UpdateProjectRequest, MemberDto,
 export type { TaskDto, TaskPriority, CreateTaskRequest, UpdateTaskRequest, CommentDto, CreateCommentRequest, UpdateCommentRequest } from './task';
 export type { ProgramDto, CreateProgramRequest, UpdateProgramRequest, ProgramEvmMetrics } from './program';
 export type { OrganizationConfig, PublicConfigResponse } from './organization';
-export type { SprintDto, CreateSprintRequest, UpdateSprintRequest } from './sprint';
+export type { SprintDto, SprintVelocityDto, CreateSprintRequest, UpdateSprintRequest } from './sprint';
 export type { TimeLogDto, CreateTimeLogRequest, UpdateTimeLogRequest } from './timeLog';
 export type { WikiPageDto, WikiTreeItem, CreateWikiPageRequest, UpdateWikiPageRequest, WikiSearchHit } from './wiki';
 export type { RaidItemDto, CreateRaidItemRequest, UpdateRaidItemRequest, EvmMetrics, PortfolioSummary, CompanyPortfolioSummary, PhaseTimelineEntry, ProjectTimelineEntry, UserRateDto } from './pmo';
