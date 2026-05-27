@@ -372,61 +372,61 @@ public class DataSeeder implements CommandLineRunner {
 
         // Phases with deliverables
         Phase fseInit = createPhase("Initiation", "Project kickoff and requirements gathering", fse, 0,
-                LocalDate.of(2025, 1, 15), LocalDate.of(2025, 2, 15));
+                today.minusMonths(7), today.minusMonths(6));
         fseInit.setPlannedAmount(new BigDecimal("75000"));
         phaseRepository.save(fseInit);
-        createDeliverable("Project Charter", "Defines scope, objectives, and stakeholders", fseInit, DeliverableState.VALIDATED, LocalDate.of(2025, 2, 1));
-        createDeliverable("Requirements Document", "Functional and non-functional requirements", fseInit, DeliverableState.VALIDATED, LocalDate.of(2025, 2, 15));
+        createDeliverable("Project Charter", "Defines scope, objectives, and stakeholders", fseInit, DeliverableState.VALIDATED, today.minusMonths(6).plusDays(15));
+        createDeliverable("Requirements Document", "Functional and non-functional requirements", fseInit, DeliverableState.VALIDATED, today.minusMonths(6));
 
         Phase fseExec = createPhase("Execution", "Core development and implementation", fse, 1,
-                LocalDate.of(2025, 2, 16), LocalDate.of(2025, 8, 31));
+                today.minusMonths(6).plusDays(1), today.plusMonths(1));
         fseExec.setPlannedAmount(new BigDecimal("350000"));
         phaseRepository.save(fseExec);
-        createDeliverable("MVP Release", "Minimum viable product with core features", fseExec, DeliverableState.DELIVERED, LocalDate.of(2025, 5, 1));
-        createDeliverable("API Layer", "RESTful API endpoints for all modules", fseExec, DeliverableState.DELIVERED, LocalDate.of(2025, 6, 15));
-        createDeliverable("Integration Tests", "End-to-end test suite for all services", fseExec, DeliverableState.DRAFT, LocalDate.of(2025, 8, 31));
+        createDeliverable("MVP Release", "Minimum viable product with core features", fseExec, DeliverableState.DELIVERED, today.minusMonths(3));
+        createDeliverable("API Layer", "RESTful API endpoints for all modules", fseExec, DeliverableState.DELIVERED, today.minusMonths(2));
+        createDeliverable("Integration Tests", "End-to-end test suite for all services", fseExec, DeliverableState.DRAFT, today.plusMonths(1));
 
         Phase fseClose = createPhase("Closing", "Project wrap-up and handover", fse, 2,
-                LocalDate.of(2025, 9, 1), LocalDate.of(2025, 9, 30));
+                today.plusMonths(2), today.plusMonths(3));
         fseClose.setPlannedAmount(new BigDecimal("75000"));
         phaseRepository.save(fseClose);
-        createDeliverable("Final Documentation", "Complete project documentation package", fseClose, DeliverableState.DRAFT, LocalDate.of(2025, 9, 15));
-        createDeliverable("Handover Report", "Lessons learned and operational guide", fseClose, DeliverableState.DRAFT, LocalDate.of(2025, 9, 30));
+        createDeliverable("Final Documentation", "Complete project documentation package", fseClose, DeliverableState.DRAFT, today.plusMonths(2).plusDays(15));
+        createDeliverable("Handover Report", "Lessons learned and operational guide", fseClose, DeliverableState.DRAFT, today.plusMonths(3));
 
         Phase mobilePlan = createPhase("Planning", "Design and architecture phase", mobileApp, 0,
-                LocalDate.of(2025, 2, 1), LocalDate.of(2025, 3, 15));
-        createDeliverable("UX Wireframes", "Mobile app screen designs and user flows", mobilePlan, DeliverableState.VALIDATED, LocalDate.of(2025, 3, 1));
-        createDeliverable("Architecture Document", "Technical architecture and API contracts", mobilePlan, DeliverableState.VALIDATED, LocalDate.of(2025, 3, 15));
+                today.minusMonths(6), today.minusMonths(4).plusDays(14));
+        createDeliverable("UX Wireframes", "Mobile app screen designs and user flows", mobilePlan, DeliverableState.VALIDATED, today.minusMonths(5));
+        createDeliverable("Architecture Document", "Technical architecture and API contracts", mobilePlan, DeliverableState.VALIDATED, today.minusMonths(4).plusDays(14));
 
         Phase mobileExec = createPhase("Execution", "Mobile app development", mobileApp, 1,
-                LocalDate.of(2025, 3, 16), LocalDate.of(2025, 10, 15));
-        createDeliverable("Alpha Build", "Core functionality with placeholder data", mobileExec, DeliverableState.DELIVERED, LocalDate.of(2025, 6, 1));
-        createDeliverable("Beta Build", "Feature-complete build for testing", mobileExec, DeliverableState.DRAFT, LocalDate.of(2025, 9, 1));
-        createDeliverable("App Store Submission", "Final build with App Store assets", mobileExec, DeliverableState.DRAFT, LocalDate.of(2025, 10, 15));
+                today.minusMonths(4).plusDays(15), today.plusMonths(2));
+        createDeliverable("Alpha Build", "Core functionality with placeholder data", mobileExec, DeliverableState.DELIVERED, today.minusMonths(2));
+        createDeliverable("Beta Build", "Feature-complete build for testing", mobileExec, DeliverableState.DRAFT, today.plusMonths(1));
+        createDeliverable("App Store Submission", "Final build with App Store assets", mobileExec, DeliverableState.DRAFT, today.plusMonths(2));
 
         Phase apiPlan = createPhase("Planning", "API gateway design", apiGateway, 0,
-                LocalDate.of(2025, 3, 1), LocalDate.of(2025, 5, 31));
-        createDeliverable("API Specification", "OpenAPI spec for gateway endpoints", apiPlan, DeliverableState.VALIDATED, LocalDate.of(2025, 4, 15));
-        createDeliverable("Security Audit Plan", "Security review checklist and tooling setup", apiPlan, DeliverableState.DRAFT, LocalDate.of(2025, 5, 31));
+                today.minusMonths(5), today.minusMonths(3));
+        createDeliverable("API Specification", "OpenAPI spec for gateway endpoints", apiPlan, DeliverableState.VALIDATED, today.minusMonths(4).plusDays(15));
+        createDeliverable("Security Audit Plan", "Security review checklist and tooling setup", apiPlan, DeliverableState.DRAFT, today.minusMonths(3));
 
         Phase apiExec = createPhase("Execution", "Gateway implementation", apiGateway, 1,
-                LocalDate.of(2025, 6, 1), LocalDate.of(2025, 12, 15));
-        createDeliverable("Rate Limiter Module", "Configurable rate limiting per service", apiExec, DeliverableState.DRAFT, LocalDate.of(2025, 9, 1));
-        createDeliverable("Service Registry", "Dynamic service discovery and health checks", apiExec, DeliverableState.DRAFT, LocalDate.of(2025, 12, 15));
+                today.minusMonths(3).plusDays(1), today.plusMonths(4));
+        createDeliverable("Rate Limiter Module", "Configurable rate limiting per service", apiExec, DeliverableState.DRAFT, today.plusMonths(1));
+        createDeliverable("Service Registry", "Dynamic service discovery and health checks", apiExec, DeliverableState.DRAFT, today.plusMonths(4));
 
         Phase erpInit = createPhase("Initiation", "Stakeholder alignment and scope", erpProject, 0,
-                LocalDate.of(2025, 1, 1), LocalDate.of(2025, 2, 28));
-        createDeliverable("Business Case", "ROI analysis and project justification", erpInit, DeliverableState.VALIDATED, LocalDate.of(2025, 1, 31));
-        createDeliverable("Stakeholder Map", "Key stakeholders and communication plan", erpInit, DeliverableState.VALIDATED, LocalDate.of(2025, 2, 15));
+                today.minusMonths(8), today.minusMonths(6));
+        createDeliverable("Business Case", "ROI analysis and project justification", erpInit, DeliverableState.VALIDATED, today.minusMonths(7).plusDays(1));
+        createDeliverable("Stakeholder Map", "Key stakeholders and communication plan", erpInit, DeliverableState.VALIDATED, today.minusMonths(6).plusDays(14));
 
         Phase erpExec = createPhase("Execution", "ERP module development", erpProject, 1,
-                LocalDate.of(2025, 3, 1), LocalDate.of(2025, 11, 30));
-        createDeliverable("Patient Management Module", "Core patient record system", erpExec, DeliverableState.DELIVERED, LocalDate.of(2025, 6, 30));
-        createDeliverable("Billing Module", "Insurance and payment processing", erpExec, DeliverableState.DRAFT, LocalDate.of(2025, 11, 30));
+                today.minusMonths(6).plusDays(1), today.plusMonths(2));
+        createDeliverable("Patient Management Module", "Core patient record system", erpExec, DeliverableState.DELIVERED, today.minusMonths(1));
+        createDeliverable("Billing Module", "Insurance and payment processing", erpExec, DeliverableState.DRAFT, today.plusMonths(2));
 
         Phase ftmExec = createPhase("Execution", "Core platform features", footballTeam, 0,
-                LocalDate.of(2025, 3, 1), LocalDate.of(2025, 9, 30));
-        createDeliverable("Player Database", "Player profiles, stats, and history", ftmExec, DeliverableState.DELIVERED, LocalDate.of(2025, 5, 15));
+                today.minusMonths(5), today.plusMonths(1));
+        createDeliverable("Player Database", "Player profiles, stats, and history", ftmExec, DeliverableState.DELIVERED, today.minusMonths(3).plusDays(15));
         createDeliverable("Match Engine", "Match scheduling and result tracking", ftmExec, DeliverableState.DRAFT, LocalDate.of(2025, 9, 30));
 
         // Wiki pages with mermaid diagrams
