@@ -37,6 +37,7 @@ export default function LoginPage() {
   const [version, setVersion] = useState('');
   const [build, setBuild] = useState('');
   const [devUsers, setDevUsers] = useState<DevUserDto[]>([]);
+  const [showQuickLogin, setShowQuickLogin] = useState(false);
   const { login, error, clearError, isLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -168,28 +169,38 @@ export default function LoginPage() {
               {/* User picker for dev/demo mode */}
               {relaxedAuth && devUsers.length > 0 && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setShowQuickLogin(!showQuickLogin)}
+                    className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5 hover:text-primary-600 transition-colors"
+                  >
+                    <span className={`text-xs transition-transform ${showQuickLogin ? 'rotate-90' : ''}`}>▸</span>
                     Quick login
-                  </label>
-                  <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-1.5">
-                    {devUsers.map((u) => (
-                      <button
-                        key={u.username}
-                        type="button"
-                        onClick={() => handleSelectUser(u)}
-                        className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs text-left transition-colors ${
-                          username === u.username
-                            ? 'bg-primary-50 border border-primary-300 text-primary-800'
-                            : 'hover:bg-gray-50 border border-transparent text-gray-700'
-                        }`}
-                      >
-                        <span className={`shrink-0 px-1.5 py-0.5 rounded text-[10px] font-semibold ${roleBadge[u.role] || 'bg-gray-100 text-gray-600'}`}>
-                          {u.role}
-                        </span>
-                        <span className="truncate font-medium">{u.displayName}</span>
-                      </button>
-                    ))}
-                  </div>
+                  </button>
+                  {showQuickLogin && (
+                    <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-1.5">
+                      {devUsers.map((u) => (
+                        <button
+                          key={u.username}
+                          type="button"
+                          onClick={() => handleSelectUser(u)}
+                          className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs text-left transition-colors ${
+                            username === u.username
+                              ? 'bg-primary-50 border border-primary-300 text-primary-800'
+                              : 'hover:bg-gray-50 border border-transparent text-gray-700'
+                          }`}
+                        >
+                          <span className={`shrink-0 px-1.5 py-0.5 rounded text-[10px] font-semibold ${roleBadge[u.role] || 'bg-gray-100 text-gray-600'}`}>
+                            {u.role}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <span className="truncate font-medium block">{u.displayName}</span>
+                            {u.company && <span className="truncate text-[10px] text-gray-400 block">{u.company}</span>}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 

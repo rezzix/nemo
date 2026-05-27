@@ -197,7 +197,7 @@ public class DataSeeder implements CommandLineRunner {
                 new String[]{"http://www.sione.io", "http://www.partion.io",
                         "http://www.sportfull.io", "http://www.medocode.io"},
                 new String[]{"sione.io", "partion.io", "sportfull.io", "medocode.io"},
-                new String[]{"admin", "alex", "taylor", "morgan", "casey",
+                new String[]{"admin", "jordan", "taylor", "morgan", "casey",
                         "riley", "drew", "avery", "quinn", "blake",
                         "reese", "jamie", "sam"},
                 new String[]{"Alex", "Jordan", "Taylor", "Morgan", "Casey",

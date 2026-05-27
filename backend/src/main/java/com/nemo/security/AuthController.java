@@ -104,12 +104,13 @@ public class AuthController {
             return ResponseEntity.ok(ApiResponse.of(List.of()));
         }
         List<DevUserDto> users = userRepository.findAll().stream()
-                .map(u -> new DevUserDto(u.getUsername(), u.getFirstName() + " " + u.getLastName(), u.getRole().name()))
+                .map(u -> new DevUserDto(u.getUsername(), u.getFirstName() + " " + u.getLastName(), u.getRole().name(),
+                        u.getCompany() != null ? u.getCompany().getName() : null))
                 .toList();
         return ResponseEntity.ok(ApiResponse.of(users));
     }
 
-    public record DevUserDto(String username, String displayName, String role) {}
+    public record DevUserDto(String username, String displayName, String role, String company) {}
 
     public ResponseEntity<ApiResponse<Object>> logout() {
         SecurityContextHolder.clearContext();
