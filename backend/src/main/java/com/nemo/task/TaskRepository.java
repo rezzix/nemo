@@ -1,11 +1,14 @@
 package com.nemo.task;
 
+import com.nemo.config.TaskStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
+import java.util.List;
 
 public interface TaskRepository extends JpaRepository<Task, Long> {
     long countByProjectIdAndStatusId(Long projectId, Long statusId);
@@ -34,4 +37,10 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
                        Boolean external, Pageable pageable);
 
     Page<Task> findByProjectIdAndSprintIdIsNull(Long projectId, Pageable pageable);
+
+    @Query("SELECT t.sprint.id, COUNT(t) FROM Task t WHERE t.sprint.id IN :sprintIds GROUP BY t.sprint.id")
+    List<Object[]> countBySprintIds(@Param("sprintIds") List<Long> sprintIds);
+
+    @Query("SELECT t.sprint.id, COUNT(t) FROM Task t WHERE t.sprint.id IN :sprintIds AND t.status.category IN :categories GROUP BY t.sprint.id")
+    List<Object[]> countCompletedBySprintIds(@Param("sprintIds") List<Long> sprintIds, @Param("categories") List<TaskStatus.Category> categories);
 }

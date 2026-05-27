@@ -10,6 +10,14 @@ export interface SprintDto {
   updatedAt: string;
 }
 
+export interface SprintVelocityDto {
+  sprintId: number;
+  sprintName: string;
+  status: string;
+  totalTasks: number;
+  completedTasks: number;
+}
+
 export interface CreateSprintRequest {
   name: string;
   goal?: string;
