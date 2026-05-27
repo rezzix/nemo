@@ -28,7 +28,7 @@ public class ProjectExpenseController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EXECUTIVE')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'EXECUTIVE')")
     public ResponseEntity<ApiResponse<List<ProjectExpenseDto>>> list(
             @PathVariable Long projectId,
             @AuthenticationPrincipal UserDetails currentUser) {
@@ -37,7 +37,7 @@ public class ProjectExpenseController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER')")
     public ResponseEntity<ApiResponse<ProjectExpenseDto>> create(
             @PathVariable Long projectId,
             @RequestBody ProjectExpenseDto.CreateRequest request,
@@ -49,7 +49,7 @@ public class ProjectExpenseController {
     }
 
     @PutMapping("/{expenseId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER')")
     public ResponseEntity<ApiResponse<ProjectExpenseDto>> update(
             @PathVariable Long projectId,
             @PathVariable Long expenseId,
@@ -61,7 +61,7 @@ public class ProjectExpenseController {
     }
 
     @DeleteMapping("/{expenseId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER')")
     public ResponseEntity<Void> delete(
             @PathVariable Long projectId,
             @PathVariable Long expenseId,
