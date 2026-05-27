@@ -2,12 +2,19 @@ package com.nemo.phase;
 
 import com.nemo.attachment.AttachmentService;
 import com.nemo.common.exception.EntityNotFoundException;
+import com.nemo.expense.ProjectExpenseRepository;
 import com.nemo.project.Project;
 import com.nemo.project.ProjectRepository;
+import com.nemo.timetracking.TimeLog;
+import com.nemo.timetracking.TimeLogRepository;
+import com.nemo.timetracking.UserRate;
+import com.nemo.timetracking.UserRateRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -20,17 +27,26 @@ public class PhaseService {
     private final DeliverableRepository deliverableRepository;
     private final AttachmentService attachmentService;
     private final ClientPaymentRepository clientPaymentRepository;
+    private final TimeLogRepository timeLogRepository;
+    private final UserRateRepository userRateRepository;
+    private final ProjectExpenseRepository expenseRepository;
 
     public PhaseService(PhaseRepository phaseRepository,
                         ProjectRepository projectRepository,
                         DeliverableRepository deliverableRepository,
                         AttachmentService attachmentService,
-                        ClientPaymentRepository clientPaymentRepository) {
+                        ClientPaymentRepository clientPaymentRepository,
+                        TimeLogRepository timeLogRepository,
+                        UserRateRepository userRateRepository,
+                        ProjectExpenseRepository expenseRepository) {
         this.phaseRepository = phaseRepository;
         this.projectRepository = projectRepository;
         this.deliverableRepository = deliverableRepository;
         this.attachmentService = attachmentService;
         this.clientPaymentRepository = clientPaymentRepository;
+        this.timeLogRepository = timeLogRepository;
+        this.userRateRepository = userRateRepository;
+        this.expenseRepository = expenseRepository;
     }
 
     @Transactional(readOnly = true)
@@ -121,11 +137,35 @@ public class PhaseService {
         return dtos.stream().map(dto -> {
             long dCount = deliverableCounts.getOrDefault(dto.id(), 0L);
             BigDecimal totalPaid = paidSums.getOrDefault(dto.id(), BigDecimal.ZERO);
+            BigDecimal spent = computePhaseSpent(dto);
             return new PhaseDto(dto.id(), dto.name(), dto.description(),
                     dto.projectId(), dto.startDate(), dto.endDate(),
                     dto.position(), dto.status(), dCount,
                     dto.plannedAmount(), totalPaid.toPlainString(),
+                    spent.toPlainString(),
                     dto.createdAt(), dto.updatedAt());
         }).toList();
+    }
+
+    private BigDecimal computePhaseSpent(PhaseDto dto) {
+        if (dto.projectId() == null || dto.startDate() == null || dto.endDate() == null) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal laborCost = computeLaborCostForRange(dto.projectId(), dto.startDate(), dto.endDate());
+        BigDecimal expenseCost = expenseRepository.sumByProjectIdAndDateRange(dto.projectId(), dto.startDate(), dto.endDate());
+        return laborCost.add(expenseCost).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private BigDecimal computeLaborCostForRange(Long projectId, LocalDate startDate, LocalDate endDate) {
+        List<TimeLog> logs = timeLogRepository.findByProjectIdAndDateRange(projectId, startDate, endDate);
+        BigDecimal total = BigDecimal.ZERO;
+        for (TimeLog log : logs) {
+            UserRate rate = userRateRepository.findEffectiveRate(
+                    log.getUser().getId(), log.getLogDate()).orElse(null);
+            if (rate != null) {
+                total = total.add(log.getHours().multiply(rate.getHourlyRate()));
+            }
+        }
+        return total.setScale(2, RoundingMode.HALF_UP);
     }
 }

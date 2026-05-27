@@ -13,6 +13,7 @@ public interface PhaseMapper {
     @Mapping(target = "status", source = "status", qualifiedByName = "phaseStatusToString")
     @Mapping(target = "deliverableCount", ignore = true)
     @Mapping(target = "totalPaid", ignore = true)
+    @Mapping(target = "spent", ignore = true)
     @Mapping(target = "createdAt", source = "createdAt", dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     @Mapping(target = "updatedAt", source = "updatedAt", dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     PhaseDto toDto(Phase phase);

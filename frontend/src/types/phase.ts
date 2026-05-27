@@ -10,6 +10,7 @@ export interface PhaseDto {
   deliverableCount: number;
   plannedAmount: string | null;
   totalPaid: string | null;
+  spent: string | null;
   createdAt: string;
   updatedAt: string;
 }
