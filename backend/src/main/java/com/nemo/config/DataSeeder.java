@@ -662,11 +662,11 @@ public class DataSeeder implements CommandLineRunner {
 
         // Sprints
         Sprint sprint1 = createSprint("Sprint 1", "FSE MVP features", fse,
-                SprintStatus.ACTIVE, LocalDate.of(2025, 4, 1), LocalDate.of(2025, 4, 14));
+                SprintStatus.ACTIVE, today.minusDays(20), today.plusDays(8));
         Sprint sprint2 = createSprint("Sprint 2", "FSE enhancements", fse,
-                SprintStatus.PLANNING, LocalDate.of(2025, 4, 15), LocalDate.of(2025, 4, 28));
+                SprintStatus.PLANNING, today.plusDays(9), today.plusDays(22));
         Sprint sprintM1 = createSprint("Mobile Sprint 1", "Core mobile features", mobileApp,
-                SprintStatus.ACTIVE, LocalDate.of(2025, 4, 1), LocalDate.of(2025, 4, 14));
+                SprintStatus.ACTIVE, today.minusDays(15), today.plusDays(10));
 
         // Tasks for FSE
         TaskStatus todo = allStatuses.stream().filter(s -> s.getCategory() == TaskStatus.Category.TODO).findFirst().orElse(allStatuses.get(0));
