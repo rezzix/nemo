@@ -269,6 +269,15 @@ export default function PhasesTab({ projectId, canEdit }: { projectId: number; c
     return { planned, paid, pct, color };
   };
 
+  const spentProgress = (phase: PhaseDto) => {
+    if (!phase.plannedAmount || Number(phase.plannedAmount) === 0) return { planned: 0, spent: Number(phase.spent || 0), pct: 0, color: 'bg-gray-300' };
+    const planned = Number(phase.plannedAmount);
+    const spent = Number(phase.spent || 0);
+    const pct = Math.min(100, Math.round((spent / planned) * 100));
+    const color = pct >= 100 ? 'bg-red-500' : pct >= 80 ? 'bg-amber-500' : 'bg-blue-500';
+    return { planned, spent, pct, color };
+  };
+
   if (loading) return <div className="flex items-center justify-center h-32"><Spinner className="h-6 w-6 text-primary-600" /></div>;
 
   return (
@@ -288,6 +297,7 @@ export default function PhasesTab({ projectId, canEdit }: { projectId: number; c
             const isExpanded = expandedPhaseId === phase.id;
             const phaseDeliverables = deliverablesByPhase(phase.id);
             const progress = paymentProgress(phase);
+            const sProgress = spentProgress(phase);
             const phasePayments = payments[phase.id] || [];
             return (
               <div key={phase.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -327,12 +337,12 @@ export default function PhasesTab({ projectId, canEdit }: { projectId: number; c
                       )}
                     </div>
                     <div className="flex items-center gap-4">
-                      {(progress.paid > 0 || progress.planned > 0) && (
+                      {(sProgress.spent > 0 || sProgress.planned > 0) && (
                         <div className="flex items-center gap-2 min-w-[140px]">
                           <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                            <div className={`h-full rounded-full ${progress.color}`} style={{ width: `${progress.pct}%` }} />
+                            <div className={`h-full rounded-full ${sProgress.color}`} style={{ width: `${sProgress.pct}%` }} />
                           </div>
-                          <span className="text-xs text-gray-500 whitespace-nowrap">{formatCurrency(progress.paid)}</span>
+                          <span className="text-xs text-gray-500 whitespace-nowrap">{formatCurrency(sProgress.spent)}</span>
                         </div>
                       )}
                       {(phase.startDate || phase.endDate) && (
@@ -360,6 +370,23 @@ export default function PhasesTab({ projectId, canEdit }: { projectId: number; c
 
                 {isExpanded && (
                   <div className="border-t border-gray-100 px-4 pb-4 pt-2 ml-7">
+                    {/* Budget vs Spent section */}
+                    {sProgress.planned > 0 && (
+                      <div className="mb-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Budget vs Spent</span>
+                        </div>
+                        <div className="flex items-center gap-3 mb-2 text-xs">
+                          <span className="text-gray-500">Budget: <span className="font-medium text-gray-900">{formatCurrency(sProgress.planned)}</span></span>
+                          <span className="text-gray-500">Spent: <span className={`font-medium ${sProgress.pct >= 100 ? 'text-red-700' : sProgress.pct >= 80 ? 'text-amber-700' : 'text-gray-900'}`}>{formatCurrency(sProgress.spent)}</span></span>
+                          <span className={`font-medium ${sProgress.pct >= 100 ? 'text-red-700' : sProgress.pct >= 80 ? 'text-amber-700' : 'text-gray-500'}`}>({sProgress.pct}%)</span>
+                        </div>
+                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div className={`h-full rounded-full ${sProgress.color}`} style={{ width: `${sProgress.pct}%` }} />
+                        </div>
+                      </div>
+                    )}
+
                     {/* Payments section */}
                     <div className="mb-4">
                       <div className="flex items-center justify-between mb-2">

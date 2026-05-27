@@ -16,6 +16,7 @@ public record PhaseDto(
         long deliverableCount,
         String plannedAmount,
         String totalPaid,
+        String spent,
         String createdAt,
         String updatedAt
 ) {
