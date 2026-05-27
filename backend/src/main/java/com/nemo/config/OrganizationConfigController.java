@@ -39,7 +39,7 @@ public class OrganizationConfigController {
     public ResponseEntity<ApiResponse<PublicConfigDto>> getPublic() {
         OrganizationConfig config = repository.findByCompanyIdIsNull()
                 .orElse(null);
-        String currency = config != null ? config.getCurrency() : "DH";
+        String currency = config != null ? config.getCurrency() : ("dev".equals(mode) ? "USD" : "DH");
         return ResponseEntity.ok(ApiResponse.of(new PublicConfigDto(config, mode, version, build, currency)));
     }
 
