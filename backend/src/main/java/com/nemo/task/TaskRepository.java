@@ -43,4 +43,10 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     @Query("SELECT t.sprint.id, COUNT(t) FROM Task t WHERE t.sprint.id IN :sprintIds AND t.status.category IN :categories GROUP BY t.sprint.id")
     List<Object[]> countCompletedBySprintIds(@Param("sprintIds") List<Long> sprintIds, @Param("categories") List<TaskStatus.Category> categories);
+
+    @Query("SELECT t.sprint.id, COALESCE(SUM(t.storyPoints), 0) FROM Task t WHERE t.sprint.id IN :sprintIds GROUP BY t.sprint.id")
+    List<Object[]> sumStoryPointsBySprintIds(@Param("sprintIds") List<Long> sprintIds);
+
+    @Query("SELECT t.sprint.id, COALESCE(SUM(t.storyPoints), 0) FROM Task t WHERE t.sprint.id IN :sprintIds AND t.status.category IN :categories GROUP BY t.sprint.id")
+    List<Object[]> sumCompletedStoryPointsBySprintIds(@Param("sprintIds") List<Long> sprintIds, @Param("categories") List<TaskStatus.Category> categories);
 }

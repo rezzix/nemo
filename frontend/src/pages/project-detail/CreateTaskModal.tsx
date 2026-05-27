@@ -17,6 +17,7 @@ export default function CreateTaskModal({ projectId, projectKey, onClose, isExte
   const [phaseId, setPhaseId] = useState('');
   const [selectedLabels, setSelectedLabels] = useState<number[]>([]);
   const [dueDate, setDueDate] = useState('');
+  const [storyPoints, setStoryPoints] = useState('');
   const [types, setTypes] = useState<TaskTypeDto[]>([]);
   const [members, setMembers] = useState<MemberDto[]>([]);
   const [labels, setLabels] = useState<LabelDto[]>([]);
@@ -49,6 +50,7 @@ export default function CreateTaskModal({ projectId, projectKey, onClose, isExte
         phaseId: phaseId ? Number(phaseId) : undefined,
         labelIds: selectedLabels.length > 0 ? selectedLabels : undefined,
         dueDate: dueDate || undefined,
+        storyPoints: storyPoints ? Number(storyPoints) : undefined,
         ...(isExternal ? { external: true } : {}),
       });
       onClose();
@@ -118,6 +120,10 @@ export default function CreateTaskModal({ projectId, projectKey, onClose, isExte
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
           <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Story Points</label>
+          <input type="number" min="0" placeholder="—" value={storyPoints} onChange={(e) => setStoryPoints(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
         </div>
         <div className="flex justify-end gap-3 pt-2">
           <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100">Cancel</button>

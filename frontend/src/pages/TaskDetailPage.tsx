@@ -28,6 +28,7 @@ export default function TaskDetailPage() {
   const [phaseId, setPhaseId] = useState('');
   const [selectedLabels, setSelectedLabels] = useState<number[]>([]);
   const [dueDate, setDueDate] = useState('');
+  const [storyPoints, setStoryPoints] = useState('');
 
   // Dropdown options
   const [statuses, setStatuses] = useState<TaskStatusDto[]>([]);
@@ -59,6 +60,7 @@ export default function TaskDetailPage() {
       setPhaseId(data.phaseId != null ? String(data.phaseId) : '');
       setSelectedLabels(data.labelIds);
       setDueDate(data.dueDate ?? '');
+      setStoryPoints(data.storyPoints != null ? String(data.storyPoints) : '');
     } finally {
       setLoading(false);
     }
@@ -90,6 +92,7 @@ export default function TaskDetailPage() {
         phaseId: phaseId ? Number(phaseId) : null,
         labelIds: selectedLabels,
         dueDate: dueDate || null,
+        storyPoints: storyPoints ? Number(storyPoints) : null,
       };
       const updated = await updateTask(Number(projectId), Number(taskId), req);
       setTask(updated);
@@ -184,6 +187,7 @@ export default function TaskDetailPage() {
                     ? <>{formatDate(task.dueDate)}{deadlineLabel(task.dueDate, task.statusCategory) && <span className={`inline-block ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${deadlineBadge(task.dueDate, task.statusCategory)}`}>{deadlineLabel(task.dueDate, task.statusCategory)}</span>}</>
                     : 'None'
                 } />
+                <DetailRow label="Story Points" value={task.storyPoints != null ? String(task.storyPoints) : 'None'} />
                 <DetailRow label="Sprint" value={task.sprintId ? `Sprint ${task.sprintId}` : 'Backlog'} />
                 <DetailRow label="Created" value={formatDate(task.createdAt)} />
                 <DetailRow label="Updated" value={formatDate(task.updatedAt)} />
@@ -241,6 +245,10 @@ export default function TaskDetailPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
                   <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Story Points</label>
+                  <input type="number" min="0" placeholder="—" value={storyPoints} onChange={(e) => setStoryPoints(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
                 </div>
                 </>
                 )}

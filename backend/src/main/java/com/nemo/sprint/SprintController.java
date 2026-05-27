@@ -99,11 +99,18 @@ public class SprintController {
         Map<Long, Long> completedBySprint = taskRepository.countCompletedBySprintIds(
                 sprintIds, List.of(TaskStatus.Category.DONE, TaskStatus.Category.CLOSED)).stream()
                 .collect(Collectors.toMap(arr -> (Long) arr[0], arr -> (Long) arr[1]));
+        Map<Long, Long> storyPointsBySprint = taskRepository.sumStoryPointsBySprintIds(sprintIds).stream()
+                .collect(Collectors.toMap(arr -> (Long) arr[0], arr -> (Long) arr[1]));
+        Map<Long, Long> completedStoryPointsBySprint = taskRepository.sumCompletedStoryPointsBySprintIds(
+                sprintIds, List.of(TaskStatus.Category.DONE, TaskStatus.Category.CLOSED)).stream()
+                .collect(Collectors.toMap(arr -> (Long) arr[0], arr -> (Long) arr[1]));
         List<SprintVelocityDto> result = sprints.stream()
                 .map(s -> new SprintVelocityDto(
                         s.getId(), s.getName(), s.getStatus().name(),
                         totalBySprint.getOrDefault(s.getId(), 0L).intValue(),
-                        completedBySprint.getOrDefault(s.getId(), 0L).intValue()))
+                        completedBySprint.getOrDefault(s.getId(), 0L).intValue(),
+                        storyPointsBySprint.getOrDefault(s.getId(), 0L).intValue(),
+                        completedStoryPointsBySprint.getOrDefault(s.getId(), 0L).intValue()))
                 .toList();
         return ResponseEntity.ok(ApiResponse.of(result));
     }
