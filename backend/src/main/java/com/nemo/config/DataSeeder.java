@@ -732,6 +732,31 @@ public class DataSeeder implements CommandLineRunner {
         createTask("FTM-5", "Team lineup builder", footballTeam, done, Task.Priority.MEDIUM, dev, null, youssef, null, 4, null, ftmExec);
         createTask("FTM-6", "Injury tracking", footballTeam, done, Task.Priority.MEDIUM, dev, null, youssef, null, 5, LocalDate.of(2026, 1, 31), null);
 
+        // Story points for tasks
+        setStoryPoints(fse, "FSE-1", 5);
+        setStoryPoints(fse, "FSE-2", 3);
+        setStoryPoints(fse, "FSE-3", 8);
+        setStoryPoints(fse, "FSE-4", 5);
+        setStoryPoints(fse, "FSE-5", 3);
+        setStoryPoints(fse, "FSE-6", 8);
+        setStoryPoints(fse, "FSE-7", 13);
+        setStoryPoints(fse, "FSE-9", 3);
+        setStoryPoints(fse, "FSE-10", 5);
+        setStoryPoints(mobileApp, "MA-1", 5);
+        setStoryPoints(mobileApp, "MA-2", 3);
+        setStoryPoints(mobileApp, "MA-3", 8);
+        setStoryPoints(mobileApp, "MA-4", 13);
+        setStoryPoints(apiGateway, "AG-1", 8);
+        setStoryPoints(apiGateway, "AG-2", 5);
+        setStoryPoints(dataWarehouse, "DW-1", 5);
+        setStoryPoints(dataWarehouse, "DW-2", 8);
+        setStoryPoints(erpProject, "MER-1", 8);
+        setStoryPoints(erpProject, "MER-2", 13);
+        setStoryPoints(footballTeam, "FTM-1", 5);
+        setStoryPoints(footballTeam, "FTM-2", 8);
+        setStoryPoints(footballTeam, "FTM-3", 3);
+        setStoryPoints(footballTeam, "FTM-4", 5);
+
         // Labels
         createLabel(fse, "Frontend", "#3B82F6");
         createLabel(fse, "Backend", "#10B981");
@@ -1062,6 +1087,13 @@ public class DataSeeder implements CommandLineRunner {
         task.setDueDate(dueDate);
         task.setPhase(phase);
         return taskRepository.save(task);
+    }
+
+    private void setStoryPoints(Project project, String taskKey, int points) {
+        taskRepository.findAll().stream()
+                .filter(t -> t.getProject().getId().equals(project.getId()) && t.getTaskKey().equals(taskKey))
+                .findFirst()
+                .ifPresent(t -> { t.setStoryPoints(points); taskRepository.save(t); });
     }
 
     private Label createLabel(Project project, String name, String color) {

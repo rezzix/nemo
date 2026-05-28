@@ -82,6 +82,9 @@ public class Task {
     @Column(name = "due_date")
     private LocalDate dueDate;
 
+    @Column(name = "story_points")
+    private Integer storyPoints;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -123,6 +126,8 @@ public class Task {
     public void setLabels(Set<Label> labels) { this.labels = labels; }
     public LocalDate getDueDate() { return dueDate; }
     public void setDueDate(LocalDate dueDate) { this.dueDate = dueDate; }
+    public Integer getStoryPoints() { return storyPoints; }
+    public void setStoryPoints(Integer storyPoints) { this.storyPoints = storyPoints; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 }

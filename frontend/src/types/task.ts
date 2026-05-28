@@ -27,6 +27,7 @@ export interface TaskDto {
   labelIds: number[];
   labelNames: string[];
   dueDate: string | null;
+  storyPoints: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -41,6 +42,7 @@ export interface CreateTaskRequest {
   labelIds?: number[];
   external?: boolean;
   dueDate?: string | null;
+  storyPoints?: number | null;
 }
 
 export interface UpdateTaskRequest {
@@ -55,6 +57,7 @@ export interface UpdateTaskRequest {
   labelIds?: number[];
   external?: boolean;
   dueDate?: string | null;
+  storyPoints?: number | null;
 }
 
 export interface CommentDto {

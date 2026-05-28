@@ -29,7 +29,9 @@ export default function VelocityReport({ projectId }: { projectId: number | null
     const v = velocityMap.get(sprint.id);
     const total = v?.totalTasks ?? 0;
     const completed = v?.completedTasks ?? 0;
-    return { sprint, total, completed, remaining: total - completed };
+    const totalSP = v?.totalStoryPoints ?? 0;
+    const completedSP = v?.completedStoryPoints ?? 0;
+    return { sprint, total, completed, remaining: total - completed, totalSP, completedSP, remainingSP: totalSP - completedSP };
   });
 
   const maxTasks = Math.max(...sprintStats.map(s => s.total), 1);
@@ -46,7 +48,7 @@ export default function VelocityReport({ projectId }: { projectId: number | null
             <div className="text-center text-gray-400 py-8">No sprints found for this project</div>
           ) : (
             <div className="space-y-3">
-              {sprintStats.map(({ sprint, total, completed, remaining }) => (
+              {sprintStats.map(({ sprint, total, completed, remaining, totalSP, completedSP, remainingSP }) => (
                 <div key={sprint.id} className="bg-white rounded-xl border border-gray-200 p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div>
@@ -63,7 +65,7 @@ export default function VelocityReport({ projectId }: { projectId: number | null
                       )}
                     </div>
                     <div className="text-sm text-gray-500">
-                      {completed}/{total} completed
+                      {completed}/{total} tasks · {completedSP}/{totalSP} SP
                     </div>
                   </div>
                   <div className="flex gap-1 h-6">

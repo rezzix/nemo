@@ -131,6 +131,7 @@ export default function BoardTab({ projectId, projectKey, isExternal }: { projec
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-xs font-mono text-primary-600">{task.taskKey}</span>
                     <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${priorityColor(task.priority)}`}>{task.priority}</span>
+                    {task.storyPoints != null && <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-100 text-indigo-700">{task.storyPoints} SP</span>}
                   </div>
                   <p className="text-sm font-medium text-gray-900 leading-snug mb-1.5">{task.title}</p>
                   <div className="flex items-center gap-2 text-xs text-gray-400">

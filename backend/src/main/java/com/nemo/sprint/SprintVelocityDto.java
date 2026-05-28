@@ -5,5 +5,7 @@ public record SprintVelocityDto(
         String sprintName,
         String status,
         int totalTasks,
-        int completedTasks
+        int completedTasks,
+        int totalStoryPoints,
+        int completedStoryPoints
 ) {}

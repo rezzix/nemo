@@ -14,7 +14,7 @@ public record TaskDto(
         Long reporterId, String reporterName,
         Long sprintId, Long phaseId, String phaseName, int position, boolean external,
         List<Long> labelIds, List<String> labelNames,
-        String dueDate,
+        String dueDate, Integer storyPoints,
         String createdAt, String updatedAt
 ) {
     public record CreateRequest(
@@ -26,14 +26,15 @@ public record TaskDto(
             Long phaseId,
             List<Long> labelIds,
             Boolean external,
-            String dueDate
+            String dueDate,
+            Integer storyPoints
     ) {}
 
     public record UpdateRequest(
             String title, String description, String priority,
             Long typeId, Long assigneeId, Long statusId, Long sprintId, Long phaseId,
             List<Long> labelIds, Boolean external,
-            String dueDate
+            String dueDate, Integer storyPoints
     ) {}
 
     public record PositionRequest(int position, Long sprintId) {}

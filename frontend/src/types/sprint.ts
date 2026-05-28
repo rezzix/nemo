@@ -16,6 +16,8 @@ export interface SprintVelocityDto {
   status: string;
   totalTasks: number;
   completedTasks: number;
+  totalStoryPoints: number;
+  completedStoryPoints: number;
 }
 
 export interface CreateSprintRequest {
