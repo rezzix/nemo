@@ -53,11 +53,31 @@ public class TimeLogController {
             @RequestParam(defaultValue = "logDate,desc") String sort,
             @AuthenticationPrincipal UserDetails currentUser) {
 
-        if (userId != null && !userId.equals(authHelper.getCurrentUserId(currentUser))
-                && !authHelper.hasAnyRole(currentUser, "ADMIN", "MANAGER", "EXECUTIVE", "HR")) {
+        Long currentUserId = authHelper.getCurrentUserId(currentUser);
+        Long companyId = authHelper.getCurrentCompanyId(currentUser);
+        boolean isAdmin = authHelper.hasAnyRole(currentUser, "ADMIN");
+        boolean isManagerOrExecOrHr = authHelper.hasAnyRole(currentUser, "MANAGER", "EXECUTIVE", "HR");
+
+        Long filterUserId = userId;
+        Long filterCompanyId = null;
+
+        if (isAdmin) {
+            // ADMIN sees everything, no company filter
+        } else if (isManagerOrExecOrHr) {
+            // MANAGER/EXECUTIVE/HR see logs within their company
+            filterCompanyId = companyId;
+        } else {
+            // CONTRIBUTOR and EXTERNAL see only their own logs
+            filterUserId = currentUserId;
+            filterCompanyId = companyId;
+        }
+
+        // Non-privileged users cannot view other users' logs
+        if (userId != null && !userId.equals(currentUserId) && !isAdmin && !isManagerOrExecOrHr) {
             throw new com.nemo.common.exception.ForbiddenException("You can only view your own time logs");
         }
-        Page<TimeLog> result = timeLogService.search(userId, taskId, projectId, presaleId, startDate, endDate, page, size, sort);
+
+        Page<TimeLog> result = timeLogService.search(filterUserId, taskId, projectId, presaleId, startDate, endDate, filterCompanyId, page, size, sort);
         return ResponseEntity.ok(PaginatedResponse.of(
                 timeLogMapper.toDtoList(result.getContent()),
                 new PaginationInfo(page, size, result.getTotalElements(), result.getTotalPages())
@@ -69,8 +89,10 @@ public class TimeLogController {
             @PathVariable Long id, @AuthenticationPrincipal UserDetails currentUser) {
         TimeLog timeLog = timeLogService.getById(id);
         Long currentUserId = authHelper.getCurrentUserId(currentUser);
-        if (!timeLog.getUser().getId().equals(currentUserId)
-                && !authHelper.hasAnyRole(currentUser, "ADMIN", "MANAGER", "HR")) {
+        if (timeLog.getUser().getId().equals(currentUserId)) {
+            return ResponseEntity.ok(ApiResponse.of(timeLogMapper.toDto(timeLog)));
+        }
+        if (!authHelper.canAccessUser(currentUser, timeLog.getUser())) {
             throw new com.nemo.common.exception.ForbiddenException("You can only view your own time logs");
         }
         return ResponseEntity.ok(ApiResponse.of(timeLogMapper.toDto(timeLog)));
@@ -85,6 +107,11 @@ public class TimeLogController {
         if (!timeLog.getUser().getId().equals(currentUserId)
                 && !authHelper.hasAnyRole(currentUser, "ADMIN", "MANAGER")) {
             throw new com.nemo.common.exception.ForbiddenException("You can only edit your own time logs");
+        }
+        if (!timeLog.getUser().getId().equals(currentUserId) && authHelper.hasAnyRole(currentUser, "MANAGER")) {
+            if (!authHelper.canAccessUser(currentUser, timeLog.getUser())) {
+                throw new com.nemo.common.exception.ForbiddenException("You can only edit time logs within your company");
+            }
         }
         TimeLog updated = timeLogService.update(id, request);
         return ResponseEntity.ok(ApiResponse.of(timeLogMapper.toDto(updated)));
