@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { RaidItemDto } from '@/types';
 import { listRaidItems, createRaidItem, updateRaidItem, deleteRaidItem } from '@/api/pmo';
-import { riskColor, riskLabel, raidTypeColor, raidStatusBadge } from '@/utils/format';
+import { riskColor, riskLabel, raidTypeColor, raidStatusBadge, probabilityImpactLabel } from '@/utils/format';
 import Spinner from '@/components/common/Spinner';
 
 export default function RaidTab({ projectId, canEdit }: { projectId: number; canEdit: boolean }) {
@@ -109,12 +109,26 @@ export default function RaidTab({ projectId, canEdit }: { projectId: number; can
           {form.type === 'RISK' && (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Probability (1-5)</label>
-                <input type="number" min="1" max="5" value={form.probability} onChange={e => setForm(f => ({ ...f, probability: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                <label className="block text-xs font-medium text-gray-500 mb-1">Probability</label>
+                <select value={form.probability} onChange={e => setForm(f => ({ ...f, probability: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                  <option value="">—</option>
+                  <option value="1">1 – Very Low</option>
+                  <option value="2">2 – Low</option>
+                  <option value="3">3 – Medium</option>
+                  <option value="4">4 – High</option>
+                  <option value="5">5 – Critical</option>
+                </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Impact (1-5)</label>
-                <input type="number" min="1" max="5" value={form.impact} onChange={e => setForm(f => ({ ...f, impact: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                <label className="block text-xs font-medium text-gray-500 mb-1">Impact</label>
+                <select value={form.impact} onChange={e => setForm(f => ({ ...f, impact: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                  <option value="">—</option>
+                  <option value="1">1 – Very Low</option>
+                  <option value="2">2 – Low</option>
+                  <option value="3">3 – Medium</option>
+                  <option value="4">4 – High</option>
+                  <option value="5">5 – Critical</option>
+                </select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">Mitigation Plan</label>
@@ -158,6 +172,8 @@ export default function RaidTab({ projectId, canEdit }: { projectId: number; can
                   {item.description && <p className="text-sm text-gray-500 mt-1 line-clamp-2">{item.description}</p>}
                   {item.mitigationPlan && <p className="text-sm text-blue-600 mt-1"><span className="font-medium">Mitigation:</span> {item.mitigationPlan}</p>}
                   <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                    {item.probability != null && <span>P: {probabilityImpactLabel(item.probability)}</span>}
+                    {item.impact != null && <span>I: {probabilityImpactLabel(item.impact)}</span>}
                     {item.ownerName && <span>Owner: {item.ownerName}</span>}
                     {item.dueDate && <span>Due: {item.dueDate}</span>}
                   </div>

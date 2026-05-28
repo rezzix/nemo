@@ -57,6 +57,18 @@ export function riskLabel(score: number): string {
   return 'Low';
 }
 
+export function probabilityImpactLabel(value: number | null): string {
+  if (value == null) return '—';
+  switch (value) {
+    case 1: return '1 – Very Low';
+    case 2: return '2 – Low';
+    case 3: return '3 – Medium';
+    case 4: return '4 – High';
+    case 5: return '5 – Critical';
+    default: return String(value);
+  }
+}
+
 export function stageBadge(stage: string | null): string {
   switch (stage) {
     case 'INITIATION': return 'bg-blue-100 text-blue-800';
