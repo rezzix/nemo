@@ -125,6 +125,8 @@ public class TaskService {
             task.setDueDate(java.time.LocalDate.parse(request.dueDate()));
         }
 
+        task.setStoryPoints(request.storyPoints());
+
         return taskRepository.save(task);
     }
 
@@ -175,6 +177,8 @@ public class TaskService {
         if (request.dueDate() != null) {
             task.setDueDate(java.time.LocalDate.parse(request.dueDate()));
         }
+
+        if (request.storyPoints() != null) task.setStoryPoints(request.storyPoints());
 
         return taskRepository.save(task);
     }

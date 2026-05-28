@@ -18,9 +18,10 @@ import SettingsTab from './SettingsTab';
 import MembersTab from './MembersTab';
 import SummaryTab from './SummaryTab';
 import SprintsTab from './SprintsTab';
+import PlanningTab from './PlanningTab';
 import MarkdownRenderer from '@/components/common/MarkdownRenderer';
 
-type Tab = 'summary' | 'tasks' | 'board' | 'docs' | 'raid' | 'phases' | 'expenses' | 'members' | 'settings' | 'sprints';
+type Tab = 'summary' | 'tasks' | 'board' | 'docs' | 'raid' | 'phases' | 'expenses' | 'members' | 'settings' | 'sprints' | 'planning';
 
 export default function ProjectDetailPage() {
   const { id, tab: tabParam } = useParams<{ id: string; tab?: string }>();
@@ -43,6 +44,7 @@ export default function ProjectDetailPage() {
   ] : role === 'MANAGER' ? [
     { key: 'summary', label: 'Summary' },
     { key: 'board', label: 'Board' },
+    { key: 'planning', label: 'Planning' },
     { key: 'sprints', label: 'Sprints' },
     { key: 'raid', label: 'RAID' },
     { key: 'tasks', label: 'Tasks' },
@@ -58,11 +60,13 @@ export default function ProjectDetailPage() {
   ] : role === 'CONTRIBUTOR' ? [
     { key: 'tasks', label: 'Tasks' },
     { key: 'board', label: 'Board' },
+    { key: 'planning', label: 'Planning' },
     { key: 'sprints', label: 'Sprints' },
     { key: 'docs', label: 'Docs' },
   ] : [ // EXTERNAL or fallback
     { key: 'tasks', label: 'Tasks' },
     { key: 'board', label: 'Board' },
+    { key: 'planning', label: 'Planning' },
     { key: 'sprints', label: 'Sprints' },
   ];
 
@@ -146,6 +150,7 @@ export default function ProjectDetailPage() {
       {activeTab === 'settings' && <SettingsTab project={project} onUpdate={(p) => setProject(p)} canEdit={canEdit} />}
       {activeTab === 'members' && <MembersTab projectId={project.id} managerId={project.managerId} canEdit={canEdit} canSeeScores={canSeeScores} />}
       {activeTab === 'sprints' && <SprintsTab projectId={project.id} canEdit={canEdit} />}
+      {activeTab === 'planning' && <PlanningTab projectId={project.id} canEdit={canEdit} />}
     </div>
   );
 }
