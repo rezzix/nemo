@@ -169,6 +169,15 @@ public class LeaveRequestController {
 
     // --- Balance endpoints ---
 
+    @GetMapping("/balance")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<List<LeaveBalanceDto>>> getBalance(
+            @RequestParam(required = false) Long userId,
+            @RequestParam(required = false) Integer year,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        return getBalances(userId, year, currentUser);
+    }
+
     @GetMapping("/balances")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<List<LeaveBalanceDto>>> getBalances(
