@@ -13,6 +13,11 @@ import java.util.List;
 public interface TaskRepository extends JpaRepository<Task, Long> {
     long countByProjectIdAndStatusId(Long projectId, Long statusId);
 
+    @Query("SELECT t FROM Task t " +
+           "LEFT JOIN FETCH t.status LEFT JOIN FETCH t.type LEFT JOIN FETCH t.project " +
+           "LEFT JOIN FETCH t.assignee LEFT JOIN FETCH t.reporter LEFT JOIN FETCH t.sprint " +
+           "LEFT JOIN FETCH t.phase LEFT JOIN FETCH t.labels " +
+           "WHERE t.project.id = :projectId")
     Page<Task> findByProjectId(Long projectId, Pageable pageable);
 
     long countByProjectId(Long projectId);
@@ -20,8 +25,16 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     @Query("SELECT MAX(CAST(SUBSTRING(t.taskKey, LOCATE('-', t.taskKey) + 1) AS int)) FROM Task t WHERE t.project.id = :projectId")
     Integer findMaxSequenceByProjectId(Long projectId);
 
-    @Query("SELECT t FROM Task t WHERE " +
-           "t.project.id = :projectId AND " +
+    @Query("SELECT t FROM Task t " +
+           "LEFT JOIN FETCH t.status " +
+           "LEFT JOIN FETCH t.type " +
+           "LEFT JOIN FETCH t.project " +
+           "LEFT JOIN FETCH t.assignee " +
+           "LEFT JOIN FETCH t.reporter " +
+           "LEFT JOIN FETCH t.sprint " +
+           "LEFT JOIN FETCH t.phase " +
+           "LEFT JOIN FETCH t.labels " +
+           "WHERE t.project.id = :projectId AND " +
            "(:search IS NULL OR LOWER(t.title) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
            "(:statusId IS NULL OR t.status.id = :statusId) AND " +
            "(:assigneeId IS NULL OR t.assignee.id = :assigneeId) AND " +
@@ -36,6 +49,11 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
                        Task.Priority priority, Long sprintId, Long labelId, Instant createdAfter, Instant createdBefore,
                        Boolean external, Pageable pageable);
 
+    @Query("SELECT t FROM Task t " +
+           "LEFT JOIN FETCH t.status LEFT JOIN FETCH t.type LEFT JOIN FETCH t.project " +
+           "LEFT JOIN FETCH t.assignee LEFT JOIN FETCH t.reporter LEFT JOIN FETCH t.sprint " +
+           "LEFT JOIN FETCH t.phase LEFT JOIN FETCH t.labels " +
+           "WHERE t.project.id = :projectId AND t.sprint.id IS NULL")
     Page<Task> findByProjectIdAndSprintIdIsNull(Long projectId, Pageable pageable);
 
     @Query("SELECT t.sprint.id, COUNT(t) FROM Task t WHERE t.sprint.id IN :sprintIds GROUP BY t.sprint.id")

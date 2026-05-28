@@ -72,6 +72,11 @@ public class TaskService {
                 .orElseThrow(() -> new EntityNotFoundException("Task", id));
     }
 
+    @Transactional(readOnly = true)
+    public List<TaskStatus> getStatusesByCategory(TaskStatus.Category category) {
+        return statusRepository.findByCategory(category);
+    }
+
     @Transactional
     public Task create(Long projectId, TaskDto.CreateRequest request, Long reporterId) {
         Project project = projectRepository.findById(projectId)
