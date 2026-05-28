@@ -382,45 +382,45 @@ public class DataSeeder implements CommandLineRunner {
 
         // Users
         User admin = createUser(p.userUsernames()[0], p.userEmails()[0], p.userFirstNames()[0], p.userLastNames()[0], User.Role.ADMIN, null,
-                p.userJobTitles()[0], p.userDepartments()[0], p.userPhones()[0], LocalDate.of(2023, 1, 15));
+                p.userJobTitles()[0], p.userDepartments()[0], p.userPhones()[0], today.minusYears(3).plusMonths(2));
         User majid = createUser(p.userUsernames()[1], p.userEmails()[1], p.userFirstNames()[1], p.userLastNames()[1], User.Role.MANAGER, company1,
-                p.userJobTitles()[1], p.userDepartments()[1], p.userPhones()[1], LocalDate.of(2023, 3, 1));
+                p.userJobTitles()[1], p.userDepartments()[1], p.userPhones()[1], today.minusYears(3).plusMonths(3));
         User dev1 = createUser(p.userUsernames()[2], p.userEmails()[2], p.userFirstNames()[2], p.userLastNames()[2], User.Role.CONTRIBUTOR, company1,
-                p.userJobTitles()[2], p.userDepartments()[2], p.userPhones()[2], LocalDate.of(2023, 5, 15));
+                p.userJobTitles()[2], p.userDepartments()[2], p.userPhones()[2], today.minusYears(3));
         User dev2 = createUser(p.userUsernames()[3], p.userEmails()[3], p.userFirstNames()[3], p.userLastNames()[3], User.Role.CONTRIBUTOR, company1,
-                p.userJobTitles()[3], p.userDepartments()[3], p.userPhones()[3], LocalDate.of(2024, 1, 10));
+                p.userJobTitles()[3], p.userDepartments()[3], p.userPhones()[3], today.minusYears(2).plusMonths(5));
         User dev3 = createUser(p.userUsernames()[4], p.userEmails()[4], p.userFirstNames()[4], p.userLastNames()[4], User.Role.CONTRIBUTOR, company2,
-                p.userJobTitles()[4], p.userDepartments()[4], p.userPhones()[4], LocalDate.of(2024, 2, 1));
+                p.userJobTitles()[4], p.userDepartments()[4], p.userPhones()[4], today.minusYears(2).plusMonths(3));
         User dev4 = createUser(p.userUsernames()[5], p.userEmails()[5], p.userFirstNames()[5], p.userLastNames()[5], User.Role.CONTRIBUTOR, company2,
-                p.userJobTitles()[5], p.userDepartments()[5], p.userPhones()[5], LocalDate.of(2024, 3, 15));
+                p.userJobTitles()[5], p.userDepartments()[5], p.userPhones()[5], today.minusYears(2).plusMonths(2));
         User pmHarmony = createUser(p.userUsernames()[6], p.userEmails()[6], p.userFirstNames()[6], p.userLastNames()[6], User.Role.MANAGER, company2,
-                p.userJobTitles()[6], p.userDepartments()[6], p.userPhones()[6], LocalDate.of(2023, 6, 1));
+                p.userJobTitles()[6], p.userDepartments()[6], p.userPhones()[6], today.minusYears(3).plusMonths(5));
         User salim = createUser(p.userUsernames()[7], p.userEmails()[7], p.userFirstNames()[7], p.userLastNames()[7], User.Role.EXECUTIVE, null,
-                p.userJobTitles()[7], p.userDepartments()[7], p.userPhones()[7], LocalDate.of(2022, 1, 1));
+                p.userJobTitles()[7], p.userDepartments()[7], p.userPhones()[7], today.minusYears(4).plusMonths(5));
         User basma = createUser(p.userUsernames()[8], p.userEmails()[8], p.userFirstNames()[8], p.userLastNames()[8], User.Role.EXTERNAL, null,
-                p.userJobTitles()[8], p.userDepartments()[8], null, LocalDate.of(2025, 1, 10));
+                p.userJobTitles()[8], p.userDepartments()[8], null, today.minusMonths(5));
         User younes = createUser(p.userUsernames()[9], p.userEmails()[9], p.userFirstNames()[9], p.userLastNames()[9], User.Role.CONTRIBUTOR, company4,
-                p.userJobTitles()[9], p.userDepartments()[9], p.userPhones()[9], LocalDate.of(2024, 7, 1));
+                p.userJobTitles()[9], p.userDepartments()[9], p.userPhones()[9], today.minusYears(2).minusMonths(1));
         User youssef = createUser(p.userUsernames()[10], p.userEmails()[10], p.userFirstNames()[10], p.userLastNames()[10], User.Role.MANAGER, company3,
-                p.userJobTitles()[10], p.userDepartments()[10], p.userPhones()[10], LocalDate.of(2023, 9, 1));
+                p.userJobTitles()[10], p.userDepartments()[10], p.userPhones()[10], today.minusYears(3).plusMonths(4));
         User walid = createUser(p.userUsernames()[11], p.userEmails()[11], p.userFirstNames()[11], p.userLastNames()[11], User.Role.CONTRIBUTOR, company3,
-                p.userJobTitles()[11], p.userDepartments()[11], p.userPhones()[11], LocalDate.of(2024, 4, 15));
+                p.userJobTitles()[11], p.userDepartments()[11], p.userPhones()[11], today.minusYears(2).plusMonths(1));
         User mehdi = createUser(p.userUsernames()[12], p.userEmails()[12], p.userFirstNames()[12], p.userLastNames()[12], User.Role.HR, null,
-                p.userJobTitles()[12], p.userDepartments()[12], p.userPhones()[12], LocalDate.of(2022, 6, 1));
+                p.userJobTitles()[12], p.userDepartments()[12], p.userPhones()[12], today.minusYears(4));
 
         // User rates for EVM
-        createUserRate(admin, new BigDecimal("75.00"), LocalDate.of(2025, 1, 1));
-        createUserRate(majid, new BigDecimal("90.00"), LocalDate.of(2025, 1, 1));
-        createUserRate(dev1, new BigDecimal("65.00"), LocalDate.of(2025, 1, 1));
-        createUserRate(dev2, new BigDecimal("70.00"), LocalDate.of(2025, 1, 1));
-        createUserRate(dev3, new BigDecimal("60.00"), LocalDate.of(2025, 1, 1));
-        createUserRate(dev4, new BigDecimal("55.00"), LocalDate.of(2025, 1, 1));
-        createUserRate(pmHarmony, new BigDecimal("85.00"), LocalDate.of(2025, 1, 1));
-        createUserRate(younes, new BigDecimal("70.00"), LocalDate.of(2025, 1, 1));
-        createUserRate(youssef, new BigDecimal("80.00"), LocalDate.of(2025, 1, 1));
-        createUserRate(walid, new BigDecimal("60.00"), LocalDate.of(2025, 1, 1));
-        createUserRate(mehdi, new BigDecimal("80.00"), LocalDate.of(2025, 1, 1));
-        createUserRate(basma, new BigDecimal("100.00"), LocalDate.of(2025, 1, 1));
+        createUserRate(admin, new BigDecimal("75.00"), today.minusMonths(17));
+        createUserRate(majid, new BigDecimal("90.00"), today.minusMonths(17));
+        createUserRate(dev1, new BigDecimal("65.00"), today.minusMonths(17));
+        createUserRate(dev2, new BigDecimal("70.00"), today.minusMonths(17));
+        createUserRate(dev3, new BigDecimal("60.00"), today.minusMonths(17));
+        createUserRate(dev4, new BigDecimal("55.00"), today.minusMonths(17));
+        createUserRate(pmHarmony, new BigDecimal("85.00"), today.minusMonths(17));
+        createUserRate(younes, new BigDecimal("70.00"), today.minusMonths(17));
+        createUserRate(youssef, new BigDecimal("80.00"), today.minusMonths(17));
+        createUserRate(walid, new BigDecimal("60.00"), today.minusMonths(17));
+        createUserRate(mehdi, new BigDecimal("80.00"), today.minusMonths(17));
+        createUserRate(basma, new BigDecimal("100.00"), today.minusMonths(5));
 
         // Programs
         Program ehealth = createProgram("eHealth", "EH", "Digital health transformation initiative", majid, company1);
@@ -439,51 +439,51 @@ public class DataSeeder implements CommandLineRunner {
         Project fse = createProject("FSE", "FSE", "Full Stack Engineering platform",
                 ehealth, majid, Project.Stage.EXECUTION, 8,
                 new BigDecimal("500000"), new BigDecimal("500000"),
-                LocalDate.of(2025, 1, 15), LocalDate.of(2025, 9, 30), company1);
+                today.minusMonths(5), today.plusMonths(4), company1);
         fse.setClient(client0); fse = projectRepository.save(fse);
 
         Project apiGateway = createProject("API Gateway", "AG", "Central API gateway and service mesh",
                 ehealth, majid, Project.Stage.PLANNING, 6,
                 new BigDecimal("80000"), new BigDecimal("80000"),
-                LocalDate.of(2025, 3, 1), LocalDate.of(2026, 12, 15), company1);
+                today.minusMonths(2), today.plusMonths(19), company1);
 
         Project mobileApp = createProject("Mobile App", "MA", "Cross-platform mobile application",
                 mobilePlatform, pmHarmony, Project.Stage.EXECUTION, 7,
                 new BigDecimal("200000"), new BigDecimal("200000"),
-                LocalDate.of(2025, 2, 1), LocalDate.of(2025, 10, 31), company2);
+                today.minusMonths(4), today.plusMonths(5), company2);
         mobileApp.setClient(client4); mobileApp = projectRepository.save(mobileApp);
 
         Project infraUpgrade = createProject("Infrastructure Upgrade", "IU", "Cloud infrastructure modernization",
                 globalInit, salim, Project.Stage.INITIATION, 5,
                 new BigDecimal("50000"), new BigDecimal("50000"),
-                LocalDate.of(2025, 6, 1), LocalDate.of(2025, 11, 30), null);
+                today.plusMonths(1), today.plusMonths(6), null);
 
         Project eHealthPortal = createProject("Patient Portal", "PP", "Patient-facing health information portal",
                 ehealth, majid, Project.Stage.INITIATION, 6,
                 new BigDecimal("95000"), new BigDecimal("95000"),
-                LocalDate.of(2025, 7, 1), LocalDate.of(2027, 3, 31), company1);
+                today.plusMonths(2), today.plusMonths(22), company1);
         eHealthPortal.setClient(client3); eHealthPortal = projectRepository.save(eHealthPortal);
 
         Project mobilePay = createProject("Mobile Payments", "MP", "In-app payment and billing integration",
                 mobilePlatform, pmHarmony, Project.Stage.PLANNING, 7,
                 new BigDecimal("120000"), new BigDecimal("120000"),
-                LocalDate.of(2025, 5, 1), LocalDate.of(2026, 12, 31), company2);
+                today.minusMonths(1), today.plusMonths(19), company2);
         mobilePay.setClient(client2); mobilePay = projectRepository.save(mobilePay);
 
         Project dataWarehouse = createProject("Data Warehouse", "DW", "Enterprise data warehouse and analytics platform",
                 globalInit, salim, Project.Stage.PLANNING, 8,
                 new BigDecimal("180000"), new BigDecimal("180000"),
-                LocalDate.of(2025, 8, 1), LocalDate.of(2026, 6, 30), null);
+                today.plusMonths(3), today.plusMonths(13), null);
 
         Project erpProject = createProject(p.companyNames()[3], p.companyKeys()[3], "Healthcare ERP platform for hospital and clinic management",
                 erpProgram, younes, Project.Stage.EXECUTION, 7,
                 new BigDecimal("250000"), new BigDecimal("250000"),
-                LocalDate.of(2025, 1, 1), LocalDate.of(2025, 12, 31), company4);
+                today.minusMonths(5), today.plusMonths(7), company4);
 
         Project footballTeam = createProject("Football Team Manager", "FTM", "Football team management and player tracking platform",
                 null, youssef, Project.Stage.CLOSING, 7,
                 new BigDecimal("120000"), new BigDecimal("120000"),
-                LocalDate.of(2025, 3, 1), LocalDate.of(2025, 11, 30), company3);
+                today.minusMonths(3), today.plusMonths(1), company3);
         footballTeam.setClient(client1); footballTeam = projectRepository.save(footballTeam);
 
         // Add members with allocations
@@ -591,7 +591,7 @@ public class DataSeeder implements CommandLineRunner {
         Phase ftmExec = createPhase("Execution", "Core platform features", footballTeam, 0,
                 today.minusMonths(5), today.plusMonths(1));
         createDeliverable("Player Database", "Player profiles, stats, and history", ftmExec, DeliverableState.DELIVERED, today.minusMonths(3).plusDays(15));
-        createDeliverable("Match Engine", "Match scheduling and result tracking", ftmExec, DeliverableState.DRAFT, LocalDate.of(2025, 9, 30));
+        createDeliverable("Match Engine", "Match scheduling and result tracking", ftmExec, DeliverableState.DRAFT, today.plusMonths(1));
 
         // Wiki pages with mermaid diagrams
         createWikiPage("Project Overview", "overview", fse, admin,
@@ -686,51 +686,51 @@ public class DataSeeder implements CommandLineRunner {
         TaskType mgmt = taskTypeRepository.findById(1L).orElse(null);
         TaskType test = taskTypeRepository.findById(6L).orElse(null);
 
-        createTask("FSE-1", "User authentication flow", fse, done, Task.Priority.HIGH, dev, dev1, admin, sprint1, 0, LocalDate.of(2025, 3, 15), fseExec);
-        createTask("FSE-2", "Dashboard layout", fse, done, Task.Priority.HIGH, dev, dev2, admin, sprint1, 1, LocalDate.of(2025, 4, 1), fseExec);
-        createTask("FSE-3", "Profile management", fse, done, Task.Priority.MEDIUM, dev, dev1, admin, sprint1, 2, LocalDate.of(2025, 6, 30), fseExec);
-        createTask("FSE-4", "Search functionality", fse, inProgress, Task.Priority.MEDIUM, dev, dev2, admin, sprint2, 3, LocalDate.of(2025, 7, 31), fseExec);
-        createTask("FSE-5", "Notification system", fse, todo, Task.Priority.LOW, dev, null, admin, sprint2, 4, LocalDate.of(2025, 8, 31), fseExec);
-        createTask("FSE-6", "Payment integration", fse, todo, Task.Priority.HIGH, dev, null, admin, null, 5, LocalDate.of(2025, 9, 15), fseExec);
+        createTask("FSE-1", "User authentication flow", fse, done, Task.Priority.HIGH, dev, dev1, admin, sprint1, 0, today.minusMonths(2), fseExec);
+        createTask("FSE-2", "Dashboard layout", fse, done, Task.Priority.HIGH, dev, dev2, admin, sprint1, 1, today.minusMonths(1).plusWeeks(1), fseExec);
+        createTask("FSE-3", "Profile management", fse, done, Task.Priority.MEDIUM, dev, dev1, admin, sprint1, 2, today.plusMonths(1), fseExec);
+        createTask("FSE-4", "Search functionality", fse, inProgress, Task.Priority.MEDIUM, dev, dev2, admin, sprint2, 3, today.plusMonths(2), fseExec);
+        createTask("FSE-5", "Notification system", fse, todo, Task.Priority.LOW, dev, null, admin, sprint2, 4, today.plusMonths(3), fseExec);
+        createTask("FSE-6", "Payment integration", fse, todo, Task.Priority.HIGH, dev, null, admin, null, 5, today.plusMonths(4), fseExec);
         createTask("FSE-7", "Analytics reporting", fse, todo, Task.Priority.MEDIUM, dev, null, majid, null, 6, null, fseClose);
 
-        createTask("FSE-9", "API error handling", fse, done, Task.Priority.HIGH, dev, dev1, admin, sprint1, 8, LocalDate.of(2025, 7, 15), fseExec);
-        createTask("FSE-10", "Database migration scripts", fse, todo, Task.Priority.MEDIUM, dev, dev1, admin, sprint1, 9, LocalDate.of(2025, 8, 15), fseExec);
+        createTask("FSE-9", "API error handling", fse, done, Task.Priority.HIGH, dev, dev1, admin, sprint1, 8, today.plusMonths(2), fseExec);
+        createTask("FSE-10", "Database migration scripts", fse, todo, Task.Priority.MEDIUM, dev, dev1, admin, sprint1, 9, today.plusMonths(3), fseExec);
 
         // Tasks for Mobile App
-        createTask("MA-1", "Login screen", mobileApp, done, Task.Priority.HIGH, dev, dev3, pmHarmony, sprintM1, 0, LocalDate.of(2025, 4, 15), mobileExec);
-        createTask("MA-2", "Navigation framework", mobileApp, done, Task.Priority.HIGH, dev, dev4, pmHarmony, sprintM1, 1, LocalDate.of(2025, 5, 1), mobileExec);
-        createTask("MA-3", "Push notifications", mobileApp, inProgress, Task.Priority.MEDIUM, dev, dev3, pmHarmony, sprintM1, 2, LocalDate.of(2025, 9, 30), mobileExec);
-        createTask("MA-4", "Offline mode", mobileApp, todo, Task.Priority.HIGH, dev, null, pmHarmony, null, 3, LocalDate.of(2025, 10, 15), mobileExec);
+        createTask("MA-1", "Login screen", mobileApp, done, Task.Priority.HIGH, dev, dev3, pmHarmony, sprintM1, 0, today.minusMonths(1), mobileExec);
+        createTask("MA-2", "Navigation framework", mobileApp, done, Task.Priority.HIGH, dev, dev4, pmHarmony, sprintM1, 1, today.minusWeeks(2), mobileExec);
+        createTask("MA-3", "Push notifications", mobileApp, inProgress, Task.Priority.MEDIUM, dev, dev3, pmHarmony, sprintM1, 2, today.plusMonths(4), mobileExec);
+        createTask("MA-4", "Offline mode", mobileApp, todo, Task.Priority.HIGH, dev, null, pmHarmony, null, 3, today.plusMonths(5), mobileExec);
         createTask("MA-5", "Camera integration", mobileApp, todo, Task.Priority.LOW, dev, null, pmHarmony, null, 4, null, null);
 
         // Tasks for API Gateway
-        createTask("AG-1", "Rate limiting module", apiGateway, done, Task.Priority.HIGH, dev, dev1, majid, null, 0, LocalDate.of(2026, 6, 30), apiExec);
-        createTask("AG-2", "Service discovery", apiGateway, todo, Task.Priority.HIGH, dev, null, majid, null, 1, LocalDate.of(2026, 9, 30), apiExec);
-        createTask("AG-3", "Load balancer config", apiGateway, todo, Task.Priority.MEDIUM, dev, null, majid, null, 2, LocalDate.of(2026, 11, 15), apiPlan);
+        createTask("AG-1", "Rate limiting module", apiGateway, done, Task.Priority.HIGH, dev, dev1, majid, null, 0, today.plusMonths(13), apiExec);
+        createTask("AG-2", "Service discovery", apiGateway, todo, Task.Priority.HIGH, dev, null, majid, null, 1, today.plusMonths(16), apiExec);
+        createTask("AG-3", "Load balancer config", apiGateway, todo, Task.Priority.MEDIUM, dev, null, majid, null, 2, today.plusMonths(18), apiPlan);
 
         // Tasks for Data Warehouse
-        createTask("DW-1", "Data model design", dataWarehouse, done, Task.Priority.HIGH, dev, dev1, salim, null, 0, LocalDate.of(2025, 10, 31), null);
-        createTask("DW-2", "ETL pipeline setup", dataWarehouse, inProgress, Task.Priority.HIGH, dev, dev1, salim, null, 1, LocalDate.of(2026, 3, 31), null);
-        createTask("DW-3", "Analytics dashboard", dataWarehouse, todo, Task.Priority.MEDIUM, dev, null, salim, null, 2, LocalDate.of(2026, 6, 30), null);
+        createTask("DW-1", "Data model design", dataWarehouse, done, Task.Priority.HIGH, dev, dev1, salim, null, 0, today.plusMonths(5), null);
+        createTask("DW-2", "ETL pipeline setup", dataWarehouse, inProgress, Task.Priority.HIGH, dev, dev1, salim, null, 1, today.plusMonths(10), null);
+        createTask("DW-3", "Analytics dashboard", dataWarehouse, todo, Task.Priority.MEDIUM, dev, null, salim, null, 2, today.plusMonths(13), null);
 
-        createTask("PP-1", "Patient portal UI design", eHealthPortal, inProgress, Task.Priority.HIGH, dev, dev2, majid, null, 0, LocalDate.of(2025, 12, 31), null);
+        createTask("PP-1", "Patient portal UI design", eHealthPortal, inProgress, Task.Priority.HIGH, dev, dev2, majid, null, 0, today.plusMonths(7), null);
 
-        createTask("MA-6", "Client UX review", mobileApp, todo, Task.Priority.MEDIUM, dev, basma, pmHarmony, null, 5, LocalDate.of(2025, 10, 31), mobileExec);
+        createTask("MA-6", "Client UX review", mobileApp, todo, Task.Priority.MEDIUM, dev, basma, pmHarmony, null, 5, today.plusMonths(5), mobileExec);
 
-        Task extTask = createTask("FSE-8", "Client feedback on login flow", fse, todo, Task.Priority.MEDIUM, dev, basma, basma, null, 7, LocalDate.of(2025, 8, 15), fseExec);
+        Task extTask = createTask("FSE-8", "Client feedback on login flow", fse, todo, Task.Priority.MEDIUM, dev, basma, basma, null, 7, today.plusMonths(3), fseExec);
         extTask.setExternal(true);
         taskRepository.save(extTask);
 
-        createTask("MER-1", "Amelioration design", erpProject, inProgress, Task.Priority.HIGH, dev, younes, younes, null, 0, LocalDate.of(2025, 9, 30), erpExec);
-        createTask("MER-2", "Homologation FSE", erpProject, todo, Task.Priority.HIGH, dev, younes, younes, null, 1, LocalDate.of(2025, 12, 31), erpExec);
+        createTask("MER-1", "Amelioration design", erpProject, inProgress, Task.Priority.HIGH, dev, younes, younes, null, 0, today.plusMonths(4), erpExec);
+        createTask("MER-2", "Homologation FSE", erpProject, todo, Task.Priority.HIGH, dev, younes, younes, null, 1, today.plusMonths(7), erpExec);
 
-        createTask("FTM-1", "Player registration module", footballTeam, done, Task.Priority.HIGH, dev, walid, youssef, null, 0, LocalDate.of(2025, 5, 31), ftmExec);
-        createTask("FTM-2", "Match scheduling system", footballTeam, done, Task.Priority.HIGH, dev, walid, youssef, null, 1, LocalDate.of(2025, 10, 31), ftmExec);
-        createTask("FTM-3", "Training session planner", footballTeam, done, Task.Priority.MEDIUM, dev, dev1, youssef, null, 2, LocalDate.of(2025, 11, 15), ftmExec);
-        createTask("FTM-4", "Player statistics dashboard", footballTeam, done, Task.Priority.HIGH, dev, null, youssef, null, 3, LocalDate.of(2025, 11, 30), ftmExec);
+        createTask("FTM-1", "Player registration module", footballTeam, done, Task.Priority.HIGH, dev, walid, youssef, null, 0, today.minusMonths(1), ftmExec);
+        createTask("FTM-2", "Match scheduling system", footballTeam, done, Task.Priority.HIGH, dev, walid, youssef, null, 1, today.plusMonths(5), ftmExec);
+        createTask("FTM-3", "Training session planner", footballTeam, done, Task.Priority.MEDIUM, dev, dev1, youssef, null, 2, today.plusMonths(6), ftmExec);
+        createTask("FTM-4", "Player statistics dashboard", footballTeam, done, Task.Priority.HIGH, dev, null, youssef, null, 3, today.plusMonths(6).plusWeeks(2), ftmExec);
         createTask("FTM-5", "Team lineup builder", footballTeam, done, Task.Priority.MEDIUM, dev, null, youssef, null, 4, null, ftmExec);
-        createTask("FTM-6", "Injury tracking", footballTeam, done, Task.Priority.MEDIUM, dev, null, youssef, null, 5, LocalDate.of(2026, 1, 31), null);
+        createTask("FTM-6", "Injury tracking", footballTeam, done, Task.Priority.MEDIUM, dev, null, youssef, null, 5, today.plusMonths(8), null);
 
         // Story points for tasks
         setStoryPoints(fse, "FSE-1", 5);
