@@ -34,7 +34,7 @@ public class PmoController {
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EXECUTIVE', 'HR')")
     public ResponseEntity<ApiResponse<PmoService.PortfolioSummary>> getPortfolioSummary(
             @AuthenticationPrincipal UserDetails currentUser) {
-        Long companyId = authHelper.hasAnyRole(currentUser, "ADMIN") ? null : authHelper.getCurrentCompanyId(currentUser);
+        Long companyId = authHelper.hasAnyRole(currentUser, "ADMIN", "EXECUTIVE") ? null : authHelper.getCurrentCompanyId(currentUser);
         return ResponseEntity.ok(ApiResponse.of(pmoService.getPortfolioSummary(companyId)));
     }
 
@@ -43,7 +43,7 @@ public class PmoController {
     public ResponseEntity<ApiResponse<List<RaidItemDto>>> getPortfolioRaidItems(
             @RequestParam(required = false) RaidItem.RaidType type,
             @AuthenticationPrincipal UserDetails currentUser) {
-        Long companyId = authHelper.hasAnyRole(currentUser, "ADMIN") ? null : authHelper.getCurrentCompanyId(currentUser);
+        Long companyId = authHelper.hasAnyRole(currentUser, "ADMIN", "EXECUTIVE") ? null : authHelper.getCurrentCompanyId(currentUser);
         List<RaidItem> items = pmoService.getPortfolioRaidItems(type, companyId);
         return ResponseEntity.ok(ApiResponse.of(raidItemMapper.toDtoList(items)));
     }
@@ -52,7 +52,7 @@ public class PmoController {
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EXECUTIVE', 'HR')")
     public ResponseEntity<ApiResponse<List<PmoService.CompanyPortfolioSummary>>> getPortfolioByCompany(
             @AuthenticationPrincipal UserDetails currentUser) {
-        Long companyId = authHelper.hasAnyRole(currentUser, "ADMIN") ? null : authHelper.getCurrentCompanyId(currentUser);
+        Long companyId = authHelper.hasAnyRole(currentUser, "ADMIN", "EXECUTIVE") ? null : authHelper.getCurrentCompanyId(currentUser);
         return ResponseEntity.ok(ApiResponse.of(pmoService.getPortfolioByCompany(companyId)));
     }
 
@@ -60,7 +60,15 @@ public class PmoController {
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EXECUTIVE', 'HR')")
     public ResponseEntity<ApiResponse<List<PmoService.ProjectTimelineEntry>>> getPortfolioTimeline(
             @AuthenticationPrincipal UserDetails currentUser) {
-        Long companyId = authHelper.hasAnyRole(currentUser, "ADMIN") ? null : authHelper.getCurrentCompanyId(currentUser);
+        Long companyId = authHelper.hasAnyRole(currentUser, "ADMIN", "EXECUTIVE") ? null : authHelper.getCurrentCompanyId(currentUser);
         return ResponseEntity.ok(ApiResponse.of(pmoService.getPortfolioTimeline(companyId)));
+    }
+
+    @GetMapping("/portfolio/program-evm")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EXECUTIVE', 'HR')")
+    public ResponseEntity<ApiResponse<List<PmoService.ProgramEvmMetrics>>> getProgramEvmRollup(
+            @AuthenticationPrincipal UserDetails currentUser) {
+        Long companyId = authHelper.hasAnyRole(currentUser, "ADMIN", "EXECUTIVE") ? null : authHelper.getCurrentCompanyId(currentUser);
+        return ResponseEntity.ok(ApiResponse.of(pmoService.getProgramEvmRollup(companyId)));
     }
 }

@@ -12,6 +12,8 @@ import com.nemo.phase.ClientPaymentRepository;
 import com.nemo.phase.PhaseRepository;
 import com.nemo.project.Project;
 import com.nemo.project.ProjectRepository;
+import com.nemo.program.Program;
+import com.nemo.program.ProgramRepository;
 import com.nemo.timetracking.TimeLog;
 import com.nemo.timetracking.TimeLogRepository;
 import com.nemo.timetracking.UserRate;
@@ -30,6 +32,7 @@ import java.util.Map;
 public class PmoService {
 
     private final ProjectRepository projectRepository;
+    private final ProgramRepository programRepository;
     private final TaskRepository taskRepository;
     private final TaskStatusRepository taskStatusRepository;
     private final TimeLogRepository timeLogRepository;
@@ -41,6 +44,7 @@ public class PmoService {
     private final ProjectExpenseRepository expenseRepository;
 
     public PmoService(ProjectRepository projectRepository,
+                      ProgramRepository programRepository,
                       TaskRepository taskRepository,
                       TaskStatusRepository taskStatusRepository,
                       TimeLogRepository timeLogRepository,
@@ -51,6 +55,7 @@ public class PmoService {
                       ClientPaymentRepository clientPaymentRepository,
                       ProjectExpenseRepository expenseRepository) {
         this.projectRepository = projectRepository;
+        this.programRepository = programRepository;
         this.taskRepository = taskRepository;
         this.taskStatusRepository = taskStatusRepository;
         this.timeLogRepository = timeLogRepository;
@@ -419,10 +424,21 @@ public class PmoService {
         );
     }
 
+    @Transactional(readOnly = true)
+    public List<ProgramEvmMetrics> getProgramEvmRollup(Long companyId) {
+        List<Program> programs = programRepository.findAllByCompanyIdOrNull(companyId);
+        return programs.stream()
+                .map(p -> computeProgramEvm(p.getId()))
+                .toList();
+    }
+
     public record CompanyPortfolioSummary(
             Long companyId, String companyName, String companyKey,
             int totalProjects, long totalTasks, long totalCompleted,
-            BigDecimal totalBudget, BigDecimal totalExpenseCost,
+            BigDecimal totalBudget, BigDecimal totalPlannedValue, BigDecimal totalEarnedValue,
+            BigDecimal totalActualCost, BigDecimal totalExpenseCost,
+            BigDecimal costVariance, BigDecimal scheduleVariance,
+            BigDecimal cpi, BigDecimal spi,
             long totalOpenRisks, long totalMitigatingRisks,
             Map<String, Long> stageDistribution
     ) {}
@@ -462,7 +478,11 @@ public class PmoService {
             long totalTasks = 0;
             long totalCompleted = 0;
             BigDecimal totalBudget = BigDecimal.ZERO;
+            BigDecimal totalPlannedValue = BigDecimal.ZERO;
+            BigDecimal totalEarnedValue = BigDecimal.ZERO;
+            BigDecimal totalActualCost = BigDecimal.ZERO;
             BigDecimal totalExpenseCost = BigDecimal.ZERO;
+            BigDecimal totalPvToday = BigDecimal.ZERO;
             long totalOpenRisks = 0;
             long totalMitigatingRisks = 0;
 
@@ -476,10 +496,53 @@ public class PmoService {
                 totalCompleted += projCompleted;
 
                 if (p.getBudget() != null) totalBudget = totalBudget.add(p.getBudget());
-                totalExpenseCost = totalExpenseCost.add(computeExpenseCost(p.getId()));
+
+                // Per-project EVM
+                List<Phase> phases = phaseRepository.findByProjectIdOrderByPositionAsc(p.getId());
+                BigDecimal derivedPv = phases.stream()
+                        .map(ph -> ph.getPlannedAmount() != null ? ph.getPlannedAmount() : BigDecimal.ZERO)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                BigDecimal projPv = derivedPv.compareTo(BigDecimal.ZERO) > 0
+                        ? derivedPv
+                        : (p.getPlannedValue() != null ? p.getPlannedValue() : BigDecimal.ZERO);
+                totalPlannedValue = totalPlannedValue.add(projPv);
+
+                BigDecimal projCompletion = projTotal > 0
+                        ? BigDecimal.valueOf(projCompleted).divide(BigDecimal.valueOf(projTotal), 4, RoundingMode.HALF_UP)
+                        : BigDecimal.ZERO;
+                totalEarnedValue = totalEarnedValue.add(projCompletion.multiply(projPv).setScale(2, RoundingMode.HALF_UP));
+
+                BigDecimal projLabor = computeLaborCost(p.getId());
+                BigDecimal projExpense = computeExpenseCost(p.getId());
+                totalActualCost = totalActualCost.add(projLabor.add(projExpense).setScale(2, RoundingMode.HALF_UP));
+                totalExpenseCost = totalExpenseCost.add(projExpense);
+
+                totalPvToday = totalPvToday.add(computePlannedValueToday(p, projPv));
 
                 totalOpenRisks += raidItemRepository.countByProjectIdAndStatus(p.getId(), RaidItem.RaidStatus.OPEN);
                 totalMitigatingRisks += raidItemRepository.countByProjectIdAndStatus(p.getId(), RaidItem.RaidStatus.MITIGATING);
+            }
+
+            // Company-level EVM
+            BigDecimal costVariance = totalEarnedValue.subtract(totalActualCost).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal scheduleVariance = totalEarnedValue.subtract(totalPvToday).setScale(2, RoundingMode.HALF_UP);
+
+            BigDecimal cpi;
+            if (totalEarnedValue.compareTo(BigDecimal.ZERO) > 0 && totalActualCost.compareTo(BigDecimal.ZERO) > 0) {
+                cpi = totalEarnedValue.divide(totalActualCost, 2, RoundingMode.HALF_UP);
+            } else if (totalActualCost.compareTo(BigDecimal.ZERO) > 0) {
+                cpi = BigDecimal.ZERO;
+            } else {
+                cpi = null;
+            }
+
+            BigDecimal spi;
+            if (totalEarnedValue.compareTo(BigDecimal.ZERO) > 0 && totalPvToday.compareTo(BigDecimal.ZERO) > 0) {
+                spi = totalEarnedValue.divide(totalPvToday, 2, RoundingMode.HALF_UP);
+            } else if (totalPvToday.compareTo(BigDecimal.ZERO) > 0) {
+                spi = BigDecimal.ZERO;
+            } else {
+                spi = null;
             }
 
             Map<String, Long> stageDistribution = companyProjects.stream()
@@ -490,7 +553,10 @@ public class PmoService {
             result.add(new CompanyPortfolioSummary(
                     cid == 0L ? null : cid, companyName, companyKey,
                     totalProjects, totalTasks, totalCompleted,
-                    totalBudget, totalExpenseCost,
+                    totalBudget, totalPlannedValue, totalEarnedValue,
+                    totalActualCost, totalExpenseCost,
+                    costVariance, scheduleVariance,
+                    cpi, spi,
                     totalOpenRisks, totalMitigatingRisks,
                     stageDistribution
             ));

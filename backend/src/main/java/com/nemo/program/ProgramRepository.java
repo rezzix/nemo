@@ -5,6 +5,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
+
 public interface ProgramRepository extends JpaRepository<Program, Long> {
     boolean existsByKey(String key);
 
@@ -21,6 +23,9 @@ public interface ProgramRepository extends JpaRepository<Program, Long> {
 
     @Query("SELECT p FROM Program p WHERE (:companyId IS NULL OR p.company.id = :companyId)")
     Page<Program> findByCompanyIdOrNull(Long companyId, Pageable pageable);
+
+    @Query("SELECT p FROM Program p WHERE (:companyId IS NULL OR p.company.id = :companyId)")
+    List<Program> findAllByCompanyIdOrNull(Long companyId);
 
     @Query("SELECT p FROM Program p WHERE p.manager.id = :managerId AND (:search IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(p.key) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<Program> findByManagerIdWithSearch(Long managerId, String search, Pageable pageable);

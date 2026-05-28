@@ -45,7 +45,7 @@ public class ProgramController {
         if (managedBy != null) {
             result = programService.searchManaged(managedBy, search, page, size, sort);
         } else {
-            Long companyId = authHelper.hasAnyRole(currentUser, "ADMIN") ? null : authHelper.getCurrentCompanyId(currentUser);
+            Long companyId = authHelper.hasAnyRole(currentUser, "ADMIN", "EXECUTIVE") ? null : authHelper.getCurrentCompanyId(currentUser);
             result = programService.search(search, companyId, page, size, sort);
         }
         List<ProgramDto> dtos = programService.enrichWithProjectCount(programMapper.toDtoList(result.getContent()));
