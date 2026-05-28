@@ -12,6 +12,9 @@ public interface DeliverableRepository extends JpaRepository<Deliverable, Long> 
 
     List<Deliverable> findByPhaseProjectId(Long projectId);
 
+    @Query("SELECT d FROM Deliverable d JOIN FETCH d.phase WHERE d.phase.project.id IN :projectIds ORDER BY d.dueDate ASC")
+    List<Deliverable> findByProjectProgramId(@Param("projectIds") List<Long> projectIds);
+
     long countByPhaseId(Long phaseId);
 
     @Query("SELECT d.phase.id, COUNT(d) FROM Deliverable d WHERE d.phase.id IN :phaseIds GROUP BY d.phase.id")
