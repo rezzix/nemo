@@ -23,22 +23,7 @@ public class LeaveRequestService {
 
     @Transactional(readOnly = true)
     public List<LeaveRequest> list(Long userId, LeaveRequest.Status status, Long companyId, LocalDate startDate, LocalDate endDate) {
-        if (userId != null && status != null) {
-            return leaveRequestRepository.findByUserIdAndStatus(userId, status);
-        }
-        if (userId != null) {
-            return leaveRequestRepository.findByUserIdOrderByStartDateDesc(userId);
-        }
-        if (status != null) {
-            return leaveRequestRepository.findByStatus(status);
-        }
-        if (companyId != null) {
-            return leaveRequestRepository.findByCompanyId(companyId);
-        }
-        if (startDate != null && endDate != null) {
-            return leaveRequestRepository.findByDateRange(startDate, endDate);
-        }
-        return leaveRequestRepository.findAll();
+        return leaveRequestRepository.search(userId, status, companyId, startDate, endDate);
     }
 
     @Transactional(readOnly = true)
