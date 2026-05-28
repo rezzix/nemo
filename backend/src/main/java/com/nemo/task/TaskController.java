@@ -5,6 +5,7 @@ import com.nemo.common.dto.ApiResponse;
 import com.nemo.common.dto.PaginatedResponse;
 import com.nemo.common.dto.PaginatedResponse.PaginationInfo;
 import com.nemo.common.exception.ForbiddenException;
+import com.nemo.config.TaskStatus;
 import com.nemo.security.AuthHelper;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -38,6 +39,7 @@ public class TaskController {
             @PathVariable Long projectId,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Long statusId,
+            @RequestParam(required = false) String status,
             @RequestParam(required = false) Long assigneeId,
             @RequestParam(required = false) Long typeId,
             @RequestParam(required = false) String priority,
@@ -55,7 +57,16 @@ public class TaskController {
         if (authHelper.isExternal(currentUser)) {
             external = true;
         }
-        Page<Task> result = taskService.search(projectId, search, statusId, assigneeId, typeId,
+        // Resolve ?status=DONE/TODO/IN_PROGRESS/CLOSED to statusId list
+        Long resolvedStatusId = statusId;
+        if (status != null && statusId == null) {
+            TaskStatus.Category category = TaskStatus.Category.valueOf(status.toUpperCase());
+            List<TaskStatus> statuses = taskService.getStatusesByCategory(category);
+            if (statuses.size() == 1) {
+                resolvedStatusId = statuses.get(0).getId();
+            }
+        }
+        Page<Task> result = taskService.search(projectId, search, resolvedStatusId, assigneeId, typeId,
                 priority, sprintId, labelId, createdAfter, createdBefore, external, page, size, sort);
         return ResponseEntity.ok(PaginatedResponse.of(
                 taskMapper.toDtoList(result.getContent()),
