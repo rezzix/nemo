@@ -45,6 +45,9 @@ import com.nemo.timetracking.UserRateRepository;
 import com.nemo.expense.ProjectExpense;
 import com.nemo.expense.ProjectExpense.ExpenseCategory;
 import com.nemo.expense.ProjectExpenseRepository;
+import com.nemo.presale.PreSale;
+import com.nemo.presale.PreSale.PreSaleStage;
+import com.nemo.presale.PreSaleRepository;
 import com.nemo.user.User;
 import com.nemo.user.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -108,6 +111,7 @@ public class DataSeeder implements CommandLineRunner {
     private final LeaveEntitlementRepository leaveEntitlementRepository;
     private final LeaveRequestRepository leaveRequestRepository;
     private final ProjectExpenseRepository projectExpenseRepository;
+    private final PreSaleRepository preSaleRepository;
 
     public DataSeeder(UserRepository userRepository,
                       PasswordEncoder passwordEncoder,
@@ -135,7 +139,8 @@ public class DataSeeder implements CommandLineRunner {
                       ClientRepository clientRepository,
                       LeaveEntitlementRepository leaveEntitlementRepository,
                       LeaveRequestRepository leaveRequestRepository,
-                      ProjectExpenseRepository projectExpenseRepository) {
+                      ProjectExpenseRepository projectExpenseRepository,
+                      PreSaleRepository preSaleRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.companyRepository = companyRepository;
@@ -163,6 +168,7 @@ public class DataSeeder implements CommandLineRunner {
         this.leaveEntitlementRepository = leaveEntitlementRepository;
         this.leaveRequestRepository = leaveRequestRepository;
         this.projectExpenseRepository = projectExpenseRepository;
+        this.preSaleRepository = preSaleRepository;
     }
 
     // --- Seeding profile records ---
@@ -176,7 +182,8 @@ public class DataSeeder implements CommandLineRunner {
             String[] userJobTitles, String[] userDepartments,
             String[] clientNames, String[] clientIndustries,
             String[][] locationNames, String[][] locationDescriptions,
-            List<HolidayData> holidays
+            List<HolidayData> holidays,
+            String[] preSaleNames, String[] preSaleKeys, String[] preSaleDescriptions, BigDecimal[] preSaleValues
     ) {}
 
     private record HolidayData(LocalDate date, String name) {}
@@ -248,7 +255,16 @@ public class DataSeeder implements CommandLineRunner {
                         new HolidayData(LocalDate.of(year, 9, 1), "Labour Day"),
                         new HolidayData(LocalDate.of(year, 11, 27), "Thanksgiving"),
                         new HolidayData(LocalDate.of(year, 12, 25), "Christmas Day")
-                )
+                ),
+                // Pre-sale opportunities
+                new String[]{"Cloud Migration RFP", "HR System Upgrade", "Mobile App MVP", "Data Analytics Platform"},
+                new String[]{"CM-RFP", "HR-UPG", "MA-MVP", "DA-PLT"},
+                new String[]{"Enterprise cloud migration and infrastructure modernization",
+                        "Human resources management system upgrade and integration",
+                        "Cross-platform mobile application minimum viable product",
+                        "Enterprise data warehouse and business intelligence platform"},
+                new BigDecimal[]{new BigDecimal("120000"), new BigDecimal("45000"),
+                        new BigDecimal("80000"), new BigDecimal("200000")}
         );
     }
 
@@ -319,7 +335,16 @@ public class DataSeeder implements CommandLineRunner {
                         new HolidayData(LocalDate.of(year, 8, 21), "Youth Day"),
                         new HolidayData(LocalDate.of(year, 11, 6), "Green March Day"),
                         new HolidayData(LocalDate.of(year, 11, 18), "Independence Day")
-                )
+                ),
+                // Pre-sale opportunities
+                new String[]{"Migration Cloud RFP", "Mise à jour Système RH", "Application Mobile MVP", "Plateforme Analyse Données"},
+                new String[]{"MC-RFP", "MAJ-RH", "AM-MVP", "PA-DON"},
+                new String[]{"Migration cloud enterprise et modernisation infrastructure",
+                        "Mise à niveau et intégration du système de gestion des ressources humaines",
+                        "Produit minimum viable application mobile multiplateforme",
+                        "Plateforme entreposage de données et intelligence d'affaires"},
+                new BigDecimal[]{new BigDecimal("120000"), new BigDecimal("45000"),
+                        new BigDecimal("80000"), new BigDecimal("200000")}
         );
     }
 
@@ -913,6 +938,19 @@ public class DataSeeder implements CommandLineRunner {
         createAsset("Coffee Machine Jura", Asset.Type.OTHER, Asset.Status.IN_STOCK, null, null, company1,
                 "BEV-JURA-001", LocalDate.of(year - 2, 5, 1), new BigDecimal("800"));
 
+        // Pre-sale opportunities
+        PreSaleStage[] psStages = {PreSaleStage.PROPOSAL, PreSaleStage.LEAD, PreSaleStage.NEGOTIATION, PreSaleStage.LEAD};
+        Client[] psClients = {client0, client2, client4, client0};
+        int[] psProbabilities = {60, 30, 75, 20};
+        User[] psManagers = {majid, pmHarmony, pmHarmony, salim};
+        Company[] psCompanies = {company1, company2, company2, null};
+        Program[] psPrograms = {ehealth, mobilePlatform, mobilePlatform, globalInit};
+        for (int i = 0; i < p.preSaleNames().length; i++) {
+            createPreSale(p.preSaleNames()[i], p.preSaleKeys()[i], p.preSaleDescriptions()[i],
+                    psStages[i], psClients[i], p.preSaleValues()[i], psProbabilities[i],
+                    today.plusMonths(i * 2 + 1), psManagers[i], psCompanies[i], psPrograms[i]);
+        }
+
         // Leave entitlements
         int currentYear = today.getYear();
         User[] allUsers = {admin, majid, dev1, dev2, dev3, dev4, pmHarmony, salim, basma, younes, youssef, walid, mehdi};
@@ -1005,6 +1043,25 @@ public class DataSeeder implements CommandLineRunner {
         client.setIndustry(industry);
         client.setCompany(company);
         return clientRepository.save(client);
+    }
+
+    private PreSale createPreSale(String name, String key, String description,
+                                   PreSaleStage stage, Client client, BigDecimal estimatedValue,
+                                   Integer probability, LocalDate expectedCloseDate, User manager,
+                                   Company company, Program program) {
+        PreSale ps = new PreSale();
+        ps.setName(name);
+        ps.setKey(key);
+        ps.setDescription(description);
+        ps.setStage(stage);
+        ps.setClient(client);
+        ps.setEstimatedValue(estimatedValue);
+        ps.setProbability(probability);
+        ps.setExpectedCloseDate(expectedCloseDate);
+        ps.setManager(manager);
+        ps.setCompany(company);
+        ps.setProgram(program);
+        return preSaleRepository.save(ps);
     }
 
     private Program createProgram(String name, String key, String description, User manager, Company company) {
