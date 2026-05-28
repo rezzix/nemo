@@ -1,6 +1,8 @@
 package com.nemo.config;
 
 import com.nemo.client.Client;
+import com.nemo.client.ClientContact;
+import com.nemo.client.ClientContactRepository;
 import com.nemo.client.ClientRepository;
 import com.nemo.company.Company;
 import com.nemo.company.CompanyRepository;
@@ -108,6 +110,7 @@ public class DataSeeder implements CommandLineRunner {
     private final LocationRepository locationRepository;
     private final AssetRepository assetRepository;
     private final ClientRepository clientRepository;
+    private final ClientContactRepository clientContactRepository;
     private final LeaveEntitlementRepository leaveEntitlementRepository;
     private final LeaveRequestRepository leaveRequestRepository;
     private final ProjectExpenseRepository projectExpenseRepository;
@@ -137,6 +140,7 @@ public class DataSeeder implements CommandLineRunner {
                       LocationRepository locationRepository,
                       AssetRepository assetRepository,
                       ClientRepository clientRepository,
+                      ClientContactRepository clientContactRepository,
                       LeaveEntitlementRepository leaveEntitlementRepository,
                       LeaveRequestRepository leaveRequestRepository,
                       ProjectExpenseRepository projectExpenseRepository,
@@ -165,6 +169,7 @@ public class DataSeeder implements CommandLineRunner {
         this.locationRepository = locationRepository;
         this.assetRepository = assetRepository;
         this.clientRepository = clientRepository;
+        this.clientContactRepository = clientContactRepository;
         this.leaveEntitlementRepository = leaveEntitlementRepository;
         this.leaveRequestRepository = leaveRequestRepository;
         this.projectExpenseRepository = projectExpenseRepository;
@@ -183,7 +188,8 @@ public class DataSeeder implements CommandLineRunner {
             String[] clientNames, String[] clientIndustries,
             String[][] locationNames, String[][] locationDescriptions,
             List<HolidayData> holidays,
-            String[] preSaleNames, String[] preSaleKeys, String[] preSaleDescriptions, BigDecimal[] preSaleValues
+            String[] preSaleNames, String[] preSaleKeys, String[] preSaleDescriptions, BigDecimal[] preSaleValues,
+            String[][] contactNames, String[][] contactRoles, String[][] contactEmails, String[][] contactPhones
     ) {}
 
     private record HolidayData(LocalDate date, String name) {}
@@ -264,7 +270,36 @@ public class DataSeeder implements CommandLineRunner {
                         "Cross-platform mobile application minimum viable product",
                         "Enterprise data warehouse and business intelligence platform"},
                 new BigDecimal[]{new BigDecimal("120000"), new BigDecimal("45000"),
-                        new BigDecimal("80000"), new BigDecimal("200000")}
+                        new BigDecimal("80000"), new BigDecimal("200000")},
+                // Client contacts (2 per client)
+                new String[][]{
+                        {"Alice Thompson", "Robert Hayes"},
+                        {"Linda Martinez", "David Chen"},
+                        {"Sarah Johnson", "Michael Brown"},
+                        {"Emma Wilson", "James Taylor"},
+                        {"Patricia Lee", "Daniel Anderson"}
+                },
+                new String[][]{
+                        {"CTO", "Project Sponsor"},
+                        {"VP Engineering", "Product Owner"},
+                        {"Operations Director", "Technical Lead"},
+                        {"Medical Director", "IT Manager"},
+                        {"Plant Manager", "Procurement Lead"}
+                },
+                new String[][]{
+                        {"alice@globaltech.io", "robert@globaltech.io"},
+                        {"linda@sportify.io", "david@sportify.io"},
+                        {"sarah@teleconnect.io", "michael@teleconnect.io"},
+                        {"emma@healthfirst.io", "james@healthfirst.io"},
+                        {"patricia@indusco.io", "daniel@indusco.io"}
+                },
+                new String[][]{
+                        {"+1 (555) 600-0001", "+1 (555) 600-0002"},
+                        {"+1 (555) 600-0003", "+1 (555) 600-0004"},
+                        {"+1 (555) 600-0005", "+1 (555) 600-0006"},
+                        {"+1 (555) 600-0007", "+1 (555) 600-0008"},
+                        {"+1 (555) 600-0009", "+1 (555) 600-0010"}
+                }
         );
     }
 
@@ -344,7 +379,36 @@ public class DataSeeder implements CommandLineRunner {
                         "Produit minimum viable application mobile multiplateforme",
                         "Plateforme entreposage de données et intelligence d'affaires"},
                 new BigDecimal[]{new BigDecimal("120000"), new BigDecimal("45000"),
-                        new BigDecimal("80000"), new BigDecimal("200000")}
+                        new BigDecimal("80000"), new BigDecimal("200000")},
+                // Client contacts (2 per client, French names for demo)
+                new String[][]{
+                        {"Amina Benali", "Karim Tazi"},
+                        {"Fatima Zahra Alaoui", "Youssef Berrada"},
+                        {"Hassan El Fassi", "Nadia Benmoussa"},
+                        {"Dr. Khadija Amrani", "Omar Tabyaoui"},
+                        {"Rachid Mouline", "Leila Chaoui"}
+                },
+                new String[][]{
+                        {"Directrice Technique", "Responsable Projet"},
+                        {"VP Engineering", "Product Owner"},
+                        {"Directeur Opérations", "Responsable Technique"},
+                        {"Directrice Médicale", "Responsable Informatique"},
+                        {"Directeur Usine", "Responsable Achats"}
+                },
+                new String[][]{
+                        {"amina@cnss.ma", "karim@cnss.ma"},
+                        {"fatima@frmf.ma", "youssef@frmf.ma"},
+                        {"hassan@iam.ma", "nadia@iam.ma"},
+                        {"khadija@sps.ma", "omar@sps.ma"},
+                        {"rachid@mines.ma", "leila@mines.ma"}
+                },
+                new String[][]{
+                        {"+212 600 700 001", "+212 600 700 002"},
+                        {"+212 600 700 003", "+212 600 700 004"},
+                        {"+212 600 700 005", "+212 600 700 006"},
+                        {"+212 600 700 007", "+212 600 700 008"},
+                        {"+212 600 700 009", "+212 600 700 010"}
+                }
         );
     }
 
@@ -459,6 +523,16 @@ public class DataSeeder implements CommandLineRunner {
         Client client2 = createClient(p.clientNames()[2], p.clientIndustries()[2], company2);
         Client client3 = createClient(p.clientNames()[3], p.clientIndustries()[3], company1);
         Client client4 = createClient(p.clientNames()[4], p.clientIndustries()[4], company2);
+
+        // Client contacts
+        Client[] clients = {client0, client1, client2, client3, client4};
+        for (int i = 0; i < clients.length; i++) {
+            for (int j = 0; j < p.contactNames()[i].length; j++) {
+                clientContactRepository.save(new ClientContact(clients[i],
+                        p.contactNames()[i][j], p.contactEmails()[i][j],
+                        p.contactPhones()[i][j], p.contactRoles()[i][j]));
+            }
+        }
 
         // Projects with PMO fields
         Project fse = createProject("FSE", "FSE", "Full Stack Engineering platform",
