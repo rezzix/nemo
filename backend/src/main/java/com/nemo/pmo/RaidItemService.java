@@ -43,9 +43,9 @@ public class RaidItemService {
     }
 
     @Transactional
-    public RaidItem create(RaidItemDto.CreateRequest request) {
-        Project project = projectRepository.findById(request.projectId())
-                .orElseThrow(() -> new EntityNotFoundException("Project", request.projectId()));
+    public RaidItem create(Long projectId, RaidItemDto.CreateRequest request) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException("Project", projectId));
 
         RaidItem item = new RaidItem();
         item.setProject(project);

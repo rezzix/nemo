@@ -25,7 +25,6 @@ public record RaidItemDto(
         String updatedAt
 ) {
     public record CreateRequest(
-            @NotNull Long projectId,
             @NotNull RaidItem.RaidType type,
             @NotBlank String title,
             String description,
