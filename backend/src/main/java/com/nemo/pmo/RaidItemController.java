@@ -52,7 +52,7 @@ public class RaidItemController {
     public ResponseEntity<ApiResponse<RaidItemDto>> create(
             @PathVariable Long projectId,
             @Valid @RequestBody RaidItemDto.CreateRequest request) {
-        RaidItem created = raidItemService.create(request);
+        RaidItem created = raidItemService.create(projectId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.of(raidItemMapper.toDto(created)));
     }
 

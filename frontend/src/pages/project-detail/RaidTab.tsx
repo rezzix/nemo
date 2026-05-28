@@ -39,7 +39,7 @@ export default function RaidTab({ projectId, canEdit }: { projectId: number; can
         });
       } else {
         await createRaidItem(projectId, {
-          projectId, type: form.type, title: form.title, description: form.description || undefined,
+          type: form.type, title: form.title, description: form.description || undefined,
           probability: form.probability ? Number(form.probability) : undefined,
           impact: form.impact ? Number(form.impact) : undefined,
           mitigationPlan: form.mitigationPlan || undefined, dueDate: form.dueDate || undefined,

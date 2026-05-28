@@ -19,7 +19,6 @@ export interface RaidItemDto {
 }
 
 export interface CreateRaidItemRequest {
-  projectId: number;
   type: 'RISK' | 'ASSUMPTION' | 'TASK' | 'DEPENDENCY';
   title: string;
   description?: string;
