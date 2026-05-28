@@ -1,5 +1,6 @@
 package com.nemo.pmo;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -29,8 +30,8 @@ public record RaidItemDto(
             @NotBlank String title,
             String description,
             RaidItem.RaidStatus status,
-            Integer probability,
-            Integer impact,
+            @JsonDeserialize(using = RiskScaleDeserializer.class) Integer probability,
+            @JsonDeserialize(using = RiskScaleDeserializer.class) Integer impact,
             String mitigationPlan,
             Long dependsOnProjectId,
             Long ownerId,
@@ -42,8 +43,8 @@ public record RaidItemDto(
             String title,
             String description,
             RaidItem.RaidStatus status,
-            Integer probability,
-            Integer impact,
+            @JsonDeserialize(using = RiskScaleDeserializer.class) Integer probability,
+            @JsonDeserialize(using = RiskScaleDeserializer.class) Integer impact,
             String mitigationPlan,
             Long dependsOnProjectId,
             Long ownerId,
