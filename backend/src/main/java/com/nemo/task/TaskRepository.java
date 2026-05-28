@@ -49,4 +49,22 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     @Query("SELECT t.sprint.id, COALESCE(SUM(t.storyPoints), 0) FROM Task t WHERE t.sprint.id IN :sprintIds AND t.status.category IN :categories GROUP BY t.sprint.id")
     List<Object[]> sumCompletedStoryPointsBySprintIds(@Param("sprintIds") List<Long> sprintIds, @Param("categories") List<TaskStatus.Category> categories);
+
+    // Member performance: total tasks, completed tasks, total SP, completed SP per assignee
+    @Query("SELECT t.assignee.id, COUNT(t), " +
+           "SUM(CASE WHEN t.status.category IN :completedCategories THEN 1 ELSE 0 END), " +
+           "COALESCE(SUM(t.storyPoints), 0), " +
+           "COALESCE(SUM(CASE WHEN t.status.category IN :completedCategories THEN t.storyPoints ELSE 0 END), 0) " +
+           "FROM Task t WHERE t.project.id = :projectId AND t.assignee.id IS NOT NULL " +
+           "GROUP BY t.assignee.id")
+    List<Object[]> memberTaskStatsForProject(@Param("projectId") Long projectId,
+                                             @Param("completedCategories") List<TaskStatus.Category> completedCategories);
+
+    // On-time delivery: count completed tasks where dueDate is null or dueDate >= today
+    @Query("SELECT t.assignee.id, COUNT(t) FROM Task t WHERE t.project.id = :projectId " +
+           "AND t.assignee.id IS NOT NULL AND t.status.category IN :completedCategories " +
+           "AND (t.dueDate IS NULL OR t.dueDate >= CURRENT_DATE) " +
+           "GROUP BY t.assignee.id")
+    List<Object[]> memberOnTimeCountForProject(@Param("projectId") Long projectId,
+                                                @Param("completedCategories") List<TaskStatus.Category> completedCategories);
 }

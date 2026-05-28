@@ -4,7 +4,9 @@ import com.nemo.common.dto.ApiResponse;
 import com.nemo.common.dto.PaginatedResponse;
 import com.nemo.common.dto.PaginatedResponse.PaginationInfo;
 import com.nemo.common.exception.ForbiddenException;
+import com.nemo.config.TaskStatus;
 import com.nemo.security.AuthHelper;
+import com.nemo.task.TaskRepository;
 import com.nemo.user.User;
 import com.nemo.user.UserRepository;
 import jakarta.validation.Valid;
@@ -18,6 +20,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -29,12 +32,14 @@ public class ProjectController {
     private final ProjectMapper projectMapper;
     private final AuthHelper authHelper;
     private final UserRepository userRepository;
+    private final TaskRepository taskRepository;
 
-    public ProjectController(ProjectService projectService, ProjectMapper projectMapper, AuthHelper authHelper, UserRepository userRepository) {
+    public ProjectController(ProjectService projectService, ProjectMapper projectMapper, AuthHelper authHelper, UserRepository userRepository, TaskRepository taskRepository) {
         this.projectService = projectService;
         this.projectMapper = projectMapper;
         this.authHelper = authHelper;
         this.userRepository = userRepository;
+        this.taskRepository = taskRepository;
     }
 
     @GetMapping
@@ -144,8 +149,58 @@ public class ProjectController {
     public ResponseEntity<ApiResponse<List<ProjectDto.MemberDto>>> getMembers(
             @PathVariable Long id, @AuthenticationPrincipal UserDetails currentUser) {
         authHelper.requireProjectReadAccess(currentUser, id);
-        List<ProjectDto.MemberDto> members = projectService.getMembers(id).stream()
+        List<ProjectMember> projectMembers = projectService.getMembers(id);
+        List<ProjectDto.MemberDto> members = projectMembers.stream()
                 .map(projectMapper::toMemberDto).toList();
+
+        // Compute derived scores for members without a manual evaluation
+        List<TaskStatus.Category> completedCategories = List.of(TaskStatus.Category.DONE, TaskStatus.Category.CLOSED);
+
+        // Factor 1 & 3: total tasks, completed tasks, total SP, completed SP per assignee
+        record TaskStats(long totalTasks, long completedTasks, long totalSp, long completedSp) {}
+        Map<Long, TaskStats> statsMap = taskRepository.memberTaskStatsForProject(id, completedCategories).stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> new TaskStats(
+                                ((Number) row[1]).longValue(),
+                                ((Number) row[2]).longValue(),
+                                ((Number) row[3]).longValue(),
+                                ((Number) row[4]).longValue()
+                        )
+                ));
+
+        // Factor 2: on-time completed tasks per assignee (dueDate is null or >= today)
+        Map<Long, Long> onTimeMap = taskRepository.memberOnTimeCountForProject(id, completedCategories).stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> ((Number) row[1]).longValue()
+                ));
+
+        members = members.stream().map(m -> {
+            Integer score = m.score();
+            if (score == null) {
+                TaskStats stats = statsMap.get(m.userId());
+                if (stats != null && stats.totalTasks > 0) {
+                    // Factor 1: SP completion (weight 50%)
+                    double spCompletion = stats.totalSp > 0 ? (double) stats.completedSp / stats.totalSp : 0;
+                    // Factor 2: on-time delivery (weight 30%)
+                    double onTimeRate = stats.completedTasks > 0
+                            ? (double) onTimeMap.getOrDefault(m.userId(), 0L) / stats.completedTasks : 0;
+                    // Factor 3: task completion ratio (weight 20%)
+                    double taskCompletion = (double) stats.completedTasks / stats.totalTasks;
+
+                    double blended = spCompletion * 0.5 + onTimeRate * 0.3 + taskCompletion * 0.2;
+
+                    if (blended >= 0.8) score = 5;       // Exceptional
+                    else if (blended >= 0.6) score = 4;   // Strategic
+                    else if (blended >= 0.4) score = 2;   // Impactful
+                    else if (blended >= 0.2) score = 1;   // Functional
+                    else score = 0;                          // Marginal
+                }
+            }
+            return new ProjectDto.MemberDto(m.id(), m.userId(), m.username(), m.fullName(), score, m.allocation());
+        }).toList();
+
         // Contributors and external users cannot see evaluation scores
         boolean canSeeScores = currentUser.getAuthorities().stream()
                 .anyMatch(a -> Set.of("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EXECUTIVE", "ROLE_HR").contains(a.getAuthority()));
