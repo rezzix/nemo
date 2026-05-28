@@ -595,7 +595,7 @@ public class DataSeeder implements CommandLineRunner {
 
         // Wiki pages with mermaid diagrams
         createWikiPage("Project Overview", "overview", fse, admin,
-                "# FSE Project Overview\n\n## Objectives\n\nThe Full Stack Engineering platform aims to deliver a modern, scalable web application for enterprise customers.\n\n### Key Goals\n\n- **Performance**: Sub-200ms response times\n- **Security**: SOC2 compliance\n- **Scalability**: 10x traffic growth support\n\n## Architecture\n\n```mermaid\ngraph TD\n    Client[Web Client] --> LB[Load Balancer]\n    LB --> GW[API Gateway]\n    GW --> Auth[Auth Service]\n    GW --> Core[Core API]\n    GW --> Notify[Notification Service]\n    Core --> DB[(PostgreSQL)]\n    Core --> Cache[(Redis Cache)]\n    Notify --> Queue[RabbitMQ]\n```\n\n## Timeline\n\n```mermaid\ngantt\n    title FSE Project Timeline\n    dateFormat YYYY-MM-DD\n    section Initiation\n    Requirements gathering  :done, init1, 2025-01-15, 2025-02-15\n    section Execution\n    MVP Development        :active, exec1, 2025-02-16, 2025-08-31\n    section Closing\n    Handover & Docs        :closing, 2025-09-01, 2025-09-30\n```\n\n## Team Structure\n\n```mermaid\ngraph LR\n    PM[Majid - PM] --> Dev1[Ismail - Backend]\n    PM --> Dev2[Hanane - Frontend]\n    PM --> Admin[Admin - Oversight]\n```");
+                "# FSE Project Overview\n\n## Objectives\n\nThe Full Stack Engineering platform aims to deliver a modern, scalable web application for enterprise customers.\n\n### Key Goals\n\n- **Performance**: Sub-200ms response times\n- **Security**: SOC2 compliance\n- **Scalability**: 10x traffic growth support\n\n## Architecture\n\n```mermaid\ngraph TD\n    Client[Web Client] --> LB[Load Balancer]\n    LB --> GW[API Gateway]\n    GW --> Auth[Auth Service]\n    GW --> Core[Core API]\n    GW --> Notify[Notification Service]\n    Core --> DB[(PostgreSQL)]\n    Core --> Cache[(Redis Cache)]\n    Notify --> Queue[RabbitMQ]\n```\n\n## Timeline\n\n```mermaid\ngantt\n    title FSE Project Timeline\n    dateFormat YYYY-MM-DD\n    section Initiation\n    Requirements gathering  :done, init1, " + year + "-01-15, " + year + "-02-15\n    section Execution\n    MVP Development        :active, exec1, " + year + "-02-16, " + year + "-08-31\n    section Closing\n    Handover & Docs        :closing, " + year + "-09-01, " + year + "-09-30\n```\n\n## Team Structure\n\n```mermaid\ngraph LR\n    PM[Majid - PM] --> Dev1[Ismail - Backend]\n    PM --> Dev2[Hanane - Frontend]\n    PM --> Admin[Admin - Oversight]\n```");
 
         createWikiPage("Technical Design", "technical-design", fse, dev1,
                 "# Technical Design\n\n## System Architecture\n\n```mermaid\ngraph TB\n    subgraph Frontend\n        UI[React SPA]\n        Mobile[Mobile App]\n    end\n    subgraph Backend\n        API[REST API]\n        Auth[Auth Service]\n        Worker[Background Worker]\n    end\n    subgraph Data\n        PG[(PostgreSQL)]\n        Redis[(Redis)]\n        S3[Object Storage]\n    end\n    UI --> API\n    Mobile --> API\n    API --> Auth\n    API --> PG\n    API --> Redis\n    Worker --> PG\n    Worker --> S3\n```\n\n## Database Schema\n\n```mermaid\nerDiagram\n    USER ||--o{ TASK : creates\n    USER ||--o{ TIME_LOG : logs\n    PROJECT ||--o{ TASK : contains\n    PROJECT ||--o{ MEMBER : has\n    TASK ||--o{ TIME_LOG : tracks\n    PROJECT ||--o{ RAID_ITEM : manages\n```\n\n## API Endpoints\n\n| Method | Path | Description |\n|--------|------|------------- |\n| GET | /api/projects | List all projects |\n| POST | /api/projects | Create a project |\n| GET | /api/tasks | List all tasks |\n| POST | /api/time-logs | Log time |\n\n## Deployment Pipeline\n\n```mermaid\ngraph LR\n    Code[Code Push] --> CI[CI Build & Test]\n    CI --> Stage[Staging Deploy]\n    Stage --> Review[Code Review]\n    Review --> Prod[Production Deploy]\n```");
@@ -605,7 +605,7 @@ public class DataSeeder implements CommandLineRunner {
 
         String c4DisplayName = p.companyNames()[3];
         createWikiPage(c4DisplayName + " Roadmap", "roadmap", erpProject, younes,
-                "# " + c4DisplayName + " Roadmap\n\n## 2025 Milestones\n\n```mermaid\ngantt\n    title " + c4DisplayName + " 2025 Roadmap\n    dateFormat YYYY-MM-DD\n    section Q1\n    Patient Management  :done, q1a, 2025-01-01, 2025-03-31\n    section Q2\n    Billing Module      :active, q2a, 2025-04-01, 2025-06-30\n    section Q3\n    Lab Integration     :q3a, 2025-07-01, 2025-09-30\n    section Q4\n    Pharmacy Module     :q4a, 2025-10-01, 2025-12-31\n```\n\n## Module Dependencies\n\n```mermaid\ngraph TD\n    Patient[Patient Module] --> Billing[Billing Module]\n    Patient --> Lab[Lab Integration]\n    Billing --> Insurance[Insurance Claims]\n    Lab --> Pharmacy[Pharmacy Module]\n    Insurance --> Reports[Reporting]\n```\n\n## Integration Points\n\n```mermaid\ngraph LR\n    HIS[Hospital Info System] --> API[" + c4DisplayName + " API]\n    LIS[Lab Info System] --> API\n    PIS[Pharmacy System] --> API\n    API --> DW[Data Warehouse]\n    API --> Portal[Patient Portal]\n```");
+                "# " + c4DisplayName + " Roadmap\n\n## " + year + " Milestones\n\n```mermaid\ngantt\n    title " + c4DisplayName + " " + year + " Roadmap\n    dateFormat YYYY-MM-DD\n    section Q1\n    Patient Management  :done, q1a, " + year + "-01-01, " + year + "-03-31\n    section Q2\n    Billing Module      :active, q2a, " + year + "-04-01, " + year + "-06-30\n    section Q3\n    Lab Integration     :q3a, " + year + "-07-01, " + year + "-09-30\n    section Q4\n    Pharmacy Module     :q4a, " + year + "-10-01, " + year + "-12-31\n```\n\n## Module Dependencies\n\n```mermaid\ngraph TD\n    Patient[Patient Module] --> Billing[Billing Module]\n    Patient --> Lab[Lab Integration]\n    Billing --> Insurance[Insurance Claims]\n    Lab --> Pharmacy[Pharmacy Module]\n    Insurance --> Reports[Reporting]\n```\n\n## Integration Points\n\n```mermaid\ngraph LR\n    HIS[Hospital Info System] --> API[" + c4DisplayName + " API]\n    LIS[Lab Info System] --> API\n    PIS[Pharmacy System] --> API\n    API --> DW[Data Warehouse]\n    API --> Portal[Patient Portal]\n```");
 
         createWikiPage("Project Charter", "project-charter", apiGateway, majid,
                 "# API Gateway Project Charter\n\n## Scope\n\nCentral API gateway for service routing, rate limiting, and authentication.\n\n## Stakeholders\n\n```mermaid\ngraph TD\n    Sponsor[Salim - Executive Sponsor] --> PM[Majid - Project Manager]\n    PM --> Dev1[Ismail - Lead Developer]\n    PM --> Dev2[Wadii - Backend Developer]\n    PM --> QA[Admin - QA Lead]\n```\n\n## Risk Assessment\n\n```mermaid\nquadrantChart\n    title Risk Assessment\n    x-axis Low Impact --> High Impact\n    y-axis Low Probability --> High Probability\n    quadrant-1 High Impact Low Probability\n    quadrant-2 High Impact High Probability\n    quadrant-3 Low Impact Low Probability\n    quadrant-4 Low Impact High Probability\n    Vendor Lock-in: [0.3, 0.4]\n    Scalability: [0.8, 0.6]\n    Security Breach: [0.9, 0.3]\n    Team Turnover: [0.4, 0.5]\n```\n\n## Budget\n\n| Category | Amount (" + p.currency() + ") |\n|----------|-------------|\n| Development | 50,000 |\n| Infrastructure | 15,000 |\n| Testing | 10,000 |\n| Contingency | 5,000 |");
@@ -883,35 +883,35 @@ public class DataSeeder implements CommandLineRunner {
 
         // Assets
         createAsset("MacBook Pro 16\"", Asset.Type.COMPUTER, Asset.Status.ASSIGNED, loc1a, dev1, company1,
-                "MBP-2024-001", LocalDate.of(2024, 1, 15), new BigDecimal("2400"));
+                "MBP-2024-001", LocalDate.of(year - 2, 1, 15), new BigDecimal("2400"));
         createAsset("Dell Latitude 5540", Asset.Type.COMPUTER, Asset.Status.ASSIGNED, loc1a, dev2, company1,
-                "DL-5540-002", LocalDate.of(2024, 3, 1), new BigDecimal("1200"));
+                "DL-5540-002", LocalDate.of(year - 2, 3, 1), new BigDecimal("1200"));
         createAsset("Dell PowerEdge R740", Asset.Type.SERVER, Asset.Status.IN_USE, loc1b, null, company1,
-                "SRV-R740-001", LocalDate.of(2023, 6, 1), new BigDecimal("8500"));
+                "SRV-R740-001", LocalDate.of(year - 3, 6, 1), new BigDecimal("8500"));
         createAsset("HP ProLiant DL380", Asset.Type.SERVER, Asset.Status.IN_USE, loc1b, null, company1,
-                "SRV-DL380-002", LocalDate.of(2023, 6, 1), new BigDecimal("7200"));
+                "SRV-DL380-002", LocalDate.of(year - 3, 6, 1), new BigDecimal("7200"));
         createAsset("iPhone 15 Pro", Asset.Type.MOBILE, Asset.Status.ASSIGNED, null, majid, company1,
-                "IPH-15PRO-001", LocalDate.of(2024, 2, 1), new BigDecimal("1100"));
+                "IPH-15PRO-001", LocalDate.of(year - 2, 2, 1), new BigDecimal("1100"));
         createAsset("Samsung Galaxy S24", Asset.Type.MOBILE, Asset.Status.IN_STOCK, null, null, company1,
-                "SGS-S24-002", LocalDate.of(2024, 4, 1), new BigDecimal("900"));
+                "SGS-S24-002", LocalDate.of(year - 2, 4, 1), new BigDecimal("900"));
         createAsset("Toyota Hilux", Asset.Type.VEHICLE, Asset.Status.IN_USE, null, dev3, company2,
-                "VHC-HILUX-001", LocalDate.of(2022, 8, 1), new BigDecimal("35000"));
+                "VHC-HILUX-001", LocalDate.of(year - 4, 8, 1), new BigDecimal("35000"));
         createAsset("Samsung Microwave", Asset.Type.MICROWAVE, Asset.Status.IN_USE, loc2a, null, company2,
-                "MCI-SAM-001", LocalDate.of(2023, 3, 1), new BigDecimal("150"));
+                "MCI-SAM-001", LocalDate.of(year - 3, 3, 1), new BigDecimal("150"));
         createAsset("ThinkPad X1 Carbon", Asset.Type.COMPUTER, Asset.Status.ASSIGNED, null, dev3, company2,
-                "TP-X1C-001", LocalDate.of(2024, 1, 10), new BigDecimal("1800"));
+                "TP-X1C-001", LocalDate.of(year - 2, 1, 10), new BigDecimal("1800"));
         createAsset("MacBook Air M2", Asset.Type.COMPUTER, Asset.Status.ASSIGNED, null, dev4, company2,
-                "MBA-M2-001", LocalDate.of(2024, 2, 15), new BigDecimal("1300"));
+                "MBA-M2-001", LocalDate.of(year - 2, 2, 15), new BigDecimal("1300"));
         createAsset("Dell Monitor 27\"", Asset.Type.OTHER, Asset.Status.IN_USE, loc1a, null, company1,
-                "MON-DELL27-001", LocalDate.of(2024, 1, 20), new BigDecimal("350"));
+                "MON-DELL27-001", LocalDate.of(year - 2, 1, 20), new BigDecimal("350"));
         createAsset("Cisco Switch C9200", Asset.Type.OTHER, Asset.Status.IN_USE, loc1b, null, company1,
-                "NET-CS9200-001", LocalDate.of(2023, 5, 1), new BigDecimal("2800"));
+                "NET-CS9200-001", LocalDate.of(year - 3, 5, 1), new BigDecimal("2800"));
         createAsset("iPad Pro 12.9\"", Asset.Type.MOBILE, Asset.Status.MAINTENANCE, null, null, company3,
-                "IPD-PRO-001", LocalDate.of(2023, 11, 1), new BigDecimal("1100"));
+                "IPD-PRO-001", LocalDate.of(year - 3, 11, 1), new BigDecimal("1100"));
         createAsset("ThinkPad T14s", Asset.Type.COMPUTER, Asset.Status.ASSIGNED, null, walid, company3,
-                "TP-T14S-001", LocalDate.of(2024, 3, 1), new BigDecimal("1400"));
+                "TP-T14S-001", LocalDate.of(year - 2, 3, 1), new BigDecimal("1400"));
         createAsset("Coffee Machine Jura", Asset.Type.OTHER, Asset.Status.IN_STOCK, null, null, company1,
-                "BEV-JURA-001", LocalDate.of(2024, 5, 1), new BigDecimal("800"));
+                "BEV-JURA-001", LocalDate.of(year - 2, 5, 1), new BigDecimal("800"));
 
         // Leave entitlements
         int currentYear = today.getYear();
