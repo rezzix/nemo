@@ -49,4 +49,11 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     @Query("SELECT t.sprint.id, COALESCE(SUM(t.storyPoints), 0) FROM Task t WHERE t.sprint.id IN :sprintIds AND t.status.category IN :categories GROUP BY t.sprint.id")
     List<Object[]> sumCompletedStoryPointsBySprintIds(@Param("sprintIds") List<Long> sprintIds, @Param("categories") List<TaskStatus.Category> categories);
+
+    @Query("SELECT t.assignee.id, COUNT(t), " +
+           "SUM(CASE WHEN t.status.category IN :completedCategories THEN 1 ELSE 0 END) " +
+           "FROM Task t WHERE t.project.id = :projectId AND t.assignee.id IS NOT NULL " +
+           "GROUP BY t.assignee.id")
+    List<Object[]> countByAssigneeForProject(@Param("projectId") Long projectId,
+                                              @Param("completedCategories") List<TaskStatus.Category> completedCategories);
 }

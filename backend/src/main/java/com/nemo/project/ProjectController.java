@@ -4,7 +4,9 @@ import com.nemo.common.dto.ApiResponse;
 import com.nemo.common.dto.PaginatedResponse;
 import com.nemo.common.dto.PaginatedResponse.PaginationInfo;
 import com.nemo.common.exception.ForbiddenException;
+import com.nemo.config.TaskStatus;
 import com.nemo.security.AuthHelper;
+import com.nemo.task.TaskRepository;
 import com.nemo.user.User;
 import com.nemo.user.UserRepository;
 import jakarta.validation.Valid;
@@ -18,6 +20,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -29,12 +32,14 @@ public class ProjectController {
     private final ProjectMapper projectMapper;
     private final AuthHelper authHelper;
     private final UserRepository userRepository;
+    private final TaskRepository taskRepository;
 
-    public ProjectController(ProjectService projectService, ProjectMapper projectMapper, AuthHelper authHelper, UserRepository userRepository) {
+    public ProjectController(ProjectService projectService, ProjectMapper projectMapper, AuthHelper authHelper, UserRepository userRepository, TaskRepository taskRepository) {
         this.projectService = projectService;
         this.projectMapper = projectMapper;
         this.authHelper = authHelper;
         this.userRepository = userRepository;
+        this.taskRepository = taskRepository;
     }
 
     @GetMapping
@@ -144,8 +149,36 @@ public class ProjectController {
     public ResponseEntity<ApiResponse<List<ProjectDto.MemberDto>>> getMembers(
             @PathVariable Long id, @AuthenticationPrincipal UserDetails currentUser) {
         authHelper.requireProjectReadAccess(currentUser, id);
-        List<ProjectDto.MemberDto> members = projectService.getMembers(id).stream()
+        List<ProjectMember> projectMembers = projectService.getMembers(id);
+        List<ProjectDto.MemberDto> members = projectMembers.stream()
                 .map(projectMapper::toMemberDto).toList();
+
+        // Compute derived scores from task completion for members without a manual evaluation
+        List<TaskStatus.Category> completedCategories = List.of(TaskStatus.Category.DONE, TaskStatus.Category.CLOSED);
+        Map<Long, int[]> taskStats = taskRepository.countByAssigneeForProject(id, completedCategories).stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> new int[]{((Number) row[1]).intValue(), ((Number) row[2]).intValue()}
+                ));
+
+        members = members.stream().map(m -> {
+            Integer score = m.score();
+            if (score == null && taskStats.containsKey(m.userId())) {
+                int[] stats = taskStats.get(m.userId());
+                int total = stats[0];
+                int completed = stats[1];
+                if (total > 0) {
+                    double pct = (double) completed / total;
+                    if (pct >= 0.8) score = 5;       // Exceptional
+                    else if (pct >= 0.6) score = 4;   // Strategic
+                    else if (pct >= 0.4) score = 2;   // Impactful
+                    else if (pct >= 0.2) score = 1;   // Functional
+                    else score = 0;                     // Marginal
+                }
+            }
+            return new ProjectDto.MemberDto(m.id(), m.userId(), m.username(), m.fullName(), score, m.allocation());
+        }).toList();
+
         // Contributors and external users cannot see evaluation scores
         boolean canSeeScores = currentUser.getAuthorities().stream()
                 .anyMatch(a -> Set.of("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EXECUTIVE", "ROLE_HR").contains(a.getAuthority()));
