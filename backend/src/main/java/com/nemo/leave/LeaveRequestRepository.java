@@ -30,6 +30,17 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long
     @Query("SELECT lr FROM LeaveRequest lr WHERE lr.user.company.id = :companyId AND lr.status = :status ORDER BY lr.startDate DESC")
     List<LeaveRequest> findByCompanyIdAndStatus(Long companyId, LeaveRequest.Status status);
 
+    @Query("SELECT lr FROM LeaveRequest lr WHERE " +
+           "(:userId IS NULL OR lr.user.id = :userId) AND " +
+           "(:status IS NULL OR lr.status = :status) AND " +
+           "(:companyId IS NULL OR lr.user.company.id = :companyId) AND " +
+           "(:startDate IS NULL OR lr.startDate >= :startDate) AND " +
+           "(:endDate IS NULL OR lr.endDate <= :endDate) " +
+           "ORDER BY lr.startDate DESC")
+    List<LeaveRequest> search(@Param("userId") Long userId, @Param("status") LeaveRequest.Status status,
+                              @Param("companyId") Long companyId, @Param("startDate") LocalDate startDate,
+                              @Param("endDate") LocalDate endDate);
+
     long countByUserIdAndTypeAndStatus(Long userId, LeaveRequest.Type type, LeaveRequest.Status status);
 
     @Query("SELECT lr FROM LeaveRequest lr WHERE lr.user.id = :userId AND lr.type = :type AND lr.status = 'APPROVED' AND lr.startDate <= :yearEnd AND lr.endDate >= :yearStart")
