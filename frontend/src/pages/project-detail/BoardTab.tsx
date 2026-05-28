@@ -124,16 +124,19 @@ export default function BoardTab({ projectId, projectKey, isExternal }: { projec
                   onDragStart={() => handleDragStart(task.id)}
                   onDragEnd={handleDragEnd}
                   onClick={() => navigate(`/projects/${projectId}/tasks/${task.id}`)}
-                  className={`bg-white rounded-lg border border-gray-200 p-3 cursor-pointer hover:border-gray-300 hover:shadow-sm transition-all ${
-                    draggingId === task.id ? 'opacity-50 scale-95' : ''
-                  }`}
+                  className={`bg-white rounded-lg border p-3 cursor-pointer hover:border-gray-300 hover:shadow-sm transition-all ${
+                    task.statusCategory === 'DONE'
+                      ? 'border-l-2 border-l-green-400 border-gray-100 opacity-70'
+                      : 'border-gray-200'
+                  } ${draggingId === task.id ? 'opacity-50 scale-95' : ''}`}
                 >
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-xs font-mono text-primary-600">{task.taskKey}</span>
                     <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${priorityColor(task.priority)}`}>{task.priority}</span>
                     {task.storyPoints != null && <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-100 text-indigo-700">{task.storyPoints} SP</span>}
+                    {task.statusCategory === 'DONE' && <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-700">&#10003;</span>}
                   </div>
-                  <p className="text-sm font-medium text-gray-900 leading-snug mb-1.5">{task.title}</p>
+                  <p className={`text-sm font-medium leading-snug mb-1.5 ${task.statusCategory === 'DONE' ? 'line-through text-gray-400' : 'text-gray-900'}`}>{task.title}</p>
                   <div className="flex items-center gap-2 text-xs text-gray-400">
                     <span className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{task.typeName}</span>
                     {task.phaseName && <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">{task.phaseName}</span>}
