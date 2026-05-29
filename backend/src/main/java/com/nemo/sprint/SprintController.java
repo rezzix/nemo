@@ -17,6 +17,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -113,5 +114,50 @@ public class SprintController {
                         completedStoryPointsBySprint.getOrDefault(s.getId(), 0L).intValue()))
                 .toList();
         return ResponseEntity.ok(ApiResponse.of(result));
+    }
+
+    @GetMapping("/{sprintId}/burndown")
+    public ResponseEntity<ApiResponse<SprintBurndownDto>> burndown(
+            @PathVariable Long projectId, @PathVariable Long sprintId,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        authHelper.requireProjectReadAccess(currentUser, projectId);
+        Sprint sprint = sprintService.getById(sprintId);
+
+        // Get all tasks in this sprint
+        Page<Task> tasks = taskRepository.findByProjectId(projectId, PageRequest.of(0, 500));
+        List<Task> sprintTasks = tasks.getContent().stream()
+                .filter(t -> t.getSprint() != null && t.getSprint().getId().equals(sprintId))
+                .toList();
+
+        int totalSP = sprintTasks.stream()
+                .mapToInt(t -> t.getStoryPoints() != null ? t.getStoryPoints() : 0)
+                .sum();
+        int completedSP = sprintTasks.stream()
+                .filter(t -> t.getStatus() != null && t.getStatus().getCategory() != null
+                        && (t.getStatus().getCategory() == TaskStatus.Category.DONE
+                        || t.getStatus().getCategory() == TaskStatus.Category.CLOSED))
+                .mapToInt(t -> t.getStoryPoints() != null ? t.getStoryPoints() : 0)
+                .sum();
+
+        LocalDate start = sprint.getStartDate();
+        LocalDate end = sprint.getEndDate();
+        if (start == null || end == null) {
+            return ResponseEntity.ok(ApiResponse.of(new SprintBurndownDto(sprintId, sprint.getName(), null, null, totalSP, List.of())));
+        }
+
+        LocalDate today = LocalDate.now();
+        LocalDate lastDay = today.isBefore(end) ? today : end;
+        long totalDays = java.time.temporal.ChronoUnit.DAYS.between(start, end) + 1;
+        double dailyBurn = totalDays > 0 ? (double) totalSP / totalDays : 0;
+
+        List<SprintBurndownDto.DataPoint> data = new java.util.ArrayList<>();
+        for (LocalDate day = start; !day.isAfter(lastDay); day = day.plusDays(1)) {
+            long daysElapsed = java.time.temporal.ChronoUnit.DAYS.between(start, day) + 1;
+            double ideal = Math.max(0, totalSP - (dailyBurn * daysElapsed));
+            data.add(new SprintBurndownDto.DataPoint(day.toString(), Math.round(ideal * 100) / 100.0, totalSP - completedSP));
+        }
+
+        return ResponseEntity.ok(ApiResponse.of(new SprintBurndownDto(
+                sprintId, sprint.getName(), start, end, totalSP, data)));
     }
 }
