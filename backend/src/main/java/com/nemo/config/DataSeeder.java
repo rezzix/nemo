@@ -1326,6 +1326,7 @@ public class DataSeeder implements CommandLineRunner {
         expense.setDescription(description);
         expense.setExpenseDate(expenseDate);
         expense.setCreatedBy(createdBy);
+        expense.setApprovalStatus(ProjectExpense.ApprovalStatus.APPROVED);
         return projectExpenseRepository.save(expense);
     }
 
