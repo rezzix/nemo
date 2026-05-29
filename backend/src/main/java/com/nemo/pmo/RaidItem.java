@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @Table(name = "raid_item")
 public class RaidItem {
 
-    public enum RaidType { RISK, ASSUMPTION, TASK, DEPENDENCY }
+    public enum RaidType { RISK, ASSUMPTION, ISSUE, TASK, DEPENDENCY }
     public enum RaidStatus { OPEN, MITIGATING, RESOLVED, CLOSED }
 
     @Id

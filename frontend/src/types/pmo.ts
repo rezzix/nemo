@@ -2,7 +2,7 @@ export interface RaidItemDto {
   id: number;
   projectId: number;
   projectName: string;
-  type: 'RISK' | 'ASSUMPTION' | 'TASK' | 'DEPENDENCY';
+  type: 'RISK' | 'ASSUMPTION' | 'ISSUE' | 'TASK' | 'DEPENDENCY';
   title: string;
   description: string | null;
   status: 'OPEN' | 'MITIGATING' | 'RESOLVED' | 'CLOSED';
@@ -19,7 +19,7 @@ export interface RaidItemDto {
 }
 
 export interface CreateRaidItemRequest {
-  type: 'RISK' | 'ASSUMPTION' | 'TASK' | 'DEPENDENCY';
+  type: 'RISK' | 'ASSUMPTION' | 'ISSUE' | 'TASK' | 'DEPENDENCY';
   title: string;
   description?: string;
   status?: 'OPEN' | 'MITIGATING' | 'RESOLVED' | 'CLOSED';
@@ -32,7 +32,7 @@ export interface CreateRaidItemRequest {
 }
 
 export interface UpdateRaidItemRequest {
-  type?: 'RISK' | 'ASSUMPTION' | 'TASK' | 'DEPENDENCY';
+  type?: 'RISK' | 'ASSUMPTION' | 'ISSUE' | 'TASK' | 'DEPENDENCY';
   title?: string;
   description?: string | null;
   status?: 'OPEN' | 'MITIGATING' | 'RESOLVED' | 'CLOSED';
