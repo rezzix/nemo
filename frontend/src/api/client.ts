@@ -42,6 +42,11 @@ export async function apiDelete(url: string): Promise<void> {
   await client.delete(url);
 }
 
+export async function apiPatch<T>(url: string, data?: unknown): Promise<T> {
+  const res = await client.patch<ApiResponse<T>>(url, data);
+  return res.data.data;
+}
+
 export function extractValidationErrors(err: unknown): Record<string, string> {
   if (axios.isAxiosError(err) && err.response?.status === 422) {
     const errors = (err.response.data as { errors?: Array<{ field: string; message: string }> }).errors;

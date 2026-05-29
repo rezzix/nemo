@@ -58,8 +58,9 @@ export default function SummaryTab({ project, projectId, managerId, onNavigate }
 
   // Derived financials from EVM
   const totalPlanned = evm?.derivedPlannedValue ?? phases.reduce((sum, p) => sum + Number(p.plannedAmount || 0), 0);
-  const totalPaid = evm?.totalPaid ?? phases.reduce((sum, p) => sum + Number(p.totalPaid || 0), 0);
-  const paymentPct = totalPlanned > 0 ? Math.min(100, Math.round((totalPaid / totalPlanned) * 100)) : 0;
+  const paymentsReceived = evm?.paymentsReceived ?? 0;
+  const collectionProgress = evm?.collectionProgress ?? 0;
+  const paymentPct = collectionProgress > 0 ? Math.min(100, Math.round(collectionProgress)) : 0;
   const paymentColor = paymentPct >= 100 ? 'bg-green-500' : paymentPct >= 50 ? 'bg-blue-500' : totalPlanned > 0 ? 'bg-amber-500' : 'bg-gray-300';
 
   // Timeline progress
@@ -266,7 +267,7 @@ export default function SummaryTab({ project, projectId, managerId, onNavigate }
             </div>
             <div>
               <div className="text-xs text-gray-500">Payments Received</div>
-              <div className="text-sm font-medium text-gray-900 mt-1">{formatCurrency(totalPaid)}</div>
+              <div className="text-sm font-medium text-gray-900 mt-1">{formatCurrency(paymentsReceived)}</div>
             </div>
             <div className="col-span-2">
               <div className="text-xs text-gray-500 mb-1">Collection Progress</div>
@@ -276,7 +277,7 @@ export default function SummaryTab({ project, projectId, managerId, onNavigate }
                 </div>
                 <span className="text-sm font-semibold text-gray-700">{paymentPct}%</span>
               </div>
-              <span className="text-xs text-gray-400">{formatCurrency(totalPaid)} of {formatCurrency(totalPlanned)} collected</span>
+              <span className="text-xs text-gray-400">{formatCurrency(paymentsReceived)} of {formatCurrency(totalPlanned)} collected</span>
             </div>
           </div>
         )}

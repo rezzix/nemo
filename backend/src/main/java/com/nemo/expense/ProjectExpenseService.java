@@ -50,6 +50,7 @@ public class ProjectExpenseService {
         expense.setDescription(request.description());
         expense.setExpenseDate(java.time.LocalDate.parse(request.expenseDate()));
         expense.setCreatedBy(user);
+        expense.setApprovalStatus(ProjectExpense.ApprovalStatus.PENDING_REVIEW);
         return expenseRepository.save(expense);
     }
 
@@ -68,6 +69,26 @@ public class ProjectExpenseService {
         if (request.expenseDate() != null) {
             expense.setExpenseDate(java.time.LocalDate.parse(request.expenseDate()));
         }
+        return expenseRepository.save(expense);
+    }
+
+    @Transactional
+    public ProjectExpense approve(Long expenseId, Long approverId) {
+        ProjectExpense expense = getById(expenseId);
+        expense.setApprovalStatus(ProjectExpense.ApprovalStatus.APPROVED);
+        expense.setApprovedBy(userRepository.findById(approverId).orElse(null));
+        expense.setApprovedAt(java.time.Instant.now());
+        expense.setRejectionReason(null);
+        return expenseRepository.save(expense);
+    }
+
+    @Transactional
+    public ProjectExpense reject(Long expenseId, Long approverId, String rejectionReason) {
+        ProjectExpense expense = getById(expenseId);
+        expense.setApprovalStatus(ProjectExpense.ApprovalStatus.REJECTED);
+        expense.setApprovedBy(userRepository.findById(approverId).orElse(null));
+        expense.setApprovedAt(java.time.Instant.now());
+        expense.setRejectionReason(rejectionReason);
         return expenseRepository.save(expense);
     }
 

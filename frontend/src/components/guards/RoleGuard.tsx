@@ -1,7 +1,7 @@
 import AccessDenied from '@/components/common/AccessDenied';
 import { useAuthStore } from '@/stores/authStore';
 
-type Role = 'ADMIN' | 'MANAGER' | 'EXECUTIVE' | 'CONTRIBUTOR' | 'EXTERNAL' | 'HR';
+type Role = 'ADMIN' | 'MANAGER' | 'EXECUTIVE' | 'CONTRIBUTOR' | 'EXTERNAL' | 'HR' | 'FINANCE';
 
 interface RoleGuardProps {
   roles: Role[];

@@ -165,6 +165,7 @@ export function roleBadgeColor(role: string): string {
     case 'MANAGER': return 'bg-blue-100 text-blue-700';
     case 'EXECUTIVE': return 'bg-purple-100 text-purple-700';
     case 'HR': return 'bg-pink-100 text-pink-700';
+    case 'FINANCE': return 'bg-amber-100 text-amber-700';
     case 'CONTRIBUTOR': return 'bg-green-100 text-green-700';
     case 'EXTERNAL': return 'bg-gray-100 text-gray-700';
     default: return 'bg-gray-100 text-gray-600';

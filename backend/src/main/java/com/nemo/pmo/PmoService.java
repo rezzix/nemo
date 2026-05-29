@@ -5,6 +5,7 @@ import com.nemo.company.Company;
 import com.nemo.config.TaskStatus;
 import com.nemo.config.TaskStatusRepository;
 import com.nemo.expense.ProjectExpenseRepository;
+import com.nemo.payment.ProjectPaymentService;
 import com.nemo.task.TaskRepository;
 import com.nemo.phase.DeliverableRepository;
 import com.nemo.phase.Phase;
@@ -42,6 +43,7 @@ public class PmoService {
     private final DeliverableRepository deliverableRepository;
     private final ClientPaymentRepository clientPaymentRepository;
     private final ProjectExpenseRepository expenseRepository;
+    private final ProjectPaymentService paymentService;
 
     public PmoService(ProjectRepository projectRepository,
                       ProgramRepository programRepository,
@@ -53,7 +55,8 @@ public class PmoService {
                       PhaseRepository phaseRepository,
                       DeliverableRepository deliverableRepository,
                       ClientPaymentRepository clientPaymentRepository,
-                      ProjectExpenseRepository expenseRepository) {
+                      ProjectExpenseRepository expenseRepository,
+                      ProjectPaymentService paymentService) {
         this.projectRepository = projectRepository;
         this.programRepository = programRepository;
         this.taskRepository = taskRepository;
@@ -65,6 +68,7 @@ public class PmoService {
         this.deliverableRepository = deliverableRepository;
         this.clientPaymentRepository = clientPaymentRepository;
         this.expenseRepository = expenseRepository;
+        this.paymentService = paymentService;
     }
 
     @Transactional(readOnly = true)
@@ -162,6 +166,13 @@ public class PmoService {
         double avgRiskScore = riskItems.isEmpty() ? 0.0 :
                 riskItems.stream().mapToInt(RaidItem::getRiskScore).average().orElse(0.0);
 
+        // Payments received and collection progress
+        BigDecimal paymentsReceived = paymentService.sumReceivedByProjectId(projectId);
+        BigDecimal budget = project.getBudget() != null ? project.getBudget() : BigDecimal.ZERO;
+        BigDecimal collectionProgress = budget.compareTo(BigDecimal.ZERO) > 0
+                ? paymentsReceived.multiply(BigDecimal.valueOf(100)).divide(budget, 2, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
+
         return new EvmMetrics(
                 projectId, project.getName(),
                 totalTasks, completedTasks, completionPct,
@@ -175,6 +186,7 @@ public class PmoService {
                 project.getTargetEndDate() != null ? project.getTargetEndDate().toString() : null,
                 openRisks, mitigatingRisks, maxRiskScore, avgRiskScore,
                 derivedPlannedValue, totalPaid,
+                paymentsReceived, collectionProgress,
                 missingRateCount
         );
     }
@@ -229,6 +241,7 @@ public class PmoService {
             String targetStartDate, String targetEndDate,
             long openRisks, long mitigatingRisks, int maxRiskScore, double avgRiskScore,
             BigDecimal derivedPlannedValue, BigDecimal totalPaid,
+            BigDecimal paymentsReceived, BigDecimal collectionProgress,
             long missingRateCount
     ) {}
 

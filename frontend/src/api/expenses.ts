@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiPut, apiDelete } from './client';
+import { apiGet, apiPost, apiPut, apiDelete, apiPatch } from './client';
 import type { ProjectExpenseDto, CreateProjectExpenseRequest, UpdateProjectExpenseRequest } from '@/types';
 
 export function listProjectExpenses(projectId: number): Promise<ProjectExpenseDto[]> {
@@ -15,4 +15,12 @@ export function updateProjectExpense(projectId: number, expenseId: number, data:
 
 export function deleteProjectExpense(projectId: number, expenseId: number): Promise<void> {
   return apiDelete(`/projects/${projectId}/expenses/${expenseId}`);
+}
+
+export function approveExpense(projectId: number, expenseId: number): Promise<ProjectExpenseDto> {
+  return apiPatch(`/projects/${projectId}/expenses/${expenseId}/approve`);
+}
+
+export function rejectExpense(projectId: number, expenseId: number, rejectionReason: string): Promise<ProjectExpenseDto> {
+  return apiPatch(`/projects/${projectId}/expenses/${expenseId}/reject`, { rejectionReason });
 }

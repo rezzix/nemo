@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @Table(name = "app_user")
 public class User {
 
-    public enum Role { ADMIN, MANAGER, CONTRIBUTOR, EXECUTIVE, EXTERNAL, HR }
+    public enum Role { ADMIN, MANAGER, CONTRIBUTOR, EXECUTIVE, EXTERNAL, HR, FINANCE }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

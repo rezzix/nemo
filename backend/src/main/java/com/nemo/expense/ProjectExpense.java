@@ -39,6 +39,20 @@ public class ProjectExpense {
     @JoinColumn(name = "created_by")
     private User createdBy;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "approval_status", nullable = false, length = 20)
+    private ApprovalStatus approvalStatus = ApprovalStatus.APPROVED;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "approved_by")
+    private User approvedBy;
+
+    @Column(name = "approved_at")
+    private Instant approvedAt;
+
+    @Column(name = "rejection_reason", length = 500)
+    private String rejectionReason;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -62,10 +76,22 @@ public class ProjectExpense {
     public void setExpenseDate(LocalDate expenseDate) { this.expenseDate = expenseDate; }
     public User getCreatedBy() { return createdBy; }
     public void setCreatedBy(User createdBy) { this.createdBy = createdBy; }
+    public ApprovalStatus getApprovalStatus() { return approvalStatus; }
+    public void setApprovalStatus(ApprovalStatus approvalStatus) { this.approvalStatus = approvalStatus; }
+    public User getApprovedBy() { return approvedBy; }
+    public void setApprovedBy(User approvedBy) { this.approvedBy = approvedBy; }
+    public Instant getApprovedAt() { return approvedAt; }
+    public void setApprovedAt(Instant approvedAt) { this.approvedAt = approvedAt; }
+    public String getRejectionReason() { return rejectionReason; }
+    public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 
     public enum ExpenseCategory {
         EQUIPMENT, EXPERTISE, TRAVEL, SOFTWARE, INFRASTRUCTURE, OTHER
+    }
+
+    public enum ApprovalStatus {
+        PENDING_REVIEW, APPROVED, REJECTED
     }
 }

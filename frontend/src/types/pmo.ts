@@ -71,6 +71,8 @@ export interface EvmMetrics {
   avgRiskScore: number;
   derivedPlannedValue: number;
   totalPaid: number;
+  paymentsReceived: number;
+  collectionProgress: number;
   missingRateCount: number;
 }
 
