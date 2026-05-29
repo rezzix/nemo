@@ -19,4 +19,6 @@ public interface ProjectExpenseRepository extends JpaRepository<ProjectExpense, 
     BigDecimal sumByProjectIdAndDateRange(@Param("projectId") Long projectId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
     void deleteByProjectId(Long projectId);
+
+    List<ProjectExpense> findByApprovalStatus(ProjectExpense.ApprovalStatus approvalStatus);
 }

@@ -7,6 +7,11 @@ export interface ProjectExpenseDto {
   expenseDate: string;
   createdById: number | null;
   createdByName: string | null;
+  approvalStatus: string;
+  approvedById: number | null;
+  approvedByName: string | null;
+  approvedAt: string | null;
+  rejectionReason: string | null;
   createdAt: string;
   updatedAt: string;
 }

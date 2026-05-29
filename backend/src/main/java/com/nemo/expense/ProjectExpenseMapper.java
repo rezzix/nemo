@@ -13,6 +13,11 @@ public interface ProjectExpenseMapper {
     @Mapping(target = "createdByName", expression = "java(expense.getCreatedBy() != null ? expense.getCreatedBy().getFirstName() + ' ' + expense.getCreatedBy().getLastName() : null)")
     @Mapping(target = "amount", source = "amount", dateFormat = "#,##0.00")
     @Mapping(target = "expenseDate", source = "expenseDate", dateFormat = "yyyy-MM-dd")
+    @Mapping(target = "approvalStatus", expression = "java(expense.getApprovalStatus() != null ? expense.getApprovalStatus().name() : null)")
+    @Mapping(target = "approvedById", source = "approvedBy.id")
+    @Mapping(target = "approvedByName", expression = "java(expense.getApprovedBy() != null ? expense.getApprovedBy().getFirstName() + ' ' + expense.getApprovedBy().getLastName() : null)")
+    @Mapping(target = "approvedAt", expression = "java(expense.getApprovedAt() != null ? expense.getApprovedAt().toString() : null)")
+    @Mapping(target = "rejectionReason", source = "rejectionReason")
     @Mapping(target = "createdAt", source = "createdAt", dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     @Mapping(target = "updatedAt", source = "updatedAt", dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     ProjectExpenseDto toDto(ProjectExpense expense);

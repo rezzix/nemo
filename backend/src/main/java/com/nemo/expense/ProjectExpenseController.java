@@ -70,4 +70,29 @@ public class ProjectExpenseController {
         expenseService.delete(expenseId);
         return ResponseEntity.noContent().build();
     }
+
+    @PatchMapping("/{expenseId}/approve")
+    @PreAuthorize("hasRole('FINANCE')")
+    public ResponseEntity<ApiResponse<ProjectExpenseDto>> approve(
+            @PathVariable Long projectId,
+            @PathVariable Long expenseId,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        authHelper.requireProjectReadAccess(currentUser, projectId);
+        Long userId = authHelper.getCurrentUserId(currentUser);
+        ProjectExpense approved = expenseService.approve(expenseId, userId);
+        return ResponseEntity.ok(ApiResponse.of(expenseMapper.toDto(approved)));
+    }
+
+    @PatchMapping("/{expenseId}/reject")
+    @PreAuthorize("hasRole('FINANCE')")
+    public ResponseEntity<ApiResponse<ProjectExpenseDto>> reject(
+            @PathVariable Long projectId,
+            @PathVariable Long expenseId,
+            @RequestBody ProjectExpenseDto.RejectRequest request,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        authHelper.requireProjectReadAccess(currentUser, projectId);
+        Long userId = authHelper.getCurrentUserId(currentUser);
+        ProjectExpense rejected = expenseService.reject(expenseId, userId, request.rejectionReason());
+        return ResponseEntity.ok(ApiResponse.of(expenseMapper.toDto(rejected)));
+    }
 }

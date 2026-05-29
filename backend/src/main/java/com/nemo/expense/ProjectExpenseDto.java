@@ -12,6 +12,11 @@ public record ProjectExpenseDto(
         String expenseDate,
         Long createdById,
         String createdByName,
+        String approvalStatus,
+        Long approvedById,
+        String approvedByName,
+        String approvedAt,
+        String rejectionReason,
         String createdAt,
         String updatedAt
 ) {
@@ -27,5 +32,9 @@ public record ProjectExpenseDto(
             String amount,
             String description,
             String expenseDate
+    ) {}
+
+    public record RejectRequest(
+            @NotNull String rejectionReason
     ) {}
 }
