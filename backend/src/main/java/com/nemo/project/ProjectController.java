@@ -5,6 +5,7 @@ import com.nemo.common.dto.PaginatedResponse;
 import com.nemo.common.dto.PaginatedResponse.PaginationInfo;
 import com.nemo.common.exception.ForbiddenException;
 import com.nemo.config.TaskStatus;
+import com.nemo.pmo.PmoService;
 import com.nemo.security.AuthHelper;
 import com.nemo.task.TaskRepository;
 import com.nemo.user.User;
@@ -33,13 +34,15 @@ public class ProjectController {
     private final AuthHelper authHelper;
     private final UserRepository userRepository;
     private final TaskRepository taskRepository;
+    private final PmoService pmoService;
 
-    public ProjectController(ProjectService projectService, ProjectMapper projectMapper, AuthHelper authHelper, UserRepository userRepository, TaskRepository taskRepository) {
+    public ProjectController(ProjectService projectService, ProjectMapper projectMapper, AuthHelper authHelper, UserRepository userRepository, TaskRepository taskRepository, PmoService pmoService) {
         this.projectService = projectService;
         this.projectMapper = projectMapper;
         this.authHelper = authHelper;
         this.userRepository = userRepository;
         this.taskRepository = taskRepository;
+        this.pmoService = pmoService;
     }
 
     @GetMapping
@@ -106,6 +109,13 @@ public class ProjectController {
                 favoriteIds.contains(dto.id()),
                 dto.createdAt(), dto.updatedAt());
         return ResponseEntity.ok(ApiResponse.of(enriched));
+    }
+
+    @GetMapping("/{id}/evm")
+    public ResponseEntity<ApiResponse<PmoService.EvmMetrics>> getEvm(
+            @PathVariable Long id, @AuthenticationPrincipal UserDetails currentUser) {
+        authHelper.requireProjectReadAccess(currentUser, id);
+        return ResponseEntity.ok(ApiResponse.of(pmoService.computeEvm(id)));
     }
 
     @PostMapping
