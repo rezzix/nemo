@@ -47,6 +47,8 @@ import com.nemo.timetracking.UserRateRepository;
 import com.nemo.expense.ProjectExpense;
 import com.nemo.expense.ProjectExpense.ExpenseCategory;
 import com.nemo.expense.ProjectExpenseRepository;
+import com.nemo.payment.ProjectPayment;
+import com.nemo.payment.ProjectPaymentRepository;
 import com.nemo.presale.PreSale;
 import com.nemo.presale.PreSale.PreSaleStage;
 import com.nemo.presale.PreSaleRepository;
@@ -115,6 +117,7 @@ public class DataSeeder implements CommandLineRunner {
     private final LeaveRequestRepository leaveRequestRepository;
     private final ProjectExpenseRepository projectExpenseRepository;
     private final PreSaleRepository preSaleRepository;
+    private final ProjectPaymentRepository projectPaymentRepository;
 
     public DataSeeder(UserRepository userRepository,
                       PasswordEncoder passwordEncoder,
@@ -144,7 +147,8 @@ public class DataSeeder implements CommandLineRunner {
                       LeaveEntitlementRepository leaveEntitlementRepository,
                       LeaveRequestRepository leaveRequestRepository,
                       ProjectExpenseRepository projectExpenseRepository,
-                      PreSaleRepository preSaleRepository) {
+                      PreSaleRepository preSaleRepository,
+                      ProjectPaymentRepository projectPaymentRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.companyRepository = companyRepository;
@@ -174,6 +178,7 @@ public class DataSeeder implements CommandLineRunner {
         this.leaveRequestRepository = leaveRequestRepository;
         this.projectExpenseRepository = projectExpenseRepository;
         this.preSaleRepository = preSaleRepository;
+        this.projectPaymentRepository = projectPaymentRepository;
     }
 
     // --- Seeding profile records ---
@@ -989,6 +994,28 @@ public class DataSeeder implements CommandLineRunner {
         createExpense(footballTeam, ExpenseCategory.INFRASTRUCTURE, new BigDecimal("15000"), "Server hosting and CDN", today.minusMonths(1), youssef);
         createExpense(footballTeam, ExpenseCategory.EXPERTISE, new BigDecimal("25000"), "Sports analytics consultancy", today.minusMonths(6), youssef);
 
+        // Project payments
+        createPayment(fse, "Project Kickoff Invoice", new BigDecimal("100000"), today.minusMonths(17), today.minusMonths(15), ProjectPayment.PaymentStatus.RECEIVED, alex);
+        createPayment(fse, "Phase 1 Delivery", new BigDecimal("150000"), today.minusMonths(8), today.minusMonths(5), ProjectPayment.PaymentStatus.RECEIVED, alex);
+        createPayment(fse, "Phase 2 Milestone", new BigDecimal("150000"), today.plusMonths(2), null, ProjectPayment.PaymentStatus.PENDING, alex);
+        createPayment(fse, "Final Delivery", new BigDecimal("100000"), today.plusMonths(3), null, ProjectPayment.PaymentStatus.PENDING, alex);
+        createPayment(apiGateway, "Setup Invoice", new BigDecimal("20000"), today.minusMonths(10), today.minusMonths(8), ProjectPayment.PaymentStatus.RECEIVED, alex);
+        createPayment(apiGateway, "Gateway Subscription Q2", new BigDecimal("15000"), today.minusMonths(1), null, ProjectPayment.PaymentStatus.PENDING, alex);
+        createPayment(mobileApp, "MVP Delivery", new BigDecimal("40000"), today.minusMonths(4), today.minusMonths(2), ProjectPayment.PaymentStatus.RECEIVED, alex);
+        createPayment(mobileApp, "Feature Release", new BigDecimal("35000"), today.plusMonths(1), null, ProjectPayment.PaymentStatus.PENDING, alex);
+        createPayment(infraUpgrade, "Infrastructure Phase 1", new BigDecimal("60000"), today.minusMonths(6), today.minusMonths(4), ProjectPayment.PaymentStatus.RECEIVED, alex);
+        createPayment(infraUpgrade, "Cloud Migration", new BigDecimal("75000"), today.minusMonths(1), null, ProjectPayment.PaymentStatus.PENDING, alex);
+        createPayment(eHealthPortal, "Portal Launch", new BigDecimal("80000"), today.minusMonths(3), today.minusMonths(1), ProjectPayment.PaymentStatus.RECEIVED, alex);
+        createPayment(mobilePay, "Integration Payment", new BigDecimal("45000"), today.minusMonths(2), today.minusMonths(1), ProjectPayment.PaymentStatus.RECEIVED, alex);
+        createPayment(mobilePay, "Security Audit Invoice", new BigDecimal("25000"), today.plusMonths(2), null, ProjectPayment.PaymentStatus.PENDING, alex);
+        createPayment(dataWarehouse, "Analytics Platform", new BigDecimal("55000"), today.minusMonths(5), today.minusMonths(3), ProjectPayment.PaymentStatus.RECEIVED, alex);
+        createPayment(dataWarehouse, "Data Pipeline", new BigDecimal("30000"), today.minusMonths(1), null, ProjectPayment.PaymentStatus.PENDING, alex);
+        createPayment(erpProject, "ERP Module 1", new BigDecimal("120000"), today.minusMonths(10), today.minusMonths(7), ProjectPayment.PaymentStatus.RECEIVED, alex);
+        createPayment(erpProject, "ERP Module 2", new BigDecimal("80000"), today.minusMonths(3), today.minusMonths(1), ProjectPayment.PaymentStatus.RECEIVED, alex);
+        createPayment(erpProject, "Go-Live Invoice", new BigDecimal("50000"), today.plusMonths(1), null, ProjectPayment.PaymentStatus.PENDING, alex);
+        createPayment(footballTeam, "Platform Build", new BigDecimal("70000"), today.minusMonths(7), today.minusMonths(5), ProjectPayment.PaymentStatus.RECEIVED, alex);
+        createPayment(footballTeam, "Season License", new BigDecimal("25000"), today.minusMonths(1), null, ProjectPayment.PaymentStatus.PENDING, alex);
+
         // Public holidays
         for (HolidayData h : p.holidays()) {
             createHoliday(h.date(), h.name(), null);
@@ -1300,6 +1327,20 @@ public class DataSeeder implements CommandLineRunner {
         expense.setExpenseDate(expenseDate);
         expense.setCreatedBy(createdBy);
         return projectExpenseRepository.save(expense);
+    }
+
+    private ProjectPayment createPayment(Project project, String title, BigDecimal amount,
+                                         LocalDate dueDate, LocalDate receivedDate,
+                                         ProjectPayment.PaymentStatus status, User createdBy) {
+        ProjectPayment payment = new ProjectPayment();
+        payment.setProject(project);
+        payment.setTitle(title);
+        payment.setAmount(amount);
+        payment.setDueDate(dueDate);
+        payment.setReceivedDate(receivedDate);
+        payment.setStatus(status);
+        payment.setCreatedBy(createdBy);
+        return projectPaymentRepository.save(payment);
     }
 
     private void createHoliday(LocalDate date, String name, Company company) {
