@@ -10,6 +10,9 @@ public interface RaidItemRepository extends JpaRepository<RaidItem, Long> {
 
     List<RaidItem> findByProjectId(Long projectId);
 
+    @Query("SELECT r FROM RaidItem r LEFT JOIN FETCH r.owner WHERE r.project.id = :projectId")
+    List<RaidItem> findByProjectIdWithOwner(@Param("projectId") Long projectId);
+
     List<RaidItem> findByProjectIdAndType(Long projectId, RaidItem.RaidType type);
 
     List<RaidItem> findByType(RaidItem.RaidType type);
