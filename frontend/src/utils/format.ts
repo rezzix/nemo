@@ -87,6 +87,7 @@ export function stageLabel(stage: string | null): string {
 export function raidTypeColor(type: string): string {
   switch (type) {
     case 'RISK': return 'bg-red-50 text-red-700 border-red-200';
+    case 'ISSUE': return 'bg-rose-50 text-rose-700 border-rose-200';
     case 'ASSUMPTION': return 'bg-blue-50 text-blue-700 border-blue-200';
     case 'TASK': return 'bg-orange-50 text-orange-700 border-orange-200';
     case 'DEPENDENCY': return 'bg-purple-50 text-purple-700 border-purple-200';

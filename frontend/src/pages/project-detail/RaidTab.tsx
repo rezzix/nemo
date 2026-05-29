@@ -73,7 +73,7 @@ export default function RaidTab({ projectId, canEdit }: { projectId: number; can
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-y-2">
         <div className="flex gap-2">
-          {['ALL', 'RISK', 'ASSUMPTION', 'TASK', 'DEPENDENCY'].map(f => (
+          {['ALL', 'RISK', 'ISSUE', 'ASSUMPTION', 'TASK', 'DEPENDENCY'].map(f => (
             <button key={f} onClick={() => setFilter(f)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 filter === f ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -94,7 +94,7 @@ export default function RaidTab({ projectId, canEdit }: { projectId: number; can
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Type</label>
               <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value as RaidItemDto['type'] }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                <option value="RISK">Risk</option><option value="ASSUMPTION">Assumption</option><option value="TASK">Task</option><option value="DEPENDENCY">Dependency</option>
+                <option value="RISK">Risk</option><option value="ISSUE">Issue</option><option value="ASSUMPTION">Assumption</option><option value="TASK">Task</option><option value="DEPENDENCY">Dependency</option>
               </select>
             </div>
             <div className="sm:col-span-2">
