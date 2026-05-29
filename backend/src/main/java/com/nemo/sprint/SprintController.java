@@ -85,6 +85,22 @@ public class SprintController {
         return ResponseEntity.ok(ApiResponse.of(sprintMapper.toDto(updated)));
     }
 
+    @PostMapping("/{sprintId}/start")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    public ResponseEntity<ApiResponse<SprintDto>> start(
+            @PathVariable Long projectId, @PathVariable Long sprintId) {
+        Sprint started = sprintService.start(sprintId);
+        return ResponseEntity.ok(ApiResponse.of(sprintMapper.toDto(started)));
+    }
+
+    @PostMapping("/{sprintId}/complete")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    public ResponseEntity<ApiResponse<SprintDto>> complete(
+            @PathVariable Long projectId, @PathVariable Long sprintId) {
+        Sprint completed = sprintService.complete(sprintId);
+        return ResponseEntity.ok(ApiResponse.of(sprintMapper.toDto(completed)));
+    }
+
     @GetMapping("/velocity")
     public ResponseEntity<ApiResponse<List<SprintVelocityDto>>> velocity(
             @PathVariable Long projectId,

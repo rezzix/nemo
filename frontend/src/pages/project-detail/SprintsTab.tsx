@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
-import { listSprints } from '@/api/sprints';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { listSprints, startSprint, completeSprint } from '@/api/sprints';
 import { listProjectTasks } from '@/api/tasks';
 import type { SprintDto, TaskDto } from '@/types';
 import { deadlineBadge, deadlineLabel } from '@/utils/format';
@@ -13,7 +13,7 @@ interface SprintsTabProps {
 const statusColors: Record<string, string> = {
   ACTIVE: 'bg-green-100 text-green-800',
   PLANNING: 'bg-blue-100 text-blue-800',
-  COMPLETED: 'bg-gray-100 text-gray-800',
+  CLOSED: 'bg-gray-100 text-gray-800',
 };
 
 export default function SprintsTab({ projectId, canEdit }: SprintsTabProps) {
@@ -21,15 +21,30 @@ export default function SprintsTab({ projectId, canEdit }: SprintsTabProps) {
   const [tasks, setTasks] = useState<TaskDto[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchData = useCallback(() => {
     Promise.all([listSprints(projectId), listProjectTasks(projectId)])
       .then(([sprintData, taskData]) => {
         setSprints(sprintData);
         setTasks(taskData);
       })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .catch(() => {});
   }, [projectId]);
+
+  useEffect(() => {
+    setLoading(true);
+    fetchData().finally(() => setLoading(false));
+  }, [fetchData]);
+
+  const handleStart = async (sprintId: number) => {
+    await startSprint(projectId, sprintId);
+    fetchData();
+  };
+
+  const handleComplete = async (sprintId: number) => {
+    if (!confirm('Complete this sprint? Incomplete tasks will be moved to the backlog.')) return;
+    await completeSprint(projectId, sprintId);
+    fetchData();
+  };
 
   const tasksBySprint = useMemo(() => {
     const map: Record<number | string, TaskDto[]> = {};
@@ -69,6 +84,20 @@ export default function SprintsTab({ projectId, canEdit }: SprintsTabProps) {
                   <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${deadlineBadge(sprint.endDate!)}`}>
                     {deadlineLabel(sprint.endDate!)}
                   </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                {canEdit && sprint.status === 'PLANNING' && (
+                  <button onClick={() => handleStart(sprint.id)}
+                    className="text-xs font-medium text-green-700 hover:text-green-900 bg-green-50 hover:bg-green-100 px-2.5 py-1 rounded-md border border-green-200">
+                    Start Sprint
+                  </button>
+                )}
+                {canEdit && sprint.status === 'ACTIVE' && (
+                  <button onClick={() => handleComplete(sprint.id)}
+                    className="text-xs font-medium text-amber-700 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 px-2.5 py-1 rounded-md border border-amber-200">
+                    Complete Sprint
+                  </button>
                 )}
               </div>
               {sprint.goal && <p className="text-sm text-gray-500 max-w-md truncate">{sprint.goal}</p>}

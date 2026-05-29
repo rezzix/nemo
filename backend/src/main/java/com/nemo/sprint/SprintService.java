@@ -1,6 +1,9 @@
 package com.nemo.sprint;
 
 import com.nemo.common.exception.EntityNotFoundException;
+import com.nemo.common.exception.ForbiddenException;
+import com.nemo.config.TaskStatus;
+import com.nemo.task.Task;
 import com.nemo.task.TaskRepository;
 import com.nemo.project.Project;
 import com.nemo.project.ProjectRepository;
@@ -14,10 +17,13 @@ public class SprintService {
 
     private final SprintRepository sprintRepository;
     private final ProjectRepository projectRepository;
+    private final TaskRepository taskRepository;
 
-    public SprintService(SprintRepository sprintRepository, ProjectRepository projectRepository) {
+    public SprintService(SprintRepository sprintRepository, ProjectRepository projectRepository,
+                         TaskRepository taskRepository) {
         this.sprintRepository = sprintRepository;
         this.projectRepository = projectRepository;
+        this.taskRepository = taskRepository;
     }
 
     @Transactional(readOnly = true)
@@ -62,6 +68,44 @@ public class SprintService {
     public Sprint updateStatus(Long id, SprintDto.StatusUpdateRequest request) {
         Sprint sprint = getById(id);
         sprint.setStatus(Sprint.SprintStatus.valueOf(request.status()));
+        return sprintRepository.save(sprint);
+    }
+
+    @Transactional
+    public Sprint start(Long sprintId) {
+        Sprint sprint = getById(sprintId);
+        if (sprint.getStatus() != Sprint.SprintStatus.PLANNING) {
+            throw new ForbiddenException("Only PLANNING sprints can be started. Current status: " + sprint.getStatus());
+        }
+        List<Sprint> activeSprints = sprintRepository.findByProjectIdAndStatus(
+                sprint.getProject().getId(), Sprint.SprintStatus.ACTIVE);
+        if (!activeSprints.isEmpty()) {
+            throw new ForbiddenException("Project already has an active sprint (Sprint '" +
+                    activeSprints.get(0).getName() + "'). Complete it first.");
+        }
+        sprint.setStatus(Sprint.SprintStatus.ACTIVE);
+        return sprintRepository.save(sprint);
+    }
+
+    @Transactional
+    public Sprint complete(Long sprintId) {
+        Sprint sprint = getById(sprintId);
+        if (sprint.getStatus() != Sprint.SprintStatus.ACTIVE) {
+            throw new ForbiddenException("Only ACTIVE sprints can be completed. Current status: " + sprint.getStatus());
+        }
+        sprint.setStatus(Sprint.SprintStatus.CLOSED);
+
+        // Move incomplete tasks out of this sprint (set sprint = null → backlog)
+        List<Task> sprintTasks = taskRepository.findBySprintId(sprintId);
+        for (Task task : sprintTasks) {
+            if (task.getStatus() != null
+                    && task.getStatus().getCategory() != TaskStatus.Category.DONE
+                    && task.getStatus().getCategory() != TaskStatus.Category.CLOSED) {
+                task.setSprint(null);
+                taskRepository.save(task);
+            }
+        }
+
         return sprintRepository.save(sprint);
     }
 }

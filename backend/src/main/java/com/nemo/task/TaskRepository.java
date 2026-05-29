@@ -56,6 +56,8 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
            "WHERE t.project.id = :projectId AND t.sprint.id IS NULL")
     Page<Task> findByProjectIdAndSprintIdIsNull(Long projectId, Pageable pageable);
 
+    List<Task> findBySprintId(Long sprintId);
+
     @Query("SELECT t.sprint.id, COUNT(t) FROM Task t WHERE t.sprint.id IN :sprintIds GROUP BY t.sprint.id")
     List<Object[]> countBySprintIds(@Param("sprintIds") List<Long> sprintIds);
 
