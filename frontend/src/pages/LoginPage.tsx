@@ -13,7 +13,10 @@ const roleBadge: Record<string, string> = {
   EXECUTIVE: 'bg-purple-100 text-purple-700',
   EXTERNAL: 'bg-gray-100 text-gray-600',
   HR: 'bg-amber-100 text-amber-700',
+  FINANCE: 'bg-yellow-100 text-yellow-700',
 };
+
+const roleOrder = ['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR', 'FINANCE', 'CONTRIBUTOR', 'EXTERNAL'];
 
 const features = [
   { icon: '▸', label: 'Program & Portfolio Management' },
@@ -184,27 +187,41 @@ export default function LoginPage() {
                     Quick login
                   </button>
                   {showQuickLogin && (
-                    <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-1.5">
-                      {devUsers.map((u) => (
-                        <button
-                          key={u.username}
-                          type="button"
-                          onClick={() => handleSelectUser(u)}
-                          className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs text-left transition-colors ${
-                            username === u.username
-                              ? 'bg-primary-50 border border-primary-300 text-primary-800'
-                              : 'hover:bg-gray-50 border border-transparent text-gray-700'
-                          }`}
-                        >
-                          <span className={`shrink-0 px-1.5 py-0.5 rounded text-[10px] font-semibold ${roleBadge[u.role] || 'bg-gray-100 text-gray-600'}`}>
-                            {u.role}
-                          </span>
-                          <div className="min-w-0 flex-1">
-                            <span className="truncate font-medium block">{u.displayName}</span>
-                            {u.company && <span className="truncate text-[10px] text-gray-400 block">{u.company}</span>}
+                    <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-2 space-y-2">
+                      {(() => {
+                        const groups = devUsers.reduce<Record<string, DevUserDto[]>>((acc, u) => {
+                          (acc[u.role] ??= []).push(u);
+                          return acc;
+                        }, {});
+                        const orderedRoles = roleOrder.filter(r => groups[r]);
+                        const otherRoles = Object.keys(groups).filter(r => !roleOrder.includes(r)).sort();
+                        return [...orderedRoles, ...otherRoles].map(role => (
+                          <div key={role}>
+                            <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold mb-1 ${roleBadge[role] || 'bg-gray-100 text-gray-600'}`}>
+                              {role}
+                            </span>
+                            <div className="grid grid-cols-2 gap-1">
+                              {groups[role].map((u) => (
+                                <button
+                                  key={u.username}
+                                  type="button"
+                                  onClick={() => handleSelectUser(u)}
+                                  className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs text-left transition-colors ${
+                                    username === u.username
+                                      ? 'bg-primary-50 border border-primary-300 text-primary-800'
+                                      : 'hover:bg-gray-50 border border-transparent text-gray-700'
+                                  }`}
+                                >
+                                  <div className="min-w-0 flex-1">
+                                    <span className="truncate font-medium block">{u.displayName}</span>
+                                    {u.company && <span className="truncate text-[10px] text-gray-400 block">{u.company}</span>}
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
                           </div>
-                        </button>
-                      ))}
+                        ));
+                      })()}
                     </div>
                   )}
                 </div>
