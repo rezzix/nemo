@@ -74,7 +74,7 @@ public class AuthHelper {
         if (!canAccessProject(currentUser, project)) {
             throw new ForbiddenException("You do not have access to this project");
         }
-        if (hasAnyRole(currentUser, "MANAGER", "EXECUTIVE", "HR")) return;
+        if (hasAnyRole(currentUser, "MANAGER", "EXECUTIVE", "HR", "FINANCE")) return;
         if (isExternal(currentUser)) {
             User user = userRepository.findById(getCurrentUserId(currentUser))
                     .orElseThrow(() -> new EntityNotFoundException("User", getCurrentUserId(currentUser)));

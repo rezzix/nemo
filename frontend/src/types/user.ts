@@ -1,4 +1,4 @@
-export type UserRole = 'ADMIN' | 'MANAGER' | 'CONTRIBUTOR' | 'EXECUTIVE' | 'EXTERNAL' | 'HR';
+export type UserRole = 'ADMIN' | 'MANAGER' | 'CONTRIBUTOR' | 'EXECUTIVE' | 'EXTERNAL' | 'HR' | 'FINANCE';
 
 export interface UserDto {
   id: number;

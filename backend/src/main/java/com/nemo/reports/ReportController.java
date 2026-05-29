@@ -22,18 +22,18 @@ public class ReportController {
     }
 
     @GetMapping("/evm")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EXECUTIVE', 'MANAGER', 'HR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'EXECUTIVE', 'MANAGER', 'HR', 'FINANCE')")
     public ResponseEntity<ApiResponse<PmoService.PortfolioSummary>> getEvmReport(
             @AuthenticationPrincipal UserDetails currentUser) {
-        Long companyId = authHelper.hasAnyRole(currentUser, "ADMIN", "EXECUTIVE") ? null : authHelper.getCurrentCompanyId(currentUser);
+        Long companyId = authHelper.hasAnyRole(currentUser, "ADMIN", "EXECUTIVE", "FINANCE") ? null : authHelper.getCurrentCompanyId(currentUser);
         return ResponseEntity.ok(ApiResponse.of(pmoService.getPortfolioSummary(companyId)));
     }
 
     @GetMapping("/budget")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EXECUTIVE', 'MANAGER', 'HR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'EXECUTIVE', 'MANAGER', 'HR', 'FINANCE')")
     public ResponseEntity<ApiResponse<PmoService.PortfolioSummary>> getBudgetReport(
             @AuthenticationPrincipal UserDetails currentUser) {
-        Long companyId = authHelper.hasAnyRole(currentUser, "ADMIN", "EXECUTIVE") ? null : authHelper.getCurrentCompanyId(currentUser);
+        Long companyId = authHelper.hasAnyRole(currentUser, "ADMIN", "EXECUTIVE", "FINANCE") ? null : authHelper.getCurrentCompanyId(currentUser);
         return ResponseEntity.ok(ApiResponse.of(pmoService.getPortfolioSummary(companyId)));
     }
 }
