@@ -21,4 +21,9 @@ public interface ProjectExpenseRepository extends JpaRepository<ProjectExpense, 
     void deleteByProjectId(Long projectId);
 
     List<ProjectExpense> findByApprovalStatus(ProjectExpense.ApprovalStatus approvalStatus);
+
+    @Query("SELECT COALESCE(SUM(e.amount), 0) FROM ProjectExpense e WHERE e.project.id = :projectId AND e.approvalStatus = :status")
+    BigDecimal sumByProjectIdAndApprovalStatus(@Param("projectId") Long projectId, @Param("status") ProjectExpense.ApprovalStatus status);
+
+    long countByProjectIdAndApprovalStatus(Long projectId, ProjectExpense.ApprovalStatus approvalStatus);
 }
