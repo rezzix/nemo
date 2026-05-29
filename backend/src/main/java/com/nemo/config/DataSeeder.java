@@ -719,6 +719,11 @@ public class DataSeeder implements CommandLineRunner {
                 "Assuming existing hospital systems expose HL7/FHIR APIs",
                 RaidItem.RaidStatus.OPEN, null, null, null, null, null);
 
+        createRaidItem(eHealthPortal, RaidItem.RaidType.ISSUE, "Sandbox environment downtime",
+                "Staging server crashes daily causing blocked testing cycles",
+                RaidItem.RaidStatus.OPEN, null, null, "Escalated to infra team, pending root cause analysis",
+                dev1, today.plusWeeks(1));
+
         createRaidItem(mobilePay, RaidItem.RaidType.RISK, "Payment gateway integration complexity",
                 "Multiple payment providers with different APIs and compliance rules",
                 RaidItem.RaidStatus.OPEN, 3, 4, "Start with single provider, add others incrementally",
@@ -737,6 +742,11 @@ public class DataSeeder implements CommandLineRunner {
         createRaidItem(dataWarehouse, RaidItem.RaidType.DEPENDENCY, "Source system API availability",
                 "Data extraction depends on uptime and API access of 5 source systems",
                 RaidItem.RaidStatus.OPEN, null, null, null, majid, today.plusMonths(2));
+
+        createRaidItem(dataWarehouse, RaidItem.RaidType.ISSUE, "ETL pipeline failures",
+                "Nightly ETL jobs failing intermittently causing stale dashboards",
+                RaidItem.RaidStatus.MITIGATING, null, null, "Added retry logic and alerting on job failures",
+                dev2, today.plusWeeks(2));
 
         createRaidItem(footballTeam, RaidItem.RaidType.RISK, "Data privacy regulations",
                 "Player health data subject to GDPR and local privacy laws",
@@ -924,6 +934,11 @@ public class DataSeeder implements CommandLineRunner {
         createRaidItem(mobileApp, RaidItem.RaidType.TASK, "Memory leak on Android",
                 "Android builds showing increasing memory usage over time",
                 RaidItem.RaidStatus.MITIGATING, null, null, null, dev3, today.plusWeeks(3));
+
+        createRaidItem(mobileApp, RaidItem.RaidType.ISSUE, "Push notification delays",
+                "iOS push notifications arriving 5-10 minutes late in production",
+                RaidItem.RaidStatus.OPEN, null, null, "Investigating APNs connection pooling",
+                dev3, today.plusWeeks(1));
 
         createRaidItem(apiGateway, RaidItem.RaidType.RISK, "Scalability bottleneck",
                 "Current architecture may not handle 10x traffic growth",
