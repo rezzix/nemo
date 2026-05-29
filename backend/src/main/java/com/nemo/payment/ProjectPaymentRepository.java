@@ -12,14 +12,12 @@ public interface ProjectPaymentRepository extends JpaRepository<ProjectPayment, 
 
     List<ProjectPayment> findByProjectIdOrderByDueDateAsc(Long projectId);
 
-    BigDecimal sumAmountByProjectIdAndStatus(Long projectId, ProjectPayment.PaymentStatus status);
+    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM ProjectPayment p WHERE p.project.id = :projectId AND p.status = :status")
+    BigDecimal sumAmountByProjectIdAndStatus(@Param("projectId") Long projectId, @Param("status") ProjectPayment.PaymentStatus status);
 
     @Query("SELECT COALESCE(SUM(p.amount), 0) FROM ProjectPayment p WHERE p.status = :status")
     BigDecimal sumAmountByStatus(@Param("status") ProjectPayment.PaymentStatus status);
 
-    @Query("SELECT p FROM ProjectPayment p WHERE p.status = 'PENDING' AND p.dueDate < :date ORDER BY p.dueDate ASC")
-    List<ProjectPayment> findOverduePayments(@Param("date") LocalDate date);
-
-    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM ProjectPayment p WHERE p.status IN :statuses")
-    BigDecimal sumAmountByStatuses(@Param("statuses") List<ProjectPayment.PaymentStatus> statuses);
+    @Query("SELECT p FROM ProjectPayment p JOIN FETCH p.project WHERE p.status = :status AND p.dueDate < :date ORDER BY p.dueDate ASC")
+    List<ProjectPayment> findOverduePayments(@Param("status") ProjectPayment.PaymentStatus status, @Param("date") LocalDate date);
 }

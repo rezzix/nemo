@@ -69,8 +69,7 @@ public class FinanceService {
             totalExpenses = totalExpenses.add(expenses);
             totalPaymentsReceived = totalPaymentsReceived.add(paymentsReceived);
 
-            BigDecimal pending = paymentRepository.sumAmountByProjectIdAndStatus(pid, ProjectPayment.PaymentStatus.PENDING)
-                    .add(paymentRepository.sumAmountByProjectIdAndStatus(pid, ProjectPayment.PaymentStatus.OVERDUE));
+            BigDecimal pending = paymentRepository.sumAmountByProjectIdAndStatus(pid, ProjectPayment.PaymentStatus.PENDING);
             totalPaymentsPending = totalPaymentsPending.add(pending);
 
             pendingExpenseApprovals += pendingExpenses;
@@ -86,7 +85,7 @@ public class FinanceService {
                 : BigDecimal.ZERO;
 
         // Overdue payments
-        List<ProjectPayment> overduePayments = paymentRepository.findOverduePayments(LocalDate.now());
+        List<ProjectPayment> overduePayments = paymentRepository.findOverduePayments(ProjectPayment.PaymentStatus.PENDING, LocalDate.now());
         List<FinanceDashboardDto.OverduePayment> overdue = overduePayments.stream()
                 .filter(p -> companyId == null || (p.getProject().getCompany() != null && p.getProject().getCompany().getId().equals(companyId)))
                 .map(p -> new FinanceDashboardDto.OverduePayment(
