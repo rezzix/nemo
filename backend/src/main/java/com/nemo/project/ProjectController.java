@@ -72,6 +72,9 @@ public class ProjectController {
             }
         } else if (isAdmin) {
             result = projectService.search(search, programId, managerId, null, page, size, sort);
+        } else if (authHelper.isGlobalUser(currentUser)) {
+            // Global user (no company) — see all projects across all companies
+            result = projectService.search(search, programId, managerId, null, page, size, sort);
         } else if (isManagerOrExecutive || isHr) {
             result = projectService.search(search, programId, managerId, companyId, page, size, sort);
         } else {
