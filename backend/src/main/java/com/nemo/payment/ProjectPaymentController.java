@@ -25,6 +25,7 @@ public class ProjectPaymentController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('MANAGER', 'EXECUTIVE', 'FINANCE')")
     public ResponseEntity<ApiResponse<List<ProjectPaymentDto.Response>>> list(
             @PathVariable Long projectId,
             @AuthenticationPrincipal UserDetails currentUser) {
