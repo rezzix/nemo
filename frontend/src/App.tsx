@@ -30,6 +30,12 @@ import PreSaleDetailPage from '@/pages/PreSaleDetailPage';
 import UserDetailPage from '@/pages/UserDetailPage';
 import FinancePage from '@/pages/FinancePage';
 
+function FinanceOrDashboard() {
+  const role = useAuthStore((s) => s.user?.role);
+  if (role === 'FINANCE') return <FinancePage />;
+  return <DashboardPage />;
+}
+
 export default function App() {
   const checkSession = useAuthStore((s) => s.checkSession);
   const isLoading = useAuthStore((s) => s.isLoading);
@@ -68,7 +74,7 @@ export default function App() {
             </AuthGuard>
           }
         >
-          <Route path="/" element={<DashboardPage />} />
+          <Route path="/" element={<FinanceOrDashboard />} />
           <Route path="/programs" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR', 'FINANCE']}><ProgramsPage /></RoleGuard>} />
           <Route path="/programs/:id" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR', 'FINANCE']}><ProgramDetailPage /></RoleGuard>} />
           <Route path="/projects" element={<ProjectsPage />} />
@@ -81,14 +87,13 @@ export default function App() {
           <Route path="/people/:id" element={<RoleGuard roles={['HR', 'EXECUTIVE']}><UserDetailPage /></RoleGuard>} />
           <Route path="/holidays" element={<RoleGuard roles={['HR', 'ADMIN']}><HolidaysPage /></RoleGuard>} />
           <Route path="/leave" element={<LeavePage />} />
-          <Route path="/reports" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR', 'FINANCE']}><TimeReportsPage /></RoleGuard>} />
+          <Route path="/reports" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR']}><TimeReportsPage /></RoleGuard>} />
           <Route path="/assets" element={<RoleGuard roles={['ADMIN', 'HR']}><AssetsPage /></RoleGuard>} />
           <Route path="/clients" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR', 'FINANCE']}><ClientsPage /></RoleGuard>} />
           <Route path="/clients/:id" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR', 'FINANCE']}><ClientDetailPage /></RoleGuard>} />
           <Route path="/presales" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR', 'FINANCE']}><PreSalesPage /></RoleGuard>} />
           <Route path="/presales/:id" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR', 'FINANCE']}><PreSaleDetailPage /></RoleGuard>} />
           <Route path="/admin" element={<AdminGuard><AdminPage /></AdminGuard>} />
-          <Route path="/finance" element={<RoleGuard roles={['FINANCE']}><FinancePage /></RoleGuard>} />
           <Route path="/profile" element={<ProfilePage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
