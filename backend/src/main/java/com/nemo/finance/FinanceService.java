@@ -43,17 +43,49 @@ public class FinanceService {
     public FinanceDashboardDto.YearPaymentsResponse getYearPayments(int year) {
         LocalDate start = LocalDate.of(year, 1, 1);
         LocalDate end = LocalDate.of(year, 12, 31);
+        LocalDate today = LocalDate.now();
 
-        List<ProjectPayment> pendingPayments = paymentRepository.findByDueDateBetweenOrderByDueDateAsc(start, end).stream()
+        List<ProjectPayment> dueInYear = paymentRepository.findByDueDateBetweenOrderByDueDateAsc(start, end).stream()
                 .filter(p -> p.getStatus() != ProjectPayment.PaymentStatus.RECEIVED)
                 .toList();
 
-        List<ProjectPayment> receivedPayments = paymentRepository.findByReceivedDateBetweenOrderByReceivedDateAsc(start, end);
+        // Split overdue (past due) vs pending (due today/future or no due date)
+        List<ProjectPayment> overdueList = dueInYear.stream()
+                .filter(p -> p.getDueDate() != null && p.getDueDate().isBefore(today))
+                .toList();
+        List<ProjectPayment> pendingList = dueInYear.stream()
+                .filter(p -> p.getDueDate() == null || !p.getDueDate().isBefore(today))
+                .toList();
+
+        List<ProjectPayment> receivedList = paymentRepository.findByReceivedDateBetweenOrderByReceivedDateAsc(start, end);
 
         return new FinanceDashboardDto.YearPaymentsResponse(
                 year,
-                pendingPayments.stream().map(this::toPaymentDto).toList(),
-                receivedPayments.stream().map(this::toPaymentDto).toList()
+                pendingList.stream().map(this::toPaymentDto).toList(),
+                receivedList.stream().map(this::toPaymentDto).toList(),
+                overdueList.stream().map(p -> toOverduePaymentDto(p, today)).toList()
+        );
+    }
+
+    private FinanceDashboardDto.PaymentDto toOverduePaymentDto(ProjectPayment p, LocalDate today) {
+        Long delayDays = p.getDueDate() != null ? ChronoUnit.DAYS.between(p.getDueDate(), today) : 0;
+
+        return new FinanceDashboardDto.PaymentDto(
+                p.getId(),
+                p.getProject().getId(),
+                p.getProject().getName(),
+                p.getTitle(),
+                p.getAmount(),
+                p.getCurrency(),
+                p.getDueDate() != null ? p.getDueDate().toString() : null,
+                null,
+                p.getStatus().name(),
+                p.getInvoiceRef(),
+                p.getCreatedBy() != null ? p.getCreatedBy().getId() : null,
+                p.getCreatedBy() != null ? p.getCreatedBy().getFirstName() + " " + p.getCreatedBy().getLastName() : null,
+                p.getCreatedAt() != null ? p.getCreatedAt().toString() : null,
+                p.getUpdatedAt() != null ? p.getUpdatedAt().toString() : null,
+                delayDays
         );
     }
 

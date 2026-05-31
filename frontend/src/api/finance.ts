@@ -60,6 +60,7 @@ export interface YearPaymentsResponse {
   year: number;
   pending: PaymentDto[];
   received: PaymentDto[];
+  overdue: PaymentDto[];
 }
 
 export function getFinanceDashboard(): Promise<DashboardResponse> {

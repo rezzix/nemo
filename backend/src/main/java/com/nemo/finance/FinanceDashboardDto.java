@@ -64,6 +64,7 @@ public class FinanceDashboardDto {
     public record YearPaymentsResponse(
             int year,
             List<PaymentDto> pending,
-            List<PaymentDto> received
+            List<PaymentDto> received,
+            List<PaymentDto> overdue
     ) {}
 }

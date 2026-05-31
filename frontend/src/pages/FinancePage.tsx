@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getFinanceDashboard, getFinancePayments } from '@/api/finance';
 import { approveExpense, rejectExpense } from '@/api/expenses';
-import type { DashboardResponse, ProjectFinance, OverduePayment, YearPaymentsResponse } from '@/api/finance';
+import type { DashboardResponse, ProjectFinance, YearPaymentsResponse } from '@/api/finance';
 import { apiGet } from '@/api/client';
 import type { ProjectExpenseDto } from '@/types';
 import { formatCurrency, formatDate } from '@/utils/format';
@@ -30,7 +30,7 @@ export default function FinancePage() {
   const [rejectReason, setRejectReason] = useState('');
   const [payments, setPayments] = useState<YearPaymentsResponse | null>(null);
   const [paymentYear, setPaymentYear] = useState(new Date().getFullYear());
-  const [paymentView, setPaymentView] = useState<'pending' | 'received'>('pending');
+  const [paymentView, setPaymentView] = useState<'pending' | 'received' | 'overdue'>('pending');
   const [loadingPayments, setLoadingPayments] = useState(false);
 
   const fetchDashboard = useCallback(async () => {
@@ -77,7 +77,7 @@ export default function FinancePage() {
   if (loading) return <div className="flex items-center justify-center h-64"><Spinner className="h-8 w-8 text-primary-600" /></div>;
   if (!dashboard) return <div className="p-6 text-gray-500">Unable to load dashboard data.</div>;
 
-  const { summary, byProject, overduePayments } = dashboard;
+  const { summary, byProject } = dashboard;
   const projectNameById = new Map(byProject.map(p => [p.projectId, p.projectName]));
   const sorted = [...byProject].sort((a, b) => {
     const av = a[sortKey];
@@ -158,37 +158,6 @@ export default function FinancePage() {
         </div>
       </div>
 
-      {/* Overdue Payments Panel */}
-      {overduePayments.length > 0 && (
-        <div className="bg-white rounded-xl border border-red-200 overflow-hidden">
-          <div className="px-4 py-3 border-b border-red-200 bg-red-50">
-            <h2 className="text-lg font-semibold text-red-800">Overdue Payments ({overduePayments.length})</h2>
-          </div>
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-red-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-red-600 uppercase">Project</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-red-600 uppercase">Title</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-red-600 uppercase">Amount</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-red-600 uppercase">Due Date</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-red-600 uppercase">Days Overdue</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {overduePayments.map((p: OverduePayment) => (
-                <tr key={p.paymentId} className="hover:bg-red-50">
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900">{p.projectName}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{p.title}</td>
-                  <td className="px-4 py-3 text-sm font-medium text-red-700 text-right">{formatCurrency(p.amount)}</td>
-                  <td className="px-4 py-3 text-sm text-gray-500">{p.dueDate ? formatDate(p.dueDate) : '—'}</td>
-                  <td className="px-4 py-3 text-sm font-bold text-red-600 text-right">{p.daysOverdue}d</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
       {/* Payments Panel */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between flex-wrap gap-3">
@@ -210,6 +179,10 @@ export default function FinancePage() {
             <button onClick={() => setPaymentView('received')}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${paymentView === 'received' ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
               Received ({payments?.received.length ?? 0})
+            </button>
+            <button onClick={() => setPaymentView('overdue')}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${paymentView === 'overdue' ? 'bg-red-600 text-white' : 'bg-red-50 text-red-700 hover:bg-red-100'}`}>
+              Overdue ({payments?.overdue.length ?? 0})
             </button>
           </div>
         </div>
@@ -237,6 +210,31 @@ export default function FinancePage() {
                     <td className="px-4 py-3">
                       <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">{p.status}</span>
                     </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : payments && paymentView === 'overdue' && payments.overdue.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-red-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-red-600 uppercase">Project</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-red-600 uppercase">Title</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-red-600 uppercase">Amount</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-red-600 uppercase">Due Date</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-red-600 uppercase">Days Overdue</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {payments.overdue.map((p) => (
+                  <tr key={p.id} className="hover:bg-red-50">
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{p.projectName}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{p.title}</td>
+                    <td className="px-4 py-3 text-sm font-medium text-red-700 text-right">{formatCurrency(p.amount)}</td>
+                    <td className="px-4 py-3 text-sm text-gray-500">{p.dueDate ? formatDate(p.dueDate) : '—'}</td>
+                    <td className="px-4 py-3 text-sm font-bold text-red-600 text-right">{p.delayDays}d</td>
                   </tr>
                 ))}
               </tbody>
