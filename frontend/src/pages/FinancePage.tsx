@@ -212,7 +212,7 @@ export default function FinancePage() {
               <tbody className="divide-y divide-gray-100">
                 {payments.pending.map((p) => {
                   const delay = p.dueDate ? Math.ceil((new Date(p.dueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null;
-                  const color = delay !== null ? (delay <= 0 ? 'text-red-600 font-bold' : delay <= 3 ? 'text-orange-600' : 'text-gray-600') : '';
+                  const color = delay !== null ? (delay <= 0 ? 'text-red-600 font-bold' : delay <= 3 ? 'text-orange-600' : 'text-gray-800') : '';
                   return (
                   <tr key={p.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm font-medium text-gray-900">{p.projectName}</td>
