@@ -20,3 +20,11 @@ export async function updateSprint(projectId: number, sprintId: number, request:
 export async function updateSprintStatus(projectId: number, sprintId: number, status: string): Promise<SprintDto> {
   return apiPut<SprintDto>(`/projects/${projectId}/sprints/${sprintId}/status`, { status });
 }
+
+export async function startSprint(projectId: number, sprintId: number): Promise<SprintDto> {
+  return apiPost<SprintDto>(`/projects/${projectId}/sprints/${sprintId}/start`);
+}
+
+export async function completeSprint(projectId: number, sprintId: number): Promise<SprintDto> {
+  return apiPost<SprintDto>(`/projects/${projectId}/sprints/${sprintId}/complete`);
+}
