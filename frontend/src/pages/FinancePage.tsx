@@ -206,21 +206,28 @@ export default function FinancePage() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
                   <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Amount</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Due Date</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Delay</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {payments.pending.map((p) => (
+                {payments.pending.map((p) => {
+                  const delay = p.dueDate ? Math.ceil((new Date(p.dueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null;
+                  const color = delay !== null ? (delay <= 0 ? 'text-red-600 font-bold' : delay <= 3 ? 'text-orange-600' : 'text-gray-600') : '';
+                  return (
                   <tr key={p.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm font-medium text-gray-900">{p.projectName}</td>
                     <td className="px-4 py-3 text-sm text-gray-700">{p.title}</td>
                     <td className="px-4 py-3 text-sm font-medium text-right">{formatCurrency(p.amount)}</td>
                     <td className="px-4 py-3 text-sm text-gray-500">{p.dueDate ? formatDate(p.dueDate) : '—'}</td>
-                    <td className="px-4 py-3">
-                      <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">{p.status}</span>
+                    <td className="px-4 py-3 text-sm text-right">
+                      {delay !== null ? (
+                        <span className={`font-medium ${color}`}>
+                          {delay < 0 ? `${Math.abs(delay)}d late` : delay === 0 ? 'Due' : `${delay}d`}
+                        </span>
+                      ) : '—'}
                     </td>
                   </tr>
-                ))}
+                )})}
               </tbody>
             </table>
           </div>
