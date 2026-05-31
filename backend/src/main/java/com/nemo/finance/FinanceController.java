@@ -6,12 +6,16 @@ import com.nemo.expense.ProjectExpenseDto;
 import com.nemo.expense.ProjectExpenseMapper;
 import com.nemo.expense.ProjectExpenseRepository;
 import com.nemo.security.AuthHelper;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.PrintWriter;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -55,7 +59,7 @@ public class FinanceController {
         return ResponseEntity.ok(ApiResponse.of(dashboard));
     }
 
-    @GetMapping("/payments")
+@GetMapping("/payments")
     @PreAuthorize("hasRole('FINANCE')")
     public ResponseEntity<ApiResponse<FinanceDashboardDto.YearPaymentsResponse>> getPayments(
             @RequestParam(required = false) Integer year) {
@@ -63,5 +67,62 @@ public class FinanceController {
             year = java.time.LocalDate.now().getYear();
         }
         return ResponseEntity.ok(ApiResponse.of(financeService.getYearPayments(year)));
+    }
+
+    @GetMapping("/export")
+    @PreAuthorize("hasRole('FINANCE')")
+    public void exportCsv(
+            @RequestParam(defaultValue = "csv") String format,
+            @AuthenticationPrincipal UserDetails currentUser,
+            HttpServletResponse response) throws Exception {
+        Long companyId = authHelper.getCurrentCompanyId(currentUser);
+        FinanceDashboardDto.DashboardResponse data = financeService.getDashboard(companyId);
+
+        String filename = "finance-report-" + LocalDate.now() + ".csv";
+
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+
+        try (PrintWriter writer = response.getWriter()) {
+            // Header
+            writer.println("Project,Budget,Expenses,Labor,Payments Received,Collection %,CPI,SPI,Pending Expenses");
+
+            // Rows
+            for (FinanceDashboardDto.ProjectFinance pf : data.byProject()) {
+                writer.println(
+                        csvEscape(pf.projectName()) + ","
+                        + pf.budget() + ","
+                        + pf.expenses() + ","
+                        + pf.laborCost() + ","
+                        + pf.paymentsReceived() + ","
+                        + pf.collectionProgress() + "%,"
+                        + (pf.cpi() != null ? pf.cpi() : "N/A") + ","
+                        + (pf.spi() != null ? pf.spi() : "N/A") + ","
+                        + pf.pendingExpenses()
+                );
+            }
+
+            // Summary row
+            writer.println();
+            FinanceDashboardDto.DashboardSummary s = data.summary();
+            writer.println("TOTAL,"
+                    + s.totalBudget() + ","
+                    + s.totalExpenses() + ","
+                    + "N/A" + ","
+                    + s.totalPaymentsReceived() + ","
+                    + s.collectionRate() + "%,"
+                    + "N/A" + ","
+                    + "N/A" + ","
+                    + s.pendingExpenseApprovals()
+            );
+        }
+    }
+
+    private String csvEscape(String value) {
+        if (value == null) return "";
+        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
     }
 }
