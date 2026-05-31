@@ -54,4 +54,14 @@ public class FinanceController {
         FinanceDashboardDto.DashboardResponse dashboard = financeService.getDashboard(companyId);
         return ResponseEntity.ok(ApiResponse.of(dashboard));
     }
+
+    @GetMapping("/payments")
+    @PreAuthorize("hasRole('FINANCE')")
+    public ResponseEntity<ApiResponse<FinanceDashboardDto.YearPaymentsResponse>> getPayments(
+            @RequestParam(required = false) Integer year) {
+        if (year == null) {
+            year = java.time.LocalDate.now().getYear();
+        }
+        return ResponseEntity.ok(ApiResponse.of(financeService.getYearPayments(year)));
+    }
 }

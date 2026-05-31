@@ -40,6 +40,49 @@ public class FinanceService {
     }
 
     @Transactional(readOnly = true)
+    public FinanceDashboardDto.YearPaymentsResponse getYearPayments(int year) {
+        LocalDate start = LocalDate.of(year, 1, 1);
+        LocalDate end = LocalDate.of(year, 12, 31);
+
+        List<ProjectPayment> pendingPayments = paymentRepository.findByDueDateBetweenOrderByDueDateAsc(start, end).stream()
+                .filter(p -> p.getStatus() != ProjectPayment.PaymentStatus.RECEIVED)
+                .toList();
+
+        List<ProjectPayment> receivedPayments = paymentRepository.findByReceivedDateBetweenOrderByReceivedDateAsc(start, end);
+
+        return new FinanceDashboardDto.YearPaymentsResponse(
+                year,
+                pendingPayments.stream().map(this::toPaymentDto).toList(),
+                receivedPayments.stream().map(this::toPaymentDto).toList()
+        );
+    }
+
+    private FinanceDashboardDto.PaymentDto toPaymentDto(ProjectPayment p) {
+        Long delayDays = null;
+        if (p.getReceivedDate() != null && p.getDueDate() != null) {
+            delayDays = ChronoUnit.DAYS.between(p.getDueDate(), p.getReceivedDate());
+        }
+
+        return new FinanceDashboardDto.PaymentDto(
+                p.getId(),
+                p.getProject().getId(),
+                p.getProject().getName(),
+                p.getTitle(),
+                p.getAmount(),
+                p.getCurrency(),
+                p.getDueDate() != null ? p.getDueDate().toString() : null,
+                p.getReceivedDate() != null ? p.getReceivedDate().toString() : null,
+                p.getStatus().name(),
+                p.getInvoiceRef(),
+                p.getCreatedBy() != null ? p.getCreatedBy().getId() : null,
+                p.getCreatedBy() != null ? p.getCreatedBy().getFirstName() + " " + p.getCreatedBy().getLastName() : null,
+                p.getCreatedAt() != null ? p.getCreatedAt().toString() : null,
+                p.getUpdatedAt() != null ? p.getUpdatedAt().toString() : null,
+                delayDays
+        );
+    }
+
+    @Transactional(readOnly = true)
     public FinanceDashboardDto.DashboardResponse getDashboard(Long companyId) {
         List<Project> projects = projectRepository.findAllByCompanyIdOrNull(companyId);
 

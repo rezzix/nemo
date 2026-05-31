@@ -38,6 +38,35 @@ export interface DashboardResponse {
   overduePayments: OverduePayment[];
 }
 
+export interface PaymentDto {
+  id: number;
+  projectId: number;
+  projectName: string;
+  title: string;
+  amount: number;
+  currency: string | null;
+  dueDate: string | null;
+  receivedDate: string | null;
+  status: string;
+  invoiceRef: string | null;
+  createdById: number | null;
+  createdByName: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+  delayDays: number | null;
+}
+
+export interface YearPaymentsResponse {
+  year: number;
+  pending: PaymentDto[];
+  received: PaymentDto[];
+}
+
 export function getFinanceDashboard(): Promise<DashboardResponse> {
   return apiGet('/finance/dashboard');
+}
+
+export function getFinancePayments(year?: number): Promise<YearPaymentsResponse> {
+  const params = year ? `?year=${year}` : '';
+  return apiGet('/finance/payments' + params);
 }

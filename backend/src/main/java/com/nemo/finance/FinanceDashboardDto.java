@@ -42,4 +42,28 @@ public class FinanceDashboardDto {
             List<ProjectFinance> byProject,
             List<OverduePayment> overduePayments
     ) {}
+
+    public record PaymentDto(
+            Long id,
+            Long projectId,
+            String projectName,
+            String title,
+            java.math.BigDecimal amount,
+            String currency,
+            String dueDate,
+            String receivedDate,
+            String status,
+            String invoiceRef,
+            Long createdById,
+            String createdByName,
+            String createdAt,
+            String updatedAt,
+            Long delayDays
+    ) {}
+
+    public record YearPaymentsResponse(
+            int year,
+            List<PaymentDto> pending,
+            List<PaymentDto> received
+    ) {}
 }
