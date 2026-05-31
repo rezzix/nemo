@@ -20,4 +20,13 @@ public interface ProjectPaymentRepository extends JpaRepository<ProjectPayment, 
 
     @Query("SELECT p FROM ProjectPayment p JOIN FETCH p.project WHERE p.status = :status AND p.dueDate < :date ORDER BY p.dueDate ASC")
     List<ProjectPayment> findOverduePayments(@Param("status") ProjectPayment.PaymentStatus status, @Param("date") LocalDate date);
+
+    @Query("SELECT p FROM ProjectPayment p JOIN FETCH p.project WHERE p.status = :status AND p.dueDate BETWEEN :start AND :end ORDER BY p.dueDate ASC")
+    List<ProjectPayment> findOverdueByDateBetween(@Param("status") ProjectPayment.PaymentStatus status, @Param("start") LocalDate start, @Param("end") LocalDate end);
+
+    @Query("SELECT p FROM ProjectPayment p JOIN FETCH p.project WHERE p.dueDate BETWEEN :start AND :end ORDER BY p.dueDate ASC")
+    List<ProjectPayment> findByDueDateBetweenOrderByDueDateAsc(@Param("start") LocalDate start, @Param("end") LocalDate end);
+
+    @Query("SELECT p FROM ProjectPayment p JOIN FETCH p.project WHERE p.receivedDate BETWEEN :start AND :end ORDER BY p.receivedDate ASC")
+    List<ProjectPayment> findByReceivedDateBetweenOrderByReceivedDateAsc(@Param("start") LocalDate start, @Param("end") LocalDate end);
 }

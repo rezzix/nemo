@@ -40,6 +40,81 @@ public class FinanceService {
     }
 
     @Transactional(readOnly = true)
+    public FinanceDashboardDto.YearPaymentsResponse getYearPayments(int year) {
+        LocalDate start = LocalDate.of(year, 1, 1);
+        LocalDate end = LocalDate.of(year, 12, 31);
+        LocalDate today = LocalDate.now();
+
+        List<ProjectPayment> dueInYear = paymentRepository.findByDueDateBetweenOrderByDueDateAsc(start, end).stream()
+                .filter(p -> p.getStatus() != ProjectPayment.PaymentStatus.RECEIVED)
+                .toList();
+
+        // Split overdue (past due) vs pending (due today/future or no due date)
+        List<ProjectPayment> overdueList = dueInYear.stream()
+                .filter(p -> p.getDueDate() != null && p.getDueDate().isBefore(today))
+                .toList();
+        List<ProjectPayment> pendingList = dueInYear.stream()
+                .filter(p -> p.getDueDate() == null || !p.getDueDate().isBefore(today))
+                .toList();
+
+        List<ProjectPayment> receivedList = paymentRepository.findByReceivedDateBetweenOrderByReceivedDateAsc(start, end);
+
+        return new FinanceDashboardDto.YearPaymentsResponse(
+                year,
+                pendingList.stream().map(this::toPaymentDto).toList(),
+                receivedList.stream().map(this::toPaymentDto).toList(),
+                overdueList.stream().map(p -> toOverduePaymentDto(p, today)).toList()
+        );
+    }
+
+    private FinanceDashboardDto.PaymentDto toOverduePaymentDto(ProjectPayment p, LocalDate today) {
+        Long delayDays = p.getDueDate() != null ? ChronoUnit.DAYS.between(p.getDueDate(), today) : 0;
+
+        return new FinanceDashboardDto.PaymentDto(
+                p.getId(),
+                p.getProject().getId(),
+                p.getProject().getName(),
+                p.getTitle(),
+                p.getAmount(),
+                p.getCurrency(),
+                p.getDueDate() != null ? p.getDueDate().toString() : null,
+                null,
+                p.getStatus().name(),
+                p.getInvoiceRef(),
+                p.getCreatedBy() != null ? p.getCreatedBy().getId() : null,
+                p.getCreatedBy() != null ? p.getCreatedBy().getFirstName() + " " + p.getCreatedBy().getLastName() : null,
+                p.getCreatedAt() != null ? p.getCreatedAt().toString() : null,
+                p.getUpdatedAt() != null ? p.getUpdatedAt().toString() : null,
+                delayDays
+        );
+    }
+
+    private FinanceDashboardDto.PaymentDto toPaymentDto(ProjectPayment p) {
+        Long delayDays = null;
+        if (p.getReceivedDate() != null && p.getDueDate() != null) {
+            delayDays = ChronoUnit.DAYS.between(p.getDueDate(), p.getReceivedDate());
+        }
+
+        return new FinanceDashboardDto.PaymentDto(
+                p.getId(),
+                p.getProject().getId(),
+                p.getProject().getName(),
+                p.getTitle(),
+                p.getAmount(),
+                p.getCurrency(),
+                p.getDueDate() != null ? p.getDueDate().toString() : null,
+                p.getReceivedDate() != null ? p.getReceivedDate().toString() : null,
+                p.getStatus().name(),
+                p.getInvoiceRef(),
+                p.getCreatedBy() != null ? p.getCreatedBy().getId() : null,
+                p.getCreatedBy() != null ? p.getCreatedBy().getFirstName() + " " + p.getCreatedBy().getLastName() : null,
+                p.getCreatedAt() != null ? p.getCreatedAt().toString() : null,
+                p.getUpdatedAt() != null ? p.getUpdatedAt().toString() : null,
+                delayDays
+        );
+    }
+
+    @Transactional(readOnly = true)
     public FinanceDashboardDto.DashboardResponse getDashboard(Long companyId) {
         List<Project> projects = projectRepository.findAllByCompanyIdOrNull(companyId);
 

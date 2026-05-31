@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getFinanceDashboard } from '@/api/finance';
+import { getFinanceDashboard, getFinancePayments } from '@/api/finance';
 import { approveExpense, rejectExpense } from '@/api/expenses';
-import type { DashboardResponse, ProjectFinance, OverduePayment } from '@/api/finance';
+import type { DashboardResponse, ProjectFinance, YearPaymentsResponse } from '@/api/finance';
 import { apiGet } from '@/api/client';
 import type { ProjectExpenseDto } from '@/types';
 import { formatCurrency, formatDate } from '@/utils/format';
@@ -28,6 +28,10 @@ export default function FinancePage() {
   const [sortAsc, setSortAsc] = useState(true);
   const [rejectId, setRejectId] = useState<{ projectId: number; expenseId: number } | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [payments, setPayments] = useState<YearPaymentsResponse | null>(null);
+  const [paymentYear, setPaymentYear] = useState(new Date().getFullYear());
+  const [paymentView, setPaymentView] = useState<'pending' | 'received' | 'overdue'>('pending');
+  const [loadingPayments, setLoadingPayments] = useState(false);
 
   const fetchDashboard = useCallback(async () => {
     setLoading(true);
@@ -43,6 +47,14 @@ export default function FinancePage() {
   }, []);
 
   useEffect(() => { fetchDashboard(); }, [fetchDashboard]);
+
+  useEffect(() => {
+    setLoadingPayments(true);
+    getFinancePayments(paymentYear)
+      .then(setPayments)
+      .catch(() => setPayments(null))
+      .finally(() => setLoadingPayments(false));
+  }, [paymentYear]);
 
   const handleSort = (key: keyof ProjectFinance) => {
     if (sortKey === key) setSortAsc(!sortAsc);
@@ -65,7 +77,7 @@ export default function FinancePage() {
   if (loading) return <div className="flex items-center justify-center h-64"><Spinner className="h-8 w-8 text-primary-600" /></div>;
   if (!dashboard) return <div className="p-6 text-gray-500">Unable to load dashboard data.</div>;
 
-  const { summary, byProject, overduePayments } = dashboard;
+  const { summary, byProject } = dashboard;
   const projectNameById = new Map(byProject.map(p => [p.projectId, p.projectName]));
   const sorted = [...byProject].sort((a, b) => {
     const av = a[sortKey];
@@ -146,36 +158,123 @@ export default function FinancePage() {
         </div>
       </div>
 
-      {/* Overdue Payments Panel */}
-      {overduePayments.length > 0 && (
-        <div className="bg-white rounded-xl border border-red-200 overflow-hidden">
-          <div className="px-4 py-3 border-b border-red-200 bg-red-50">
-            <h2 className="text-lg font-semibold text-red-800">Overdue Payments ({overduePayments.length})</h2>
+      {/* Payments Panel */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-semibold text-gray-900">Payments</h2>
+            <div className="flex items-center gap-1 text-sm">
+              <button onClick={() => setPaymentYear(paymentYear - 1)}
+                className="px-2 py-1 rounded hover:bg-gray-100 text-gray-600 font-medium">&larr;</button>
+              <span className="px-3 py-1 bg-gray-100 rounded font-medium text-gray-800">{paymentYear}</span>
+              <button onClick={() => setPaymentYear(paymentYear + 1)}
+                className="px-2 py-1 rounded hover:bg-gray-100 text-gray-600 font-medium">&rarr;</button>
+            </div>
           </div>
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-red-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-red-600 uppercase">Project</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-red-600 uppercase">Title</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-red-600 uppercase">Amount</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-red-600 uppercase">Due Date</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-red-600 uppercase">Days Overdue</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {overduePayments.map((p: OverduePayment) => (
-                <tr key={p.paymentId} className="hover:bg-red-50">
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900">{p.projectName}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{p.title}</td>
-                  <td className="px-4 py-3 text-sm font-medium text-red-700 text-right">{formatCurrency(p.amount)}</td>
-                  <td className="px-4 py-3 text-sm text-gray-500">{p.dueDate ? formatDate(p.dueDate) : '—'}</td>
-                  <td className="px-4 py-3 text-sm font-bold text-red-600 text-right">{p.daysOverdue}d</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setPaymentView('pending')}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${paymentView === 'pending' ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+              Pending ({payments?.pending.length ?? 0})
+            </button>
+            <button onClick={() => setPaymentView('received')}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${paymentView === 'received' ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+              Received ({payments?.received.length ?? 0})
+            </button>
+            <button onClick={() => setPaymentView('overdue')}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${paymentView === 'overdue' ? 'bg-red-600 text-white' : 'bg-red-50 text-red-700 hover:bg-red-100'}`}>
+              Overdue ({payments?.overdue.length ?? 0})
+            </button>
+          </div>
         </div>
-      )}
+        {loadingPayments ? (
+          <div className="flex items-center justify-center h-32"><Spinner className="h-6 w-6 text-primary-600" /></div>
+        ) : payments && paymentView === 'pending' && payments.pending.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Project</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Amount</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Due Date</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {payments.pending.map((p) => (
+                  <tr key={p.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{p.projectName}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{p.title}</td>
+                    <td className="px-4 py-3 text-sm font-medium text-right">{formatCurrency(p.amount)}</td>
+                    <td className="px-4 py-3 text-sm text-gray-500">{p.dueDate ? formatDate(p.dueDate) : '—'}</td>
+                    <td className="px-4 py-3">
+                      <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">{p.status}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : payments && paymentView === 'overdue' && payments.overdue.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-red-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-red-600 uppercase">Project</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-red-600 uppercase">Title</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-red-600 uppercase">Amount</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-red-600 uppercase">Due Date</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-red-600 uppercase">Days Overdue</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {payments.overdue.map((p) => (
+                  <tr key={p.id} className="hover:bg-red-50">
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{p.projectName}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{p.title}</td>
+                    <td className="px-4 py-3 text-sm font-medium text-red-700 text-right">{formatCurrency(p.amount)}</td>
+                    <td className="px-4 py-3 text-sm text-gray-500">{p.dueDate ? formatDate(p.dueDate) : '—'}</td>
+                    <td className="px-4 py-3 text-sm font-bold text-red-600 text-right">{p.delayDays}d</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : payments && paymentView === 'received' && payments.received.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Project</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Amount</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Received</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Delay</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {payments.received.map((p) => (
+                  <tr key={p.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{p.projectName}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{p.title}</td>
+                    <td className="px-4 py-3 text-sm font-medium text-right">{formatCurrency(p.amount)}</td>
+                    <td className="px-4 py-3 text-sm text-gray-500">{p.receivedDate ? formatDate(p.receivedDate) : '—'}</td>
+                    <td className="px-4 py-3 text-sm text-right">
+                      {p.delayDays !== null ? (
+                        <span className={`font-medium ${p.delayDays > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                          {p.delayDays > 0 ? `${p.delayDays}d late` : 'On time'}
+                        </span>
+                      ) : '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="px-4 py-8 text-center text-sm text-gray-400">No payments found for {paymentYear}</div>
+        )}
+      </div>
 
       {/* Pending Expense Approvals */}
       {pendingExpenses.length > 0 && (
