@@ -37,7 +37,7 @@ public class ProjectExpenseController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('MANAGER', 'CONTRIBUTOR')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'CONTRIBUTOR', 'FINANCE')")
     public ResponseEntity<ApiResponse<ProjectExpenseDto>> create(
             @PathVariable Long projectId,
             @RequestBody ProjectExpenseDto.CreateRequest request,
@@ -49,7 +49,7 @@ public class ProjectExpenseController {
     }
 
     @PutMapping("/{expenseId}")
-    @PreAuthorize("hasAnyRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'FINANCE')")
     public ResponseEntity<ApiResponse<ProjectExpenseDto>> update(
             @PathVariable Long projectId,
             @PathVariable Long expenseId,
