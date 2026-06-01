@@ -38,7 +38,7 @@ public class ClientPaymentController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasRole('FINANCE')")
     public ResponseEntity<ApiResponse<ClientPaymentDto>> create(
             @PathVariable Long projectId,
             @PathVariable Long phaseId,
@@ -50,7 +50,7 @@ public class ClientPaymentController {
     }
 
     @PutMapping("/{paymentId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasRole('FINANCE')")
     public ResponseEntity<ApiResponse<ClientPaymentDto>> update(
             @PathVariable Long projectId,
             @PathVariable Long phaseId,
@@ -63,7 +63,7 @@ public class ClientPaymentController {
     }
 
     @DeleteMapping("/{paymentId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasRole('FINANCE')")
     public ResponseEntity<Void> delete(
             @PathVariable Long projectId,
             @PathVariable Long phaseId,
