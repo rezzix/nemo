@@ -332,8 +332,10 @@ export default function PhasesTab({ projectId, canEdit, canManagePayments = fals
                       {phaseDeliverables.length > 0 && (
                         <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-100 text-[10px] font-medium text-gray-600">{phaseDeliverables.length}</span>
                       )}
-                      {phase.plannedAmount && Number(phase.plannedAmount) > 0 && (
-                        <span className="text-xs font-medium text-gray-500">{formatCurrency(Number(phase.plannedAmount))}</span>
+                      {(Number(phase.totalPaid || 0) > 0 || Number(phase.spent || 0) > 0) && (
+                        <span className="text-xs font-medium text-gray-500">
+                          pay/exp: {formatCurrency(Number(phase.totalPaid || 0))}/{formatCurrency(Number(phase.spent || 0))}
+                        </span>
                       )}
                     </div>
                     <div className="flex items-center gap-4">
