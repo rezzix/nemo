@@ -63,6 +63,12 @@ export default function ProjectDetailPage() {
     { key: 'planning', label: 'Planning' },
     { key: 'sprints', label: 'Sprints' },
     { key: 'docs', label: 'Docs' },
+  ] : role === 'FINANCE' ? [
+    { key: 'summary', label: 'Summary' },
+    { key: 'board', label: 'Board' },
+    { key: 'sprints', label: 'Sprints' },
+    { key: 'expenses', label: 'Expenses' },
+    { key: 'docs', label: 'Docs' },
   ] : [ // EXTERNAL or fallback
     { key: 'tasks', label: 'Tasks' },
     { key: 'board', label: 'Board' },
