@@ -332,19 +332,26 @@ export default function PhasesTab({ projectId, canEdit, canManagePayments = fals
                       {phaseDeliverables.length > 0 && (
                         <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-100 text-[10px] font-medium text-gray-600">{phaseDeliverables.length}</span>
                       )}
-                      {(Number(phase.totalPaid || 0) > 0 || Number(phase.spent || 0) > 0) && (
-                        <span className="text-xs font-medium text-gray-500">
-                          DH pay/exp: {formatCurrencyUnit(Number(phase.totalPaid || 0))}/{formatCurrencyUnit(Number(phase.spent || 0))}
-                        </span>
-                      )}
                     </div>
                     <div className="flex items-center gap-4">
-                      {(Number(phase.totalPaid || 0) > 0 || (progress.planned > 0)) && (
-                        <div className="flex items-center gap-2 min-w-[140px]">
-                          <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                            <div className={`h-full rounded-full ${progress.color}`} style={{ width: `${progress.pct}%` }} />
-                          </div>
-                          <span className="text-xs text-gray-500 whitespace-nowrap">{formatCurrencyUnit(Number(phase.totalPaid || 0))}</span>
+                      {(Number(phase.totalPaid || 0) > 0 || (progress.planned > 0) || Number(phase.spent || 0) > 0) && (
+                        <div className="flex flex-col gap-1 min-w-[180px]">
+                          {(Number(phase.totalPaid || 0) > 0 || progress.planned > 0) && (
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                <div className={`h-full rounded-full ${progress.color}`} style={{ width: `${progress.pct}%` }} />
+                              </div>
+                              <span className="text-[11px] text-gray-500 whitespace-nowrap w-16 text-right">{formatCurrencyUnit(Number(phase.totalPaid || 0))}</span>
+                            </div>
+                          )}
+                          {Number(phase.spent || 0) > 0 && (
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                <div className={`h-full rounded-full ${Number(progress.planned) > 0 ? sProgress.color : 'bg-red-300'}`} style={{ width: `${sProgress.planned > 0 ? sProgress.pct : 100}%` }} />
+                              </div>
+                              <span className="text-[11px] text-gray-500 whitespace-nowrap w-16 text-right">{formatCurrencyUnit(Number(phase.spent))}</span>
+                            </div>
+                          )}
                         </div>
                       )}
                       {(phase.startDate || phase.endDate) && (
