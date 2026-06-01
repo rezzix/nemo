@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { ProjectDto, TaskDto } from '@/types';
 import { listProjects } from '@/api/projects';
-import { listProjectTasks } from '@/api/tasks';
+import { getMyTasks } from '@/api/tasks';
 import { useAuthStore } from '@/stores/authStore';
 
 export function useMyTasks() {
@@ -18,17 +18,11 @@ export function useMyTasks() {
     async function fetch() {
       try {
         setIsLoading(true);
-        const projs = await listProjects();
+        const [projs, allTasks] = await Promise.all([
+          listProjects(),
+          getMyTasks(),
+        ]);
         if (cancelled) return;
-
-        const allTasks: TaskDto[] = [];
-        await Promise.all(
-          projs.map(async (p) => {
-            const tasks = await listProjectTasks(p.id, { assigneeId: user!.id });
-            allTasks.push(...tasks);
-          }),
-        );
-
         if (!cancelled) {
           setProjects(projs);
           setMyTasks(allTasks);

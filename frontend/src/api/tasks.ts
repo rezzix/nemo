@@ -1,6 +1,10 @@
 import { apiGet, apiPost, apiPut, apiDelete, apiGetPaginated } from './client';
 import type { TaskDto, CreateTaskRequest, UpdateTaskRequest, CommentDto, CreateCommentRequest, UpdateCommentRequest } from '@/types';
 
+export async function getMyTasks(): Promise<TaskDto[]> {
+  return apiGet<TaskDto[]>('/tasks/my');
+}
+
 export async function listProjectTasks(
   projectId: number,
   params?: Record<string, string | number>,

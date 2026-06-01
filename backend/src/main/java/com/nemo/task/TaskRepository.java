@@ -34,6 +34,18 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
            "LEFT JOIN FETCH t.sprint " +
            "LEFT JOIN FETCH t.phase " +
            "LEFT JOIN FETCH t.labels " +
+           "WHERE t.assignee.id = :userId")
+    List<Task> findByAssigneeId(@Param("userId") Long userId);
+
+    @Query("SELECT t FROM Task t " +
+           "LEFT JOIN FETCH t.status " +
+           "LEFT JOIN FETCH t.type " +
+           "LEFT JOIN FETCH t.project " +
+           "LEFT JOIN FETCH t.assignee " +
+           "LEFT JOIN FETCH t.reporter " +
+           "LEFT JOIN FETCH t.sprint " +
+           "LEFT JOIN FETCH t.phase " +
+           "LEFT JOIN FETCH t.labels " +
            "WHERE t.project.id = :projectId AND " +
            "(:search IS NULL OR LOWER(t.title) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
            "(:statusId IS NULL OR t.status.id = :statusId) AND " +
