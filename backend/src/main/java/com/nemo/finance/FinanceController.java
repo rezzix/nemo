@@ -84,10 +84,8 @@ public class FinanceController {
         response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
 
         try (PrintWriter writer = response.getWriter()) {
-            // Header
             writer.println("Project,Budget,Expenses,Labor,Payments Received,Collection %,CPI,SPI,Pending Expenses");
 
-            // Rows
             for (FinanceDashboardDto.ProjectFinance pf : data.byProject()) {
                 writer.println(
                         csvEscape(pf.projectName()) + ","
@@ -102,7 +100,6 @@ public class FinanceController {
                 );
             }
 
-            // Summary row
             writer.println();
             FinanceDashboardDto.DashboardSummary s = data.summary();
             writer.println("TOTAL,"
@@ -116,6 +113,23 @@ public class FinanceController {
                     + s.pendingExpenseApprovals()
             );
         }
+    }
+
+    @GetMapping("/expenses-by-year")
+    @PreAuthorize("hasRole('FINANCE')")
+    public ResponseEntity<ApiResponse<FinanceDashboardDto.YearExpensesResponse>> getYearExpenses(
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) String status) {
+        if (year == null) year = LocalDate.now().getYear();
+        return ResponseEntity.ok(ApiResponse.of(financeService.getYearExpenses(year, status)));
+    }
+
+    @GetMapping("/chart-data")
+    @PreAuthorize("hasRole('FINANCE')")
+    public ResponseEntity<ApiResponse<FinanceDashboardDto.MonthlyFinanceData>> getChartData(
+            @RequestParam(required = false) Integer year) {
+        if (year == null) year = LocalDate.now().getYear();
+        return ResponseEntity.ok(ApiResponse.of(financeService.getMonthlyChartData(year)));
     }
 
     private String csvEscape(String value) {

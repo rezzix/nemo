@@ -63,6 +63,10 @@ export default function ProjectDetailPage() {
     { key: 'planning', label: 'Planning' },
     { key: 'sprints', label: 'Sprints' },
     { key: 'docs', label: 'Docs' },
+  ] : role === 'FINANCE' ? [
+    { key: 'summary', label: 'Summary' },
+    { key: 'phases', label: 'Phases' },
+    { key: 'expenses', label: 'Expenses' },
   ] : [ // EXTERNAL or fallback
     { key: 'tasks', label: 'Tasks' },
     { key: 'board', label: 'Board' },
@@ -145,7 +149,7 @@ export default function ProjectDetailPage() {
       {activeTab === 'board' && <BoardTab projectId={project.id} projectKey={project.key} isExternal={isExternal} />}
       {activeTab === 'docs' && <DocsTab projectId={project.id} canEdit={canEdit || role === 'CONTRIBUTOR'} />}
       {activeTab === 'raid' && <RaidTab projectId={project.id} canEdit={canEdit} />}
-      {activeTab === 'phases' && <PhasesTab projectId={project.id} canEdit={canEdit} />}
+      {activeTab === 'phases' && <PhasesTab projectId={project.id} canEdit={canEdit} canManagePayments={role === 'FINANCE'} />}
       {activeTab === 'expenses' && <ExpensesTab projectId={project.id} canEdit={canEdit} />}
       {activeTab === 'settings' && <SettingsTab project={project} onUpdate={(p) => setProject(p)} canEdit={canEdit} />}
       {activeTab === 'members' && <MembersTab projectId={project.id} managerId={project.managerId} canEdit={canEdit} canSeeScores={canSeeScores} />}

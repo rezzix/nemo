@@ -670,37 +670,51 @@ public class DataSeeder implements CommandLineRunner {
 
         Phase mobilePlan = createPhase("Planning", "Design and architecture phase", mobileApp, 0,
                 today.minusMonths(6), today.minusMonths(4).plusDays(14));
+        mobilePlan.setPlannedAmount(new BigDecimal("50000"));
+        phaseRepository.save(mobilePlan);
         createDeliverable("UX Wireframes", "Mobile app screen designs and user flows", mobilePlan, DeliverableState.VALIDATED, today.minusMonths(5));
         createDeliverable("Architecture Document", "Technical architecture and API contracts", mobilePlan, DeliverableState.VALIDATED, today.minusMonths(4).plusDays(14));
 
         Phase mobileExec = createPhase("Execution", "Mobile app development", mobileApp, 1,
                 today.minusMonths(4).plusDays(15), today.plusMonths(2));
+        mobileExec.setPlannedAmount(new BigDecimal("180000"));
+        phaseRepository.save(mobileExec);
         createDeliverable("Alpha Build", "Core functionality with placeholder data", mobileExec, DeliverableState.DELIVERED, today.minusMonths(2));
         createDeliverable("Beta Build", "Feature-complete build for testing", mobileExec, DeliverableState.DRAFT, today.plusMonths(1));
         createDeliverable("App Store Submission", "Final build with App Store assets", mobileExec, DeliverableState.DRAFT, today.plusMonths(2));
 
         Phase apiPlan = createPhase("Planning", "API gateway design", apiGateway, 0,
                 today.minusMonths(5), today.minusMonths(3));
+        apiPlan.setPlannedAmount(new BigDecimal("30000"));
+        phaseRepository.save(apiPlan);
         createDeliverable("API Specification", "OpenAPI spec for gateway endpoints", apiPlan, DeliverableState.VALIDATED, today.minusMonths(4).plusDays(15));
         createDeliverable("Security Audit Plan", "Security review checklist and tooling setup", apiPlan, DeliverableState.DRAFT, today.minusMonths(3));
 
         Phase apiExec = createPhase("Execution", "Gateway implementation", apiGateway, 1,
                 today.minusMonths(3).plusDays(1), today.plusMonths(4));
+        apiExec.setPlannedAmount(new BigDecimal("100000"));
+        phaseRepository.save(apiExec);
         createDeliverable("Rate Limiter Module", "Configurable rate limiting per service", apiExec, DeliverableState.DRAFT, today.plusMonths(1));
         createDeliverable("Service Registry", "Dynamic service discovery and health checks", apiExec, DeliverableState.DRAFT, today.plusMonths(4));
 
         Phase erpInit = createPhase("Initiation", "Stakeholder alignment and scope", erpProject, 0,
                 today.minusMonths(8), today.minusMonths(6));
+        erpInit.setPlannedAmount(new BigDecimal("60000"));
+        phaseRepository.save(erpInit);
         createDeliverable("Business Case", "ROI analysis and project justification", erpInit, DeliverableState.VALIDATED, today.minusMonths(7).plusDays(1));
         createDeliverable("Stakeholder Map", "Key stakeholders and communication plan", erpInit, DeliverableState.VALIDATED, today.minusMonths(6).plusDays(14));
 
         Phase erpExec = createPhase("Execution", "ERP module development", erpProject, 1,
                 today.minusMonths(6).plusDays(1), today.plusMonths(2));
+        erpExec.setPlannedAmount(new BigDecimal("250000"));
+        phaseRepository.save(erpExec);
         createDeliverable("Patient Management Module", "Core patient record system", erpExec, DeliverableState.DELIVERED, today.minusMonths(1));
         createDeliverable("Billing Module", "Insurance and payment processing", erpExec, DeliverableState.DRAFT, today.plusMonths(2));
 
         Phase ftmExec = createPhase("Execution", "Core platform features", footballTeam, 0,
                 today.minusMonths(5), today.plusMonths(1));
+        ftmExec.setPlannedAmount(new BigDecimal("150000"));
+        phaseRepository.save(ftmExec);
         createDeliverable("Player Database", "Player profiles, stats, and history", ftmExec, DeliverableState.DELIVERED, today.minusMonths(3).plusDays(15));
         createDeliverable("Match Engine", "Match scheduling and result tracking", ftmExec, DeliverableState.DRAFT, today.plusMonths(1));
 

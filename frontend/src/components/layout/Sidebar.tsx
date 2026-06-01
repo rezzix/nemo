@@ -77,7 +77,7 @@ export default function Sidebar() {
     ...(!isExternal ? [{
       header: 'Insights' as string | undefined,
       items: [
-        ...(role === 'ADMIN' || role === 'MANAGER' || role === 'EXECUTIVE' || role === 'HR' || role === 'FINANCE'
+        ...(role === 'ADMIN' || role === 'MANAGER' || role === 'EXECUTIVE' || role === 'HR'
           ? [{ to: '/reports', label: 'Reports', icon: ReportsIcon }]
           : []),
         ...(role === 'FINANCE'

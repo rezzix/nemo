@@ -22,7 +22,7 @@ export default function SprintsTab({ projectId, canEdit }: SprintsTabProps) {
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(() => {
-    Promise.all([listSprints(projectId), listProjectTasks(projectId)])
+    return Promise.all([listSprints(projectId), listProjectTasks(projectId)])
       .then(([sprintData, taskData]) => {
         setSprints(sprintData);
         setTasks(taskData);

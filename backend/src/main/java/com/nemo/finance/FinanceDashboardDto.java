@@ -67,4 +67,32 @@ public class FinanceDashboardDto {
             List<PaymentDto> received,
             List<PaymentDto> overdue
     ) {}
+
+    public record ExpenseDto(
+            Long id,
+            Long projectId,
+            String projectName,
+            String category,
+            String amount,
+            String description,
+            String expenseDate,
+            Long createdById,
+            String createdByName,
+            String approvalStatus,
+            String rejectionReason,
+            String createdAt
+    ) {}
+
+    public record YearExpensesResponse(
+            int year,
+            String statusFilter,
+            List<ExpenseDto> expenses
+    ) {}
+
+    public record MonthlyFinanceData(
+            int year,
+            List<BigDecimal> paymentsReceived,  // 12 months
+            List<BigDecimal> paymentsPending,
+            List<BigDecimal> expenses
+    ) {}
 }

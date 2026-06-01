@@ -81,7 +81,7 @@ export default function App() {
           <Route path="/people/:id" element={<RoleGuard roles={['HR', 'EXECUTIVE']}><UserDetailPage /></RoleGuard>} />
           <Route path="/holidays" element={<RoleGuard roles={['HR', 'ADMIN']}><HolidaysPage /></RoleGuard>} />
           <Route path="/leave" element={<LeavePage />} />
-          <Route path="/reports" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR', 'FINANCE']}><TimeReportsPage /></RoleGuard>} />
+          <Route path="/reports" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR']}><TimeReportsPage /></RoleGuard>} />
           <Route path="/assets" element={<RoleGuard roles={['ADMIN', 'HR']}><AssetsPage /></RoleGuard>} />
           <Route path="/clients" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR', 'FINANCE']}><ClientsPage /></RoleGuard>} />
           <Route path="/clients/:id" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR', 'FINANCE']}><ClientDetailPage /></RoleGuard>} />

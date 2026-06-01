@@ -137,6 +137,11 @@ export function formatCurrency(value: number | null | undefined): string {
   return symbol + ' ' + formatted;
 }
 
+export function formatCurrencyUnit(value: number | null | undefined): string {
+  if (value == null) return '—';
+  return Math.round(value).toLocaleString('en-US').replace(/,/g, "'");
+}
+
 export function scoreLabel(score: number): string {
   switch (score) {
     case 0: return 'Marginal';

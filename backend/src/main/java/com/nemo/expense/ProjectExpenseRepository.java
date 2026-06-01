@@ -26,4 +26,10 @@ public interface ProjectExpenseRepository extends JpaRepository<ProjectExpense, 
     BigDecimal sumByProjectIdAndApprovalStatus(@Param("projectId") Long projectId, @Param("status") ProjectExpense.ApprovalStatus status);
 
     long countByProjectIdAndApprovalStatus(Long projectId, ProjectExpense.ApprovalStatus approvalStatus);
+
+    @Query("SELECT e FROM ProjectExpense e JOIN FETCH e.project WHERE e.expenseDate BETWEEN :start AND :end ORDER BY e.expenseDate DESC")
+    List<ProjectExpense> findByExpenseDateBetween(@Param("start") LocalDate start, @Param("end") LocalDate end);
+
+    @Query("SELECT e FROM ProjectExpense e JOIN FETCH e.project WHERE e.expenseDate BETWEEN :start AND :end AND e.approvalStatus = :status ORDER BY e.expenseDate DESC")
+    List<ProjectExpense> findByExpenseDateBetweenAndStatus(@Param("start") LocalDate start, @Param("end") LocalDate end, @Param("status") ProjectExpense.ApprovalStatus status);
 }

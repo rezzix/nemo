@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { ProjectDto, LabelDto } from '@/types';
+import type { ProjectDto, LabelDto, PhaseDto } from '@/types';
 import { updateProject, getLabels, createLabel, updateLabel, deleteLabel } from '@/api/projects';
+import { listPhases } from '@/api/phases';
 import { extractValidationErrors } from '@/api/client';
+import { formatCurrencyUnit } from '@/utils/format';
 import Spinner from '@/components/common/Spinner';
 
 export default function SettingsTab({ project, onUpdate, canEdit }: { project: ProjectDto; onUpdate: (p: ProjectDto) => void; canEdit: boolean }) {
@@ -14,6 +16,16 @@ export default function SettingsTab({ project, onUpdate, canEdit }: { project: P
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  // Phases budget indicator
+  const [phasesPlannedTotal, setPhasesPlannedTotal] = useState(0);
+
+  useEffect(() => {
+    listPhases(project.id).then(p => {
+      const total = p.reduce((sum: number, ph: PhaseDto) => sum + (Number(ph.plannedAmount) || 0), 0);
+      setPhasesPlannedTotal(total);
+    }).catch(() => {});
+  }, [project.id]);
 
   // Labels state
   const [labels, setLabels] = useState<LabelDto[]>([]);
@@ -120,7 +132,14 @@ export default function SettingsTab({ project, onUpdate, canEdit }: { project: P
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Total Budget</label>
-            <input type="text" value={budget} onChange={e => setBudget(e.target.value)} placeholder="e.g. 150000" className={inputClass('budget')} />
+            <div className="flex items-center gap-3">
+              <input type="text" value={budget} onChange={e => setBudget(e.target.value)} placeholder="e.g. 150000" className={`${inputClass('budget')} flex-1`} />
+              {phasesPlannedTotal > 0 && (
+                <span className={`text-xs font-medium whitespace-nowrap shrink-0 ${Number(budget) && phasesPlannedTotal > Number(budget) ? 'text-red-600 font-bold' : 'text-gray-500'}`}>
+                  Phases: {formatCurrencyUnit(phasesPlannedTotal)}
+                </span>
+              )}
+            </div>
             {fieldErrors.budget && <p className="mt-1 text-sm text-red-600">{fieldErrors.budget}</p>}
           </div>
         </div>
