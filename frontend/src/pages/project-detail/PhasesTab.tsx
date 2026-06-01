@@ -391,7 +391,7 @@ export default function PhasesTab({ projectId, canEdit, canManagePayments = fals
                     <div className="mb-4">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Payments ({phasePayments.length})</span>
-                        {(canEdit || canManagePayments) && (
+                        {canManagePayments && (
                           <button onClick={() => openPaymentForm(phase.id)} className="text-xs font-medium text-primary-600 hover:text-primary-800">+ Add Payment</button>
                         )}
                       </div>
@@ -416,7 +416,7 @@ export default function PhasesTab({ projectId, canEdit, canManagePayments = fals
                             <th className="text-right px-2 py-1 font-medium text-gray-500 text-xs">Amount</th>
                             <th className="text-left px-2 py-1 font-medium text-gray-500 text-xs">Reference</th>
                             <th className="text-left px-2 py-1 font-medium text-gray-500 text-xs">Notes</th>
-                            {(canEdit || canManagePayments) && <th className="px-2 py-1"></th>}
+                            {canManagePayments && <th className="px-2 py-1"></th>}
                           </tr></thead>
                           <tbody className="divide-y divide-gray-50">
                             {phasePayments.map(p => (
@@ -425,7 +425,7 @@ export default function PhasesTab({ projectId, canEdit, canManagePayments = fals
                                 <td className="px-2 py-1.5 text-right font-medium text-gray-900">{formatCurrency(Number(p.amount))}</td>
                                 <td className="px-2 py-1.5 text-gray-600">{p.reference || '—'}</td>
                                 <td className="px-2 py-1.5 text-gray-500 max-w-[200px] truncate">{p.notes || '—'}</td>
-                                {(canEdit || canManagePayments) && (
+                                {canManagePayments && (
                                   <td className="px-2 py-1.5 text-right">
                                     <button onClick={() => openPaymentForm(phase.id, p)} className="text-primary-600 hover:text-primary-800 text-xs font-medium mr-2">Edit</button>
                                     <button onClick={() => handlePaymentDelete(phase.id, p.id)} className="text-red-600 hover:text-red-800 text-xs font-medium">Delete</button>
