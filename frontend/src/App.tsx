@@ -30,12 +30,6 @@ import PreSaleDetailPage from '@/pages/PreSaleDetailPage';
 import UserDetailPage from '@/pages/UserDetailPage';
 import FinancePage from '@/pages/FinancePage';
 
-function FinanceOrDashboard() {
-  const role = useAuthStore((s) => s.user?.role);
-  if (role === 'FINANCE') return <FinancePage />;
-  return <DashboardPage />;
-}
-
 export default function App() {
   const checkSession = useAuthStore((s) => s.checkSession);
   const isLoading = useAuthStore((s) => s.isLoading);
@@ -74,7 +68,7 @@ export default function App() {
             </AuthGuard>
           }
         >
-          <Route path="/" element={<FinanceOrDashboard />} />
+          <Route path="/" element={<DashboardPage />} />
           <Route path="/programs" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR', 'FINANCE']}><ProgramsPage /></RoleGuard>} />
           <Route path="/programs/:id" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR', 'FINANCE']}><ProgramDetailPage /></RoleGuard>} />
           <Route path="/projects" element={<ProjectsPage />} />
@@ -94,6 +88,7 @@ export default function App() {
           <Route path="/presales" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR', 'FINANCE']}><PreSalesPage /></RoleGuard>} />
           <Route path="/presales/:id" element={<RoleGuard roles={['ADMIN', 'MANAGER', 'EXECUTIVE', 'HR', 'FINANCE']}><PreSaleDetailPage /></RoleGuard>} />
           <Route path="/admin" element={<AdminGuard><AdminPage /></AdminGuard>} />
+          <Route path="/finance" element={<RoleGuard roles={['FINANCE']}><FinancePage /></RoleGuard>} />
           <Route path="/profile" element={<ProfilePage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

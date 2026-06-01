@@ -67,6 +67,68 @@ public class FinanceService {
         );
     }
 
+    @Transactional(readOnly = true)
+    public FinanceDashboardDto.YearExpensesResponse getYearExpenses(int year, String statusFilter) {
+        LocalDate start = LocalDate.of(year, 1, 1);
+        LocalDate end = LocalDate.of(year, 12, 31);
+
+        List<ProjectExpense> expenses;
+        if (statusFilter != null && !statusFilter.isEmpty() && !statusFilter.equals("ALL")) {
+            ProjectExpense.ApprovalStatus status = ProjectExpense.ApprovalStatus.valueOf(statusFilter);
+            expenses = expenseRepository.findByExpenseDateBetweenAndStatus(start, end, status);
+        } else {
+            expenses = expenseRepository.findByExpenseDateBetween(start, end);
+        }
+
+        return new FinanceDashboardDto.YearExpensesResponse(
+                year, statusFilter != null ? statusFilter : "ALL",
+                expenses.stream().map(this::toExpenseDto).toList()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public FinanceDashboardDto.MonthlyFinanceData getMonthlyChartData(int year) {
+        List<BigDecimal> paymentsReceived = new ArrayList<>();
+        List<BigDecimal> paymentsPending = new ArrayList<>();
+        List<BigDecimal> expenses = new ArrayList<>();
+
+        for (int month = 1; month <= 12; month++) {
+            LocalDate monthStart = LocalDate.of(year, month, 1);
+            LocalDate monthEnd = monthStart.withDayOfMonth(monthStart.lengthOfMonth());
+
+            BigDecimal received = paymentRepository.findByReceivedDateBetweenOrderByReceivedDateAsc(monthStart, monthEnd).stream()
+                    .map(ProjectPayment::getAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            paymentsReceived.add(received);
+
+            BigDecimal pending = paymentRepository.findByDueDateBetweenOrderByDueDateAsc(monthStart, monthEnd).stream()
+                    .filter(p -> p.getStatus() != ProjectPayment.PaymentStatus.RECEIVED)
+                    .map(ProjectPayment::getAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            paymentsPending.add(pending);
+
+            BigDecimal monthExpenses = expenseRepository.findByExpenseDateBetween(monthStart, monthEnd).stream()
+                    .map(ProjectExpense::getAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            expenses.add(monthExpenses);
+        }
+
+        return new FinanceDashboardDto.MonthlyFinanceData(year, paymentsReceived, paymentsPending, expenses);
+    }
+
+    private FinanceDashboardDto.ExpenseDto toExpenseDto(ProjectExpense e) {
+        return new FinanceDashboardDto.ExpenseDto(
+                e.getId(), e.getProject().getId(), e.getProject().getName(),
+                e.getCategory().name(), e.getAmount().toString(), e.getDescription(),
+                e.getExpenseDate() != null ? e.getExpenseDate().toString() : null,
+                e.getCreatedBy() != null ? e.getCreatedBy().getId() : null,
+                e.getCreatedBy() != null ? e.getCreatedBy().getFirstName() + " " + e.getCreatedBy().getLastName() : null,
+                e.getApprovalStatus() != null ? e.getApprovalStatus().name() : null,
+                e.getRejectionReason(),
+                e.getCreatedAt() != null ? e.getCreatedAt().toString() : null
+        );
+    }
+
     private FinanceDashboardDto.PaymentDto toOverduePaymentDto(ProjectPayment p, LocalDate today) {
         Long delayDays = p.getDueDate() != null ? ChronoUnit.DAYS.between(p.getDueDate(), today) : 0;
 

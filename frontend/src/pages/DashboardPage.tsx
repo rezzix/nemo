@@ -5,6 +5,7 @@ import ManagerDashboard from '@/pages/dashboard/ManagerDashboard';
 import ExecutiveDashboard from '@/pages/dashboard/ExecutiveDashboard';
 import ContributorDashboard from '@/pages/dashboard/ContributorDashboard';
 import HrDashboard from '@/pages/dashboard/HrDashboard';
+import FinanceDashboard from '@/pages/dashboard/FinanceDashboard';
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
   state: { error: Error | null } = { error: null };
@@ -40,6 +41,8 @@ export default function DashboardPage() {
       return <ErrorBoundary><ExecutiveDashboard /></ErrorBoundary>;
     case 'HR':
       return <ErrorBoundary><HrDashboard /></ErrorBoundary>;
+    case 'FINANCE':
+      return <ErrorBoundary><FinanceDashboard /></ErrorBoundary>;
     default:
       return <ErrorBoundary><ContributorDashboard /></ErrorBoundary>;
   }
