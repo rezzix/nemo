@@ -37,7 +37,7 @@ public class ProjectExpenseService {
     }
 
     @Transactional
-    public ProjectExpense create(Long projectId, Long userId, ProjectExpenseDto.CreateRequest request) {
+    public ProjectExpense create(Long projectId, Long userId, ProjectExpenseDto.CreateRequest request, boolean autoApprove) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("Project", projectId));
         User user = userRepository.findById(userId)
@@ -50,7 +50,13 @@ public class ProjectExpenseService {
         expense.setDescription(request.description());
         expense.setExpenseDate(java.time.LocalDate.parse(request.expenseDate()));
         expense.setCreatedBy(user);
-        expense.setApprovalStatus(ProjectExpense.ApprovalStatus.PENDING_REVIEW);
+        if (autoApprove) {
+            expense.setApprovalStatus(ProjectExpense.ApprovalStatus.APPROVED);
+            expense.setApprovedBy(user);
+            expense.setApprovedAt(java.time.Instant.now());
+        } else {
+            expense.setApprovalStatus(ProjectExpense.ApprovalStatus.PENDING_REVIEW);
+        }
         return expenseRepository.save(expense);
     }
 

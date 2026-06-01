@@ -44,7 +44,8 @@ public class ProjectExpenseController {
             @AuthenticationPrincipal UserDetails currentUser) {
         authHelper.requireProjectReadAccess(currentUser, projectId);
         Long userId = authHelper.getCurrentUserId(currentUser);
-        ProjectExpense created = expenseService.create(projectId, userId, request);
+        boolean isFinance = authHelper.hasAnyRole(currentUser, "FINANCE");
+        ProjectExpense created = expenseService.create(projectId, userId, request, isFinance);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.of(expenseMapper.toDto(created)));
     }
 
