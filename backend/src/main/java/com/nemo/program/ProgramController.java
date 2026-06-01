@@ -75,7 +75,7 @@ public class ProgramController {
     }
 
     @GetMapping("/{id}/evm")
-    @PreAuthorize("hasAnyRole('MANAGER', 'EXECUTIVE')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'EXECUTIVE', 'FINANCE')")
     public ResponseEntity<ApiResponse<PmoService.ProgramEvmMetrics>> getEvm(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.of(pmoService.computeProgramEvm(id)));
     }
