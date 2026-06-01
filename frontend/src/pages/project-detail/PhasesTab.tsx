@@ -339,12 +339,12 @@ export default function PhasesTab({ projectId, canEdit, canManagePayments = fals
                       )}
                     </div>
                     <div className="flex items-center gap-4">
-                      {(sProgress.spent > 0 || sProgress.planned > 0) && (
+                      {(Number(phase.totalPaid || 0) > 0 || (progress.planned > 0)) && (
                         <div className="flex items-center gap-2 min-w-[140px]">
                           <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                            <div className={`h-full rounded-full ${sProgress.color}`} style={{ width: `${sProgress.pct}%` }} />
+                            <div className={`h-full rounded-full ${progress.color}`} style={{ width: `${progress.pct}%` }} />
                           </div>
-                          <span className="text-xs text-gray-500 whitespace-nowrap">{formatCurrency(sProgress.spent)}</span>
+                          <span className="text-xs text-gray-500 whitespace-nowrap">{formatCurrency(Number(phase.totalPaid || 0))}</span>
                         </div>
                       )}
                       {(phase.startDate || phase.endDate) && (
