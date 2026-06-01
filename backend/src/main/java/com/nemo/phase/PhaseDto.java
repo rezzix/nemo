@@ -25,7 +25,7 @@ public record PhaseDto(
             String description,
             LocalDate startDate,
             LocalDate endDate,
-            String plannedAmount,
+            @NotBlank String plannedAmount,
             String status
     ) {}
 
@@ -35,7 +35,7 @@ public record PhaseDto(
             LocalDate startDate,
             LocalDate endDate,
             Integer position,
-            String plannedAmount,
+            @NotBlank String plannedAmount,
             String status
     ) {}
 }
