@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import type { PhaseDto, ClientPaymentDto, DeliverableDto } from '@/types';
 import { listPhases, createPhase, updatePhase, deletePhase, listDeliverables, createDeliverable, updateDeliverable, deleteDeliverable, uploadDeliverableAttachment, deleteDeliverableAttachment, getDeliverableAttachmentDownloadUrl, listClientPayments, createClientPayment, updateClientPayment, deleteClientPayment } from '@/api/phases';
 import axios from 'axios';
-import { formatDate, formatCurrency, deliverableStateBadge, deliverableStateLabel, deadlineBadge, deadlineLabel } from '@/utils/format';
+import { formatDate, formatCurrency, formatCurrencyUnit, deliverableStateBadge, deliverableStateLabel, deadlineBadge, deadlineLabel } from '@/utils/format';
 import Spinner from '@/components/common/Spinner';
 import Modal from '@/components/common/Modal';
 
@@ -334,7 +334,7 @@ export default function PhasesTab({ projectId, canEdit, canManagePayments = fals
                       )}
                       {(Number(phase.totalPaid || 0) > 0 || Number(phase.spent || 0) > 0) && (
                         <span className="text-xs font-medium text-gray-500">
-                          pay/exp: {formatCurrency(Number(phase.totalPaid || 0))}/{formatCurrency(Number(phase.spent || 0))}
+                          DH pay/exp: {formatCurrencyUnit(Number(phase.totalPaid || 0))}/{formatCurrencyUnit(Number(phase.spent || 0))}
                         </span>
                       )}
                     </div>
@@ -344,7 +344,7 @@ export default function PhasesTab({ projectId, canEdit, canManagePayments = fals
                           <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
                             <div className={`h-full rounded-full ${progress.color}`} style={{ width: `${progress.pct}%` }} />
                           </div>
-                          <span className="text-xs text-gray-500 whitespace-nowrap">{formatCurrency(Number(phase.totalPaid || 0))}</span>
+                          <span className="text-xs text-gray-500 whitespace-nowrap">{formatCurrencyUnit(Number(phase.totalPaid || 0))}</span>
                         </div>
                       )}
                       {(phase.startDate || phase.endDate) && (
@@ -379,8 +379,8 @@ export default function PhasesTab({ projectId, canEdit, canManagePayments = fals
                           <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Budget vs Spent</span>
                         </div>
                         <div className="flex items-center gap-3 mb-2 text-xs">
-                          <span className="text-gray-500">Budget: <span className="font-medium text-gray-900">{formatCurrency(sProgress.planned)}</span></span>
-                          <span className="text-gray-500">Spent: <span className={`font-medium ${sProgress.pct >= 100 ? 'text-red-700' : sProgress.pct >= 80 ? 'text-amber-700' : 'text-gray-900'}`}>{formatCurrency(sProgress.spent)}</span></span>
+                          <span className="text-gray-500">Budget: <span className="font-medium text-gray-900">{formatCurrencyUnit(sProgress.planned)}</span></span>
+                          <span className="text-gray-500">Spent: <span className={`font-medium ${sProgress.pct >= 100 ? 'text-red-700' : sProgress.pct >= 80 ? 'text-amber-700' : 'text-gray-900'}`}>{formatCurrencyUnit(sProgress.spent)}</span></span>
                           <span className={`font-medium ${sProgress.pct >= 100 ? 'text-red-700' : sProgress.pct >= 80 ? 'text-amber-700' : 'text-gray-500'}`}>({sProgress.pct}%)</span>
                         </div>
                         <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -399,14 +399,14 @@ export default function PhasesTab({ projectId, canEdit, canManagePayments = fals
                       </div>
                       {progress.planned > 0 && (
                         <div className="flex items-center gap-3 mb-2 text-xs">
-                          <span className="text-gray-500">Planned: <span className="font-medium text-gray-900">{formatCurrency(progress.planned)}</span></span>
-                          <span className="text-gray-500">Paid: <span className={`font-medium ${progress.pct >= 100 ? 'text-green-700' : 'text-gray-900'}`}>{formatCurrency(progress.paid)}</span></span>
+                          <span className="text-gray-500">Planned: <span className="font-medium text-gray-900">{formatCurrencyUnit(progress.planned)}</span></span>
+                          <span className="text-gray-500">Paid: <span className={`font-medium ${progress.pct >= 100 ? 'text-green-700' : 'text-gray-900'}`}>{formatCurrencyUnit(progress.paid)}</span></span>
                           <span className={`font-medium ${progress.pct >= 100 ? 'text-green-700' : 'text-gray-500'}`}>({progress.pct}%)</span>
                         </div>
                       )}
                       {progress.paid > 0 && progress.planned === 0 && (
                         <div className="flex items-center gap-3 mb-2 text-xs">
-                          <span className="text-gray-500">Paid: <span className="font-medium text-gray-900">{formatCurrency(progress.paid)}</span></span>
+                          <span className="text-gray-500">Paid: <span className="font-medium text-gray-900">{formatCurrencyUnit(progress.paid)}</span></span>
                         </div>
                       )}
                       {phasePayments.length === 0 ? (
@@ -424,7 +424,7 @@ export default function PhasesTab({ projectId, canEdit, canManagePayments = fals
                             {phasePayments.map(p => (
                               <tr key={p.id} className="hover:bg-gray-50">
                                 <td className="px-2 py-1.5 text-gray-600">{p.paymentDate ? formatDate(p.paymentDate) : '—'}</td>
-                                <td className="px-2 py-1.5 text-right font-medium text-gray-900">{formatCurrency(Number(p.amount))}</td>
+                                <td className="px-2 py-1.5 text-right font-medium text-gray-900">{formatCurrencyUnit(Number(p.amount))}</td>
                                 <td className="px-2 py-1.5 text-gray-600">{p.reference || '—'}</td>
                                 <td className="px-2 py-1.5 text-gray-500 max-w-[200px] truncate">{p.notes || '—'}</td>
                                 {canManagePayments && (
