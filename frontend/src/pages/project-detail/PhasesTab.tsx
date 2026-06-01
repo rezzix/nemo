@@ -273,7 +273,7 @@ export default function PhasesTab({ projectId, canEdit, canManagePayments = fals
     if (!phase.plannedAmount || Number(phase.plannedAmount) === 0) return { planned: 0, spent: Number(phase.spent || 0), pct: 0, color: 'bg-gray-300' };
     const planned = Number(phase.plannedAmount);
     const spent = Number(phase.spent || 0);
-    const pct = Math.min(100, Math.round((spent / planned) * 100));
+    const pct = Math.round((spent / planned) * 100);
     const color = pct >= 100 ? 'bg-red-500' : pct >= 80 ? 'bg-amber-500' : 'bg-blue-500';
     return { planned, spent, pct, color };
   };
@@ -347,7 +347,7 @@ export default function PhasesTab({ projectId, canEdit, canManagePayments = fals
                           )}
                           {Number(phase.spent || 0) > 0 && (
                             <div className="flex items-center gap-2">
-                              <span className="text-[11px] text-gray-500 w-6">exp</span>
+                              <span className="text-[11px] text-gray-500 w-6">spe</span>
                               <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                                 <div className={`h-full rounded-full ${Number(progress.planned) > 0 ? sProgress.color : 'bg-red-300'}`} style={{ width: `${sProgress.planned > 0 ? sProgress.pct : 100}%` }} />
                               </div>
