@@ -1,6 +1,8 @@
 package com.nemo.payment;
 
 import com.nemo.common.exception.EntityNotFoundException;
+import com.nemo.config.OrganizationConfig;
+import com.nemo.config.OrganizationConfigRepository;
 import com.nemo.project.Project;
 import com.nemo.project.ProjectService;
 import com.nemo.user.User;
@@ -18,11 +20,13 @@ public class ProjectPaymentService {
     private final ProjectPaymentRepository paymentRepository;
     private final ProjectService projectService;
     private final UserRepository userRepository;
+    private final OrganizationConfigRepository configRepository;
 
-    public ProjectPaymentService(ProjectPaymentRepository paymentRepository, ProjectService projectService, UserRepository userRepository) {
+    public ProjectPaymentService(ProjectPaymentRepository paymentRepository, ProjectService projectService, UserRepository userRepository, OrganizationConfigRepository configRepository) {
         this.paymentRepository = paymentRepository;
         this.projectService = projectService;
         this.userRepository = userRepository;
+        this.configRepository = configRepository;
     }
 
     public List<ProjectPayment> getByProjectId(Long projectId) {
@@ -45,7 +49,15 @@ public class ProjectPaymentService {
         payment.setProject(project);
         payment.setTitle(request.title());
         payment.setAmount(request.amount());
-        payment.setCurrency(request.currency());
+        if (request.currency() != null) {
+            payment.setCurrency(request.currency());
+        } else if (project.getCompany() != null) {
+            String projectCurrency = configRepository.findByCompanyId(project.getCompany().getId())
+                    .map(OrganizationConfig::getCurrency).orElse(null);
+            if (projectCurrency != null) {
+                payment.setCurrency(projectCurrency);
+            }
+        }
         payment.setDueDate(request.dueDate() != null ? LocalDate.parse(request.dueDate()) : null);
         payment.setInvoiceRef(request.invoiceRef());
         payment.setNotes(request.notes());

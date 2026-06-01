@@ -1351,6 +1351,9 @@ public class DataSeeder implements CommandLineRunner {
         payment.setProject(project);
         payment.setTitle(title);
         payment.setAmount(amount);
+        payment.setCurrency(project.getCompany() != null
+                ? organizationConfigRepository.findByCompanyId(project.getCompany().getId())
+                        .map(org -> org.getCurrency()).orElse("USD") : "USD");
         payment.setDueDate(dueDate);
         payment.setReceivedDate(receivedDate);
         payment.setStatus(status);
