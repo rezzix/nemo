@@ -23,7 +23,7 @@ public class CompanyController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'HR', 'EXECUTIVE', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR', 'EXECUTIVE', 'MANAGER', 'FINANCE')")
     public ResponseEntity<PaginatedResponse<CompanyDto>> list(
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,

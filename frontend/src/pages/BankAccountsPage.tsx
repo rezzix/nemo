@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import type { BankAccountDto } from '@/types';
+import type { BankAccountDto, CompanyDto } from '@/types';
 import { listBankAccounts, createBankAccount, updateBankAccount, deactivateBankAccount } from '@/api/bankAccounts';
+import { listCompanies } from '@/api/companies';
 import { useAuth } from '@/hooks/useAuth';
 import { formatCurrency, formatDate } from '@/utils/format';
 import Spinner from '@/components/common/Spinner';
@@ -12,8 +13,10 @@ const CURRENCIES = ['MAD', 'EUR', 'USD', 'GBP', 'SAR', 'AED'];
 export default function BankAccountsPage() {
   const { user } = useAuth();
   const canEdit = user?.role === 'FINANCE';
+  const isGlobalUser = !user?.companyId;
 
   const [accounts, setAccounts] = useState<BankAccountDto[]>([]);
+  const [companies, setCompanies] = useState<CompanyDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
@@ -21,6 +24,7 @@ export default function BankAccountsPage() {
 
   const [showModal, setShowModal] = useState(false);
   const [editingAccount, setEditingAccount] = useState<BankAccountDto | null>(null);
+  const [companyId, setCompanyId] = useState<string>(user?.companyId ? String(user.companyId) : '');
   const [name, setName] = useState('');
   const [iban, setIban] = useState('');
   const [currency, setCurrency] = useState('MAD');
@@ -39,11 +43,17 @@ export default function BankAccountsPage() {
   };
 
   useEffect(() => { fetchAccounts(); }, [page]);
+  useEffect(() => {
+    if (isGlobalUser) {
+      listCompanies().then(res => setCompanies(res.data.filter(c => c.active))).catch(() => {});
+    }
+  }, [isGlobalUser]);
 
   const handleSearch = () => { setPage(0); fetchAccounts(); };
 
   const openCreate = () => {
     setEditingAccount(null);
+    setCompanyId(user?.companyId ? String(user.companyId) : '');
     setName(''); setIban(''); setCurrency('MAD'); setOpeningBalance('0');
     setShowModal(true);
   };
@@ -68,6 +78,7 @@ export default function BankAccountsPage() {
         setAccounts(prev => prev.map(a => a.id === updated.id ? updated : a));
       } else {
         const created = await createBankAccount({
+          companyId: companyId ? Number(companyId) : null,
           name: name.trim(),
           iban: iban.trim(),
           currency,
@@ -152,6 +163,15 @@ export default function BankAccountsPage() {
         <Modal title={editingAccount ? 'Edit Bank Account' : 'New Bank Account'} onClose={() => setShowModal(false)}>
           <form onSubmit={handleSave} className="space-y-4">
             {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-3 py-2">{error}</div>}
+            {isGlobalUser && !editingAccount && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
+                <select value={companyId} onChange={e => setCompanyId(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                  <option value="">Global</option>
+                  {companies.map(c => <option key={c.id} value={c.id}>{c.name} ({c.key})</option>)}
+                </select>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
               <input value={name} onChange={e => setName(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" required />

@@ -63,12 +63,15 @@ public class BankAccountController {
     public ResponseEntity<ApiResponse<BankAccountDto>> create(
             @Valid @RequestBody BankAccountDto.CreateRequest request,
             @AuthenticationPrincipal UserDetails currentUser) {
-        Long companyId = authHelper.getCurrentCompanyId(currentUser);
+        Long companyId = request.companyId();
+        if (companyId == null) {
+            companyId = authHelper.getCurrentCompanyId(currentUser);
+        }
         BankAccountDto.CreateRequest resolvedRequest = request;
         if (request.currency() == null || request.currency().isBlank()) {
             String defaultCurrency = resolveCurrency(companyId);
             resolvedRequest = new BankAccountDto.CreateRequest(
-                    request.name(), request.iban(), defaultCurrency, request.openingBalance());
+                    request.companyId(), request.name(), request.iban(), defaultCurrency, request.openingBalance());
         }
         BankAccount created = bankAccountService.create(resolvedRequest, companyId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.of(bankAccountMapper.toDto(created)));

@@ -7,6 +7,9 @@ import com.nemo.banktransaction.BankTransactionRepository;
 import com.nemo.common.exception.EntityNotFoundException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,8 +45,8 @@ public class StatementImportService {
                                    BankTransactionRepository bankTransactionRepository,
                                    ObjectMapper objectMapper,
                                    @Value("${nemo.openai.api-key:}") String apiKey,
-                                   @Value("${nemo.openai.base-url:https://api.deepseek.com}") String baseUrl,
-                                   @Value("${nemo.openai.model:deepseek-v4-flash}") String model) {
+                                   @Value("${nemo.openai.base-url:https://ollama.com/v1}") String baseUrl,
+                                   @Value("${nemo.openai.model:qwen3.5}") String model) {
         this.bankAccountRepository = bankAccountRepository;
         this.bankStatementRepository = bankStatementRepository;
         this.bankTransactionRepository = bankTransactionRepository;
@@ -51,7 +54,12 @@ public class StatementImportService {
         this.apiKey = apiKey;
         this.baseUrl = baseUrl;
         this.model = model;
-        this.restTemplate = new RestTemplate();
+        RestTemplate template = new RestTemplate();
+        template.setRequestFactory(new org.springframework.http.client.SimpleClientHttpRequestFactory() {{
+            setConnectTimeout(java.time.Duration.ofSeconds(10));
+            setReadTimeout(java.time.Duration.ofMinutes(5));
+        }});
+        this.restTemplate = template;
     }
 
     @Transactional
@@ -64,40 +72,41 @@ public class StatementImportService {
         }
 
         try {
-            // 1. Encode PDF to base64
-            String base64Pdf = java.util.Base64.getEncoder().encodeToString(file.getBytes());
+            // 1. Extract text from PDF using PDFBox
+            String pdfText;
+            try (PDDocument document = Loader.loadPDF(file.getBytes())) {
+                PDFTextStripper stripper = new PDFTextStripper();
+                pdfText = stripper.getText(document);
+            }
 
-            // 2. Build OpenAI-compatible request
-            String systemPrompt = "You are a bank statement parser. Extract all transactions from the bank statement. " +
+            if (pdfText == null || pdfText.isBlank()) {
+                throw new RuntimeException("Could not extract any text from the PDF. The file may be a scanned image.");
+            }
+
+            // 2. Build OpenAI-compatible request with extracted text
+            String systemPrompt = "You are a bank statement parser. Extract all transactions from the bank statement text. " +
                     "Return a JSON object with the exact schema specified. " +
                     "Amounts should be positive for credits (money in) and negative for debits (money out). " +
                     "Be thorough — extract every transaction. " +
-                    "The statement period, totals, and balances should match what is shown on the document.";
+                    "The statement period, totals, and balances should match what is shown in the document. " +
+                    "IMPORTANT: Return ONLY valid JSON, no markdown fences, no explanation.";
 
-            String userPrompt = "Extract all transactions from this bank statement. Return JSON with: " +
-                    "statementPeriod (startDate as YYYY-MM-DD, endDate as YYYY-MM-DD), " +
-                    "totalDebits (absolute sum of all negative amounts as positive number), " +
-                    "totalCredits (sum of all positive amounts), " +
-                    "openingBalance, closingBalance, " +
-                    "and operations array (each with date as YYYY-MM-DD, description, amount where positive=credit/negative=debit, reference or null).";
-
-            Map<String, Object> imageUrlContent = Map.of(
-                    "type", "image_url",
-                    "image_url", Map.of("url", "data:application/pdf;base64," + base64Pdf)
-            );
-
-            Map<String, Object> textContent = Map.of(
-                    "type", "text",
-                    "text", userPrompt
-            );
+            String userPrompt = "Extract all transactions from this bank statement text. Return JSON with: " +
+                    "\"statementPeriod\" (\"startDate\" as YYYY-MM-DD, \"endDate\" as YYYY-MM-DD), " +
+                    "\"totalDebits\" (absolute sum of all negative amounts as positive number), " +
+                    "\"totalCredits\" (sum of all positive amounts), " +
+                    "\"openingBalance\", \"closingBalance\", " +
+                    "and \"operations\" array (each with \"date\" as YYYY-MM-DD, \"description\", \"amount\" where positive=credit/negative=debit, \"reference\" or null).\n\n" +
+                    "Bank statement text:\n" + pdfText;
 
             Map<String, Object> request = Map.of(
                     "model", model,
                     "messages", List.of(
                             Map.of("role", "system", "content", systemPrompt),
-                            Map.of("role", "user", "content", List.of(textContent, imageUrlContent))
+                            Map.of("role", "user", "content", userPrompt)
                     ),
-                    "max_tokens", 4096
+                    "max_tokens", 16384,
+                    "response_format", Map.of("type", "json_object")
             );
 
             // 3. Call OpenAI-compatible API
@@ -111,7 +120,19 @@ public class StatementImportService {
 
             // 4. Parse response
             JsonNode responseJson = objectMapper.readTree(response.getBody());
-            String content = responseJson.path("choices").get(0).path("message").path("content").asText();
+            JsonNode messageNode = responseJson.path("choices").get(0).path("message");
+            String content = messageNode.path("content").asText();
+
+            // If content is empty, check for reasoning field (some models like qwen3.5 put the answer there)
+            if (content == null || content.isBlank()) {
+                String reasoning = messageNode.path("reasoning").asText(null);
+                if (reasoning != null && !reasoning.isBlank()) {
+                    content = reasoning;
+                }
+            }
+
+            // Strip <think>...</think> tags if present (some models wrap reasoning in these)
+            content = content.replaceAll("(?s)<think>.*?</think>", "").trim();
 
             // Strip markdown code fences if present
             content = content.trim();

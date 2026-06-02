@@ -19,6 +19,7 @@ public record BankAccountDto(
         String updatedAt
 ) {
     public record CreateRequest(
+            Long companyId,
             @NotBlank String name,
             @NotBlank @Size(min = 5, max = 34) String iban,
             @NotBlank @Size(min = 3, max = 3) String currency,
