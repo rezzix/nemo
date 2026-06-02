@@ -4,7 +4,8 @@ nemo:
   build: ''
   openai:
     api-key: ${OPENAI_API_KEY:}
-    base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
+    base-url: ${OPENAI_BASE_URL:https://api.deepseek.com}
+    model: ${OPENAI_MODEL:deepseek-v4-flash}
 
 spring:
   application:

@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +27,6 @@ public class StatementImportService {
 
     private static final Logger log = LoggerFactory.getLogger(StatementImportService.class);
     private static final BigDecimal MATCH_TOLERANCE = new BigDecimal("0.02");
-    private static final String MODEL = "gpt-4o";
 
     private final BankAccountRepository bankAccountRepository;
     private final BankStatementRepository bankStatementRepository;
@@ -36,6 +34,7 @@ public class StatementImportService {
     private final ObjectMapper objectMapper;
     private final String apiKey;
     private final String baseUrl;
+    private final String model;
     private final RestTemplate restTemplate;
 
     public StatementImportService(BankAccountRepository bankAccountRepository,
@@ -43,13 +42,15 @@ public class StatementImportService {
                                    BankTransactionRepository bankTransactionRepository,
                                    ObjectMapper objectMapper,
                                    @Value("${nemo.openai.api-key:}") String apiKey,
-                                   @Value("${nemo.openai.base-url:https://api.openai.com/v1}") String baseUrl) {
+                                   @Value("${nemo.openai.base-url:https://api.deepseek.com}") String baseUrl,
+                                   @Value("${nemo.openai.model:deepseek-v4-flash}") String model) {
         this.bankAccountRepository = bankAccountRepository;
         this.bankStatementRepository = bankStatementRepository;
         this.bankTransactionRepository = bankTransactionRepository;
         this.objectMapper = objectMapper;
         this.apiKey = apiKey;
         this.baseUrl = baseUrl;
+        this.model = model;
         this.restTemplate = new RestTemplate();
     }
 
@@ -91,7 +92,7 @@ public class StatementImportService {
             );
 
             Map<String, Object> request = Map.of(
-                    "model", MODEL,
+                    "model", model,
                     "messages", List.of(
                             Map.of("role", "system", "content", systemPrompt),
                             Map.of("role", "user", "content", List.of(textContent, imageUrlContent))
