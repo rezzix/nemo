@@ -67,6 +67,11 @@ public class TaskService {
     }
 
     @Transactional(readOnly = true)
+    public List<Task> getMyTasks(Long userId) {
+        return taskRepository.findByAssigneeId(userId);
+    }
+
+    @Transactional(readOnly = true)
     public Task getById(Long id) {
         return taskRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Task", id));
