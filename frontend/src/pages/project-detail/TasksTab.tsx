@@ -1,23 +1,43 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { TaskDto, TaskStatusDto } from '@/types';
+import type { TaskDto, TaskStatusDto, MemberDto } from '@/types';
 import { listProjectTasks } from '@/api/tasks';
+import { getMembers } from '@/api/projects';
 import { listTaskStatuses } from '@/api/admin';
 import { priorityColor, statusColor, formatDate, deadlineBadge, deadlineLabel } from '@/utils/format';
 import Spinner from '@/components/common/Spinner';
 import CreateTaskModal from './CreateTaskModal';
 
-export default function TasksTab({ projectId, projectKey, canEdit, isExternal }: { projectId: number; projectKey: string; canEdit: boolean; isExternal?: boolean })  {
+export default function TasksTab({ projectId, projectKey, canEdit, isExternal, userId, role }:
+  { projectId: number; projectKey: string; canEdit: boolean; isExternal?: boolean; userId?: number; role?: string })  {
   const [tasks, setTasks] = useState<TaskDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterPriority, setFilterPriority] = useState('');
+  const [filterAssignee, setFilterAssignee] = useState('');
   const [statuses, setStatuses] = useState<TaskStatusDto[]>([]);
+  const [members, setMembers] = useState<MemberDto[]>([]);
   const navigate = useNavigate();
 
-  useEffect(() => { listTaskStatuses().then(setStatuses); }, []);
+  const isContributor = role === 'CONTRIBUTOR';
+
+  useEffect(() => {
+    listTaskStatuses().then(s => {
+      setStatuses(s);
+      // Default to IN_PROGRESS for all roles
+      const inProgress = s.find(st => st.category === 'IN_PROGRESS');
+      if (inProgress) setFilterStatus(String(inProgress.id));
+    });
+    getMembers(projectId).then(m => {
+      setMembers(m);
+      if (isContributor && userId) {
+        const me = m.find(mem => mem.userId === userId);
+        if (me) setFilterAssignee(String(me.userId));
+      }
+    }).catch(() => {});
+  }, [projectId, isContributor, userId]);
 
   const fetchTasks = useCallback(async () => {
     setLoading(true);
@@ -26,25 +46,30 @@ export default function TasksTab({ projectId, projectKey, canEdit, isExternal }:
       if (search) params.search = search;
       if (filterStatus) params.statusId = Number(filterStatus);
       if (filterPriority) params.priority = filterPriority;
+      if (filterAssignee) params.assigneeId = Number(filterAssignee);
       const data = await listProjectTasks(projectId, params);
       setTasks(data);
     } finally {
       setLoading(false);
     }
-  }, [projectId, search, filterStatus, filterPriority]);
+  }, [projectId, search, filterStatus, filterPriority, filterAssignee]);
 
   useEffect(() => { fetchTasks(); }, [fetchTasks]);
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4 flex-wrap gap-y-2">
-        <div className="flex items-center gap-3 flex-1 min-w-0">
+        <div className="flex items-center gap-3 flex-1 min-w-0 flex-wrap">
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search tasks..."
             className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 w-full sm:w-48"
           />
+          <select value={filterAssignee} onChange={(e) => setFilterAssignee(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+            <option value="">All members</option>
+            {members.map((m) => <option key={m.userId} value={m.userId}>{m.fullName}</option>)}
+          </select>
           <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
             <option value="">All statuses</option>
             {statuses.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
