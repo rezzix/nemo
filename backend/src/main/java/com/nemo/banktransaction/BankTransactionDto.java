@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 public record BankTransactionDto(
         Long id,
         Long bankAccountId,
+        Long bankStatementId,
         String date,
         String description,
         BigDecimal amount,

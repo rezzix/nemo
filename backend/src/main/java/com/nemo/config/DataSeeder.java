@@ -12,6 +12,7 @@ import com.nemo.bankaccount.BankAccount;
 import com.nemo.bankaccount.BankAccountRepository;
 import com.nemo.banktransaction.BankTransaction;
 import com.nemo.banktransaction.BankTransactionRepository;
+import com.nemo.bankstatement.BankStatementRepository;
 import com.nemo.documentation.WikiPage;
 import com.nemo.documentation.WikiPageRepository;
 import com.nemo.task.Task;
@@ -124,6 +125,7 @@ public class DataSeeder implements CommandLineRunner {
     private final ProjectPaymentRepository projectPaymentRepository;
     private final BankAccountRepository bankAccountRepository;
     private final BankTransactionRepository bankTransactionRepository;
+    private final BankStatementRepository bankStatementRepository;
 
     public DataSeeder(UserRepository userRepository,
                       PasswordEncoder passwordEncoder,
@@ -156,7 +158,8 @@ public class DataSeeder implements CommandLineRunner {
                       PreSaleRepository preSaleRepository,
                       ProjectPaymentRepository projectPaymentRepository,
                       BankAccountRepository bankAccountRepository,
-                      BankTransactionRepository bankTransactionRepository) {
+                      BankTransactionRepository bankTransactionRepository,
+                      BankStatementRepository bankStatementRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.companyRepository = companyRepository;
@@ -189,6 +192,7 @@ public class DataSeeder implements CommandLineRunner {
         this.projectPaymentRepository = projectPaymentRepository;
         this.bankAccountRepository = bankAccountRepository;
         this.bankTransactionRepository = bankTransactionRepository;
+        this.bankStatementRepository = bankStatementRepository;
     }
 
     // --- Seeding profile records ---

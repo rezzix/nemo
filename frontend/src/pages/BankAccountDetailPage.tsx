@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import type { BankAccountDto, BankTransactionDto } from '@/types';
 import { getBankAccount } from '@/api/bankAccounts';
 import { listTransactions, createTransaction, updateTransaction, deleteTransaction } from '@/api/bankTransactions';
+import { importStatement } from '@/api/bankStatements';
 import { useAuth } from '@/hooks/useAuth';
 import { formatCurrency, formatDate } from '@/utils/format';
 import Spinner from '@/components/common/Spinner';
@@ -44,6 +45,10 @@ export default function BankAccountDetailPage() {
   const [txStatus, setTxStatus] = useState('NEW');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{ importedCount: number; matched: boolean; warning: string | null } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const accountId = Number(id);
 
@@ -115,6 +120,19 @@ export default function BankAccountDetailPage() {
     setTransactions(prev => prev.filter(t => t.id !== tx.id));
   };
 
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    setImportResult(null);
+    try {
+      const result = await importStatement(accountId, file);
+      setImportResult(result);
+      fetchTransactions();
+    } catch { setError('Failed to import statement. Please check the file and try again.'); }
+    finally { setImporting(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
+  };
+
   if (loadingAccount) {
     return <div className="flex items-center justify-center h-64"><Spinner className="h-8 w-8 text-primary-600" /></div>;
   }
@@ -153,12 +171,37 @@ export default function BankAccountDetailPage() {
         </div>
       </div>
 
+      {/* Import result banner */}
+      {importResult && (
+        <div className={`rounded-xl border p-4 ${importResult.matched ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'}`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className={`font-medium ${importResult.matched ? 'text-green-800' : 'text-yellow-800'}`}>
+                {importResult.importedCount} transaction{importResult.importedCount !== 1 ? 's' : ''} imported successfully
+              </p>
+              {importResult.warning && (
+                <p className="text-sm mt-1 text-yellow-700">{importResult.warning}</p>
+              )}
+            </div>
+            <button onClick={() => setImportResult(null)} className="text-gray-400 hover:text-gray-600">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Transactions section */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">Transactions</h2>
           {canEdit && (
-            <button onClick={openCreate} className="bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700">Add Transaction</button>
+            <div className="flex items-center gap-2">
+              <input ref={fileInputRef} type="file" accept=".pdf" onChange={handleImport} className="hidden" />
+              <button onClick={() => fileInputRef.current?.click()} disabled={importing} className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50 flex items-center gap-1.5">
+                {importing ? <><Spinner className="h-4 w-4" />Importing...</> : <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>Import PDF</>}
+              </button>
+              <button onClick={openCreate} className="bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700">Add Transaction</button>
+            </div>
           )}
         </div>
 

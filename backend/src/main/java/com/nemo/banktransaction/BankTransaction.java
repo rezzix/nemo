@@ -1,6 +1,7 @@
 package com.nemo.banktransaction;
 
 import com.nemo.bankaccount.BankAccount;
+import com.nemo.bankstatement.BankStatement;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -42,6 +43,10 @@ public class BankTransaction {
     @Column(nullable = false, length = 20)
     private Status status = Status.NEW;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "bank_statement_id")
+    private BankStatement bankStatement;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -68,6 +73,8 @@ public class BankTransaction {
     public void setReference(String reference) { this.reference = reference; }
     public Status getStatus() { return status; }
     public void setStatus(Status status) { this.status = status; }
+    public BankStatement getBankStatement() { return bankStatement; }
+    public void setBankStatement(BankStatement bankStatement) { this.bankStatement = bankStatement; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 }

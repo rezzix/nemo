@@ -19,3 +19,4 @@ export type { PreSaleDto, PreSaleStage, CreatePreSaleRequest, UpdatePreSaleReque
 export type { ProjectExpenseDto, CreateProjectExpenseRequest, UpdateProjectExpenseRequest } from './expense';
 export type { BankAccountDto, CreateBankAccountRequest, UpdateBankAccountRequest } from './bankAccount';
 export type { BankTransactionDto, CreateBankTransactionRequest, UpdateBankTransactionRequest } from './bankTransaction';
+export type { BankStatementDto, ImportResult } from './bankStatement';

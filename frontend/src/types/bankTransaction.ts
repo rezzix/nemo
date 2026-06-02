@@ -1,6 +1,7 @@
 export interface BankTransactionDto {
   id: number;
   bankAccountId: number;
+  bankStatementId: number | null;
   date: string;
   description: string;
   amount: number;

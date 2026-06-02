@@ -1,0 +1,247 @@
+package com.nemo.bankstatement;
+
+import com.nemo.bankaccount.BankAccount;
+import com.nemo.bankaccount.BankAccountRepository;
+import com.nemo.banktransaction.BankTransaction;
+import com.nemo.banktransaction.BankTransactionRepository;
+import com.nemo.common.exception.EntityNotFoundException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.*;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+@Service
+public class StatementImportService {
+
+    private static final Logger log = LoggerFactory.getLogger(StatementImportService.class);
+    private static final BigDecimal MATCH_TOLERANCE = new BigDecimal("0.02");
+    private static final String MODEL = "gpt-4o";
+
+    private final BankAccountRepository bankAccountRepository;
+    private final BankStatementRepository bankStatementRepository;
+    private final BankTransactionRepository bankTransactionRepository;
+    private final ObjectMapper objectMapper;
+    private final String apiKey;
+    private final String baseUrl;
+    private final RestTemplate restTemplate;
+
+    public StatementImportService(BankAccountRepository bankAccountRepository,
+                                   BankStatementRepository bankStatementRepository,
+                                   BankTransactionRepository bankTransactionRepository,
+                                   ObjectMapper objectMapper,
+                                   @Value("${nemo.openai.api-key:}") String apiKey,
+                                   @Value("${nemo.openai.base-url:https://api.openai.com/v1}") String baseUrl) {
+        this.bankAccountRepository = bankAccountRepository;
+        this.bankStatementRepository = bankStatementRepository;
+        this.bankTransactionRepository = bankTransactionRepository;
+        this.objectMapper = objectMapper;
+        this.apiKey = apiKey;
+        this.baseUrl = baseUrl;
+        this.restTemplate = new RestTemplate();
+    }
+
+    @Transactional
+    public BankStatementDto.ImportResult importPdf(Long bankAccountId, MultipartFile file) {
+        BankAccount account = bankAccountRepository.findById(bankAccountId)
+                .orElseThrow(() -> new EntityNotFoundException("BankAccount", bankAccountId));
+
+        if (apiKey == null || apiKey.isBlank()) {
+            throw new IllegalStateException("OpenAI API key is not configured. Set nemo.openai.api-key in application.yml or OPENAI_API_KEY environment variable.");
+        }
+
+        try {
+            // 1. Encode PDF to base64
+            String base64Pdf = java.util.Base64.getEncoder().encodeToString(file.getBytes());
+
+            // 2. Build OpenAI-compatible request
+            String systemPrompt = "You are a bank statement parser. Extract all transactions from the bank statement. " +
+                    "Return a JSON object with the exact schema specified. " +
+                    "Amounts should be positive for credits (money in) and negative for debits (money out). " +
+                    "Be thorough — extract every transaction. " +
+                    "The statement period, totals, and balances should match what is shown on the document.";
+
+            String userPrompt = "Extract all transactions from this bank statement. Return JSON with: " +
+                    "statementPeriod (startDate as YYYY-MM-DD, endDate as YYYY-MM-DD), " +
+                    "totalDebits (absolute sum of all negative amounts as positive number), " +
+                    "totalCredits (sum of all positive amounts), " +
+                    "openingBalance, closingBalance, " +
+                    "and operations array (each with date as YYYY-MM-DD, description, amount where positive=credit/negative=debit, reference or null).";
+
+            Map<String, Object> imageUrlContent = Map.of(
+                    "type", "image_url",
+                    "image_url", Map.of("url", "data:application/pdf;base64," + base64Pdf)
+            );
+
+            Map<String, Object> textContent = Map.of(
+                    "type", "text",
+                    "text", userPrompt
+            );
+
+            Map<String, Object> request = Map.of(
+                    "model", MODEL,
+                    "messages", List.of(
+                            Map.of("role", "system", "content", systemPrompt),
+                            Map.of("role", "user", "content", List.of(textContent, imageUrlContent))
+                    ),
+                    "max_tokens", 4096
+            );
+
+            // 3. Call OpenAI-compatible API
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(apiKey);
+
+            HttpEntity<String> entity = new HttpEntity<>(objectMapper.writeValueAsString(request), headers);
+            ResponseEntity<String> response = restTemplate.exchange(
+                    baseUrl + "/chat/completions", HttpMethod.POST, entity, String.class);
+
+            // 4. Parse response
+            JsonNode responseJson = objectMapper.readTree(response.getBody());
+            String content = responseJson.path("choices").get(0).path("message").path("content").asText();
+
+            // Strip markdown code fences if present
+            content = content.trim();
+            if (content.startsWith("```json")) {
+                content = content.substring(7);
+            } else if (content.startsWith("```")) {
+                content = content.substring(3);
+            }
+            if (content.endsWith("```")) {
+                content = content.substring(0, content.length() - 3);
+            }
+            content = content.trim();
+
+            JsonNode extracted = objectMapper.readTree(content);
+
+            // 5. Parse statement metadata
+            LocalDate periodStart = parseDate(extracted.path("statementPeriod").path("startDate").asText(null));
+            LocalDate periodEnd = parseDate(extracted.path("statementPeriod").path("endDate").asText(null));
+            BigDecimal totalDebits = parseBigDecimal(extracted.path("totalDebits"));
+            BigDecimal totalCredits = parseBigDecimal(extracted.path("totalCredits"));
+            BigDecimal openingBalance = parseBigDecimalOrNull(extracted.path("openingBalance"));
+            BigDecimal closingBalance = parseBigDecimalOrNull(extracted.path("closingBalance"));
+
+            // 6. Parse operations and create transactions
+            JsonNode operations = extracted.path("operations");
+            List<BankTransaction> transactions = new ArrayList<>();
+            BigDecimal computedDebits = BigDecimal.ZERO;
+            BigDecimal computedCredits = BigDecimal.ZERO;
+
+            for (JsonNode op : operations) {
+                BigDecimal amount = parseBigDecimal(op.path("amount"));
+                String currency = account.getCurrency();
+                String dateStr = op.path("date").asText(null);
+                String description = op.path("description").asText("");
+                String reference = op.path("reference").asText(null);
+                if ("null".equals(reference)) reference = null;
+
+                BankTransaction tx = new BankTransaction();
+                tx.setBankAccount(account);
+                tx.setDate(dateStr != null ? LocalDate.parse(dateStr) : null);
+                tx.setDescription(description);
+                tx.setAmount(amount != null ? amount : BigDecimal.ZERO);
+                tx.setCurrency(currency);
+                tx.setReference(reference);
+                transactions.add(tx);
+
+                if (amount != null) {
+                    if (amount.compareTo(BigDecimal.ZERO) < 0) {
+                        computedDebits = computedDebits.add(amount.abs());
+                    } else {
+                        computedCredits = computedCredits.add(amount);
+                    }
+                }
+            }
+
+            // 7. Sum check
+            boolean matched = isMatch(computedDebits, totalDebits) && isMatch(computedCredits, totalCredits);
+
+            // 8. Save statement
+            BankStatement statement = new BankStatement();
+            statement.setBankAccount(account);
+            statement.setFileName(file.getOriginalFilename());
+            statement.setPeriodStart(periodStart);
+            statement.setPeriodEnd(periodEnd);
+            statement.setTotalDebits(totalDebits);
+            statement.setTotalCredits(totalCredits);
+            statement.setOpeningBalance(openingBalance);
+            statement.setClosingBalance(closingBalance);
+            statement.setComputedDebits(computedDebits);
+            statement.setComputedCredits(computedCredits);
+            statement.setMatched(matched);
+            bankStatementRepository.save(statement);
+
+            // 9. Save transactions with link to statement
+            for (BankTransaction tx : transactions) {
+                tx.setBankStatement(statement);
+                bankTransactionRepository.save(tx);
+            }
+
+            String warning = null;
+            if (!matched) {
+                warning = String.format("Sum check mismatch: computed debits=%s vs statement=%s, computed credits=%s vs statement=%s",
+                        computedDebits, totalDebits, computedCredits, totalCredits);
+            }
+
+            return new BankStatementDto.ImportResult(
+                    statement.getId(),
+                    transactions.size(),
+                    matched,
+                    warning
+            );
+
+        } catch (EntityNotFoundException e) {
+            throw e;
+        } catch (IllegalStateException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to import bank statement PDF", e);
+            throw new RuntimeException("Failed to import bank statement: " + e.getMessage(), e);
+        }
+    }
+
+    private boolean isMatch(BigDecimal computed, BigDecimal stated) {
+        if (computed == null || stated == null) return false;
+        return computed.subtract(stated).abs().compareTo(MATCH_TOLERANCE) <= 0;
+    }
+
+    private LocalDate parseDate(String dateStr) {
+        if (dateStr == null || dateStr.isBlank()) return null;
+        try {
+            return LocalDate.parse(dateStr);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private BigDecimal parseBigDecimal(JsonNode node) {
+        if (node == null || node.isMissingNode() || node.isNull()) return BigDecimal.ZERO;
+        try {
+            return node.decimalValue();
+        } catch (Exception e) {
+            return BigDecimal.ZERO;
+        }
+    }
+
+    private BigDecimal parseBigDecimalOrNull(JsonNode node) {
+        if (node == null || node.isMissingNode() || node.isNull()) return null;
+        try {
+            return node.decimalValue();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+}
