@@ -8,6 +8,8 @@ import com.nemo.company.Company;
 import com.nemo.company.CompanyRepository;
 import com.nemo.asset.Asset;
 import com.nemo.asset.AssetRepository;
+import com.nemo.bankaccount.BankAccount;
+import com.nemo.bankaccount.BankAccountRepository;
 import com.nemo.documentation.WikiPage;
 import com.nemo.documentation.WikiPageRepository;
 import com.nemo.task.Task;
@@ -118,6 +120,7 @@ public class DataSeeder implements CommandLineRunner {
     private final ProjectExpenseRepository projectExpenseRepository;
     private final PreSaleRepository preSaleRepository;
     private final ProjectPaymentRepository projectPaymentRepository;
+    private final BankAccountRepository bankAccountRepository;
 
     public DataSeeder(UserRepository userRepository,
                       PasswordEncoder passwordEncoder,
@@ -148,7 +151,8 @@ public class DataSeeder implements CommandLineRunner {
                       LeaveRequestRepository leaveRequestRepository,
                       ProjectExpenseRepository projectExpenseRepository,
                       PreSaleRepository preSaleRepository,
-                      ProjectPaymentRepository projectPaymentRepository) {
+                      ProjectPaymentRepository projectPaymentRepository,
+                      BankAccountRepository bankAccountRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.companyRepository = companyRepository;
@@ -179,6 +183,7 @@ public class DataSeeder implements CommandLineRunner {
         this.projectExpenseRepository = projectExpenseRepository;
         this.preSaleRepository = preSaleRepository;
         this.projectPaymentRepository = projectPaymentRepository;
+        this.bankAccountRepository = bankAccountRepository;
     }
 
     // --- Seeding profile records ---
@@ -1007,6 +1012,15 @@ public class DataSeeder implements CommandLineRunner {
         createExpense(footballTeam, ExpenseCategory.TRAVEL, new BigDecimal("10000"), "Away match logistics", today.minusMonths(2), youssef);
         createExpense(footballTeam, ExpenseCategory.INFRASTRUCTURE, new BigDecimal("15000"), "Server hosting and CDN", today.minusMonths(1), youssef);
         createExpense(footballTeam, ExpenseCategory.EXPERTISE, new BigDecimal("25000"), "Sports analytics consultancy", today.minusMonths(6), youssef);
+
+        // Bank accounts
+        if (bankAccountRepository.count() == 0) {
+            bankAccountRepository.save(new BankAccount(company1, "Main Operating Account", "MA12345678901234567890123456", "MAD", new BigDecimal("500000")));
+            bankAccountRepository.save(new BankAccount(company1, "Savings Account", "MA98765432109876543210987654", "MAD", new BigDecimal("2000000")));
+            bankAccountRepository.save(new BankAccount(company2, "EUR Operating Account", "FR1420041010050500013M02606", "EUR", new BigDecimal("150000")));
+            bankAccountRepository.save(new BankAccount(company3, "Corporate Account", "NL91ABNA0417164300", "EUR", new BigDecimal("320000")));
+            bankAccountRepository.save(new BankAccount(company4, "Primary Account", "DE89370400440532013000", "EUR", new BigDecimal("80000")));
+        }
 
         // Project payments
         createPayment(fse, "Project Kickoff Invoice", new BigDecimal("100000"), today.minusMonths(17), today.minusMonths(15), ProjectPayment.PaymentStatus.RECEIVED, alex);
