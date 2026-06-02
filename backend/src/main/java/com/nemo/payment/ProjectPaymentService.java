@@ -51,11 +51,10 @@ public class ProjectPaymentService {
         payment.setAmount(request.amount());
         if (request.currency() != null) {
             payment.setCurrency(request.currency());
-        } else if (project.getCompany() != null) {
-            String projectCurrency = configRepository.findByCompanyId(project.getCompany().getId())
-                    .map(OrganizationConfig::getCurrency).orElse(null);
-            if (projectCurrency != null) {
-                payment.setCurrency(projectCurrency);
+        } else {
+            String resolvedCurrency = resolveCurrency(project);
+            if (resolvedCurrency != null) {
+                payment.setCurrency(resolvedCurrency);
             }
         }
         payment.setDueDate(request.dueDate() != null ? LocalDate.parse(request.dueDate()) : null);
@@ -96,6 +95,20 @@ public class ProjectPaymentService {
     public BigDecimal sumReceivedByProjectId(Long projectId) {
         BigDecimal sum = paymentRepository.sumAmountByProjectIdAndStatus(projectId, ProjectPayment.PaymentStatus.RECEIVED);
         return sum != null ? sum : BigDecimal.ZERO;
+    }
+
+    private String resolveCurrency(Project project) {
+        // 1. Try company-specific config
+        if (project.getCompany() != null) {
+            String currency = configRepository.findByCompanyId(project.getCompany().getId())
+                    .map(OrganizationConfig::getCurrency).orElse(null);
+            if (currency != null) {
+                return currency;
+            }
+        }
+        // 2. Fall back to global config
+        return configRepository.findByCompanyIdIsNull()
+                .map(OrganizationConfig::getCurrency).orElse(null);
     }
 
     private void computeOverdue(ProjectPayment payment) {
