@@ -83,6 +83,9 @@ export default function Sidebar() {
         ...(role === 'FINANCE'
           ? [{ to: '/finance', label: 'Finance', icon: FinanceIcon }]
           : []),
+        ...(role === 'FINANCE' || role === 'EXECUTIVE'
+          ? [{ to: '/finance/bank-accounts', label: 'Bank Accounts', icon: BankAccountsIcon }]
+          : []),
       ],
     }] : []),
   ].filter((s) => s.items.length > 0);
@@ -284,6 +287,14 @@ function FinanceIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.103-.879-1.103-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  );
+}
+
+function BankAccountsIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 6h18M3 6v12a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 18V6M3 6l9-3 9 3M9 12h.01M15 12h.01M9 16h.01M15 16h.01" />
     </svg>
   );
 }

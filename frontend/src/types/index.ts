@@ -17,3 +17,4 @@ export type { LocationDto, AssetDto, AssetType, AssetStatus, CreateLocationReque
 export type { ClientDto, ClientContactDto, CreateClientRequest, UpdateClientRequest, CreateClientContactRequest, UpdateClientContactRequest } from './client';
 export type { PreSaleDto, PreSaleStage, CreatePreSaleRequest, UpdatePreSaleRequest, ConvertPreSaleRequest, CostSummaryDto, UserCostEntry } from './presale';
 export type { ProjectExpenseDto, CreateProjectExpenseRequest, UpdateProjectExpenseRequest } from './expense';
+export type { BankAccountDto, CreateBankAccountRequest, UpdateBankAccountRequest } from './bankAccount';
