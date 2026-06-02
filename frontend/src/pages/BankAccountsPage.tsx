@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import type { BankAccountDto } from '@/types';
 import { listBankAccounts, createBankAccount, updateBankAccount, deactivateBankAccount } from '@/api/bankAccounts';
 import { useAuth } from '@/hooks/useAuth';
@@ -118,7 +119,7 @@ export default function BankAccountsPage() {
             <tbody className="divide-y divide-gray-100">
               {accounts.map(a => (
                 <tr key={a.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium text-gray-900">{a.name}</td>
+                  <td className="px-4 py-3 font-medium text-gray-900"><Link to={`/finance/bank-accounts/${a.id}`} className="hover:text-primary-600">{a.name}</Link></td>
                   <td className="px-4 py-3 text-gray-600 font-mono text-xs">{a.iban}</td>
                   <td className="px-4 py-3"><span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">{a.currency}</span></td>
                   <td className="px-4 py-3 text-right font-medium">{formatCurrency(a.currentBalance)}</td>
