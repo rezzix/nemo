@@ -111,7 +111,7 @@ export default function FinancePage() {
         ) : payments && paymentView === 'pending' && payments.pending.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">{['Project','Title','Amount','Due Date','Delay'].map(h => <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{h}</th>)}</thead>
+              <thead className="bg-gray-50">{['Project','Title','Amount','Due Date','Due in'].map(h => <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{h}</th>)}</thead>
               <tbody className="divide-y divide-gray-100">
                 {payments.pending.map(p => {
                   const delay = p.dueDate ? Math.ceil((new Date(p.dueDate).getTime() - Date.now()) / 86400000) : null;
