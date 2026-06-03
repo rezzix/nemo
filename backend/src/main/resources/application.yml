@@ -5,7 +5,7 @@ nemo:
   openai:
     api-key: ${OPENAI_API_KEY:}
     base-url: ${OPENAI_BASE_URL:https://api.together.ai/v1}
-    model: ${OPENAI_MODEL:Qwen/Qwen3.5-9B}
+    model: ${OPENAI_MODEL:google/gemma-4-31B-it}
 
 spring:
   application:
