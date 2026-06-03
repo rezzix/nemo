@@ -4,8 +4,8 @@ nemo:
   build: ''
   openai:
     api-key: ${OPENAI_API_KEY:}
-    base-url: ${OPENAI_BASE_URL:https://api.fireworks.ai/inference/v1}
-    model: ${OPENAI_MODEL:accounts/fireworks/models/kimi-k2p6}
+    base-url: ${OPENAI_BASE_URL:https://api.together.ai/v1}
+    model: ${OPENAI_MODEL:Qwen/Qwen3.5-9B}
 
 spring:
   application:
