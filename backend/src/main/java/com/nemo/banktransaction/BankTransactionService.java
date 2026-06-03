@@ -26,7 +26,7 @@ public class BankTransactionService {
 
     @Transactional(readOnly = true)
     public Page<BankTransaction> list(Long bankAccountId, int page, int size, String sort) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
+        Pageable pageable = PageRequest.of(page, size);
         return bankTransactionRepository.findByBankAccountIdOrderByDateDesc(bankAccountId, pageable);
     }
 

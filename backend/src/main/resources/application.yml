@@ -3,9 +3,9 @@ nemo:
   version: 0.9.0
   build: ''
   openai:
-    api-key: ${OPENAI_API_KEY:ollama}
-    base-url: ${OPENAI_BASE_URL:http://localhost:11434/v1}
-    model: ${OPENAI_MODEL:qwen3.5:4b}
+    api-key: ${OPENAI_API_KEY:}
+    base-url: ${OPENAI_BASE_URL:https://api.fireworks.ai/inference/v1}
+    model: ${OPENAI_MODEL:accounts/fireworks/models/kimi-k2p6}
 
 spring:
   application:
