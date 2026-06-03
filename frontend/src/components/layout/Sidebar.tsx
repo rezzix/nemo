@@ -2,9 +2,10 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { useUIStore } from '@/stores/uiStore';
 import { getInitials } from '@/utils/format';
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import { getUnreconciledCount } from '@/api/reconciliation';
 
-type NavItem = { to: string; label: string; icon: React.FC<{ className?: string }> };
+type NavItem = { to: string; label: string; icon: React.FC<{ className?: string }>; badge?: number };
 type NavSection = { header?: string; items: NavItem[] };
 
 export default function Sidebar() {
@@ -15,6 +16,20 @@ export default function Sidebar() {
   const closeMobileSidebar = useUIStore((s) => s.closeMobileSidebar);
   const navigate = useNavigate();
   const location = useLocation();
+  const [unreconciledCount, setUnreconciledCount] = useState<number>(0);
+
+  const loadBadge = useCallback(async () => {
+    if (user?.role === 'FINANCE') {
+      try {
+        const data = await getUnreconciledCount();
+        setUnreconciledCount(data.count);
+      } catch { /* ignore */ }
+    }
+  }, [user?.role]);
+
+  useEffect(() => {
+    loadBadge();
+  }, [loadBadge]);
 
   useEffect(() => {
     if (isMobile) closeMobileSidebar();
@@ -86,6 +101,9 @@ export default function Sidebar() {
         ...(role === 'FINANCE' || role === 'EXECUTIVE'
           ? [{ to: '/finance/bank-accounts', label: 'Bank Accounts', icon: BankAccountsIcon }]
           : []),
+        ...(role === 'FINANCE'
+          ? [{ to: '/finance/reconciliation', label: 'Reconciliation', icon: ReconciliationIcon, badge: unreconciledCount }]
+          : []),
       ],
     }] : []),
   ].filter((s) => s.items.length > 0);
@@ -114,7 +132,7 @@ export default function Sidebar() {
               </div>
             )}
             <div className="space-y-0.5">
-              {section.items.map(({ to, label, icon: Icon }) => (
+              {section.items.map(({ to, label, icon: Icon, badge }) => (
                 <NavLink
                   key={to}
                   to={to}
@@ -129,6 +147,16 @@ export default function Sidebar() {
                 >
                   <Icon className="w-5 h-5 shrink-0" />
                   {(!collapsed || isMobile) && <span>{label}</span>}
+                  {badge !== undefined && badge > 0 && (!collapsed || isMobile) && (
+                    <span className="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold bg-amber-500 text-white">
+                      {badge > 99 ? '99+' : badge}
+                    </span>
+                  )}
+                  {badge !== undefined && badge > 0 && collapsed && !isMobile && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 text-white text-[9px] font-bold flex items-center justify-center">
+                      {badge > 9 ? '9+' : badge}
+                    </span>
+                  )}
                 </NavLink>
               ))}
             </div>
@@ -295,6 +323,14 @@ function BankAccountsIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M3 6h18M3 6v12a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 18V6M3 6l9-3 9 3M9 12h.01M15 12h.01M9 16h.01M15 16h.01" />
+    </svg>
+  );
+}
+
+function ReconciliationIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
     </svg>
   );
 }

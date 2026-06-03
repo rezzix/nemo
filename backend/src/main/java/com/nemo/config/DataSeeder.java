@@ -10,6 +10,9 @@ import com.nemo.asset.Asset;
 import com.nemo.asset.AssetRepository;
 import com.nemo.bankaccount.BankAccount;
 import com.nemo.bankaccount.BankAccountRepository;
+import com.nemo.banktransaction.BankTransaction;
+import com.nemo.banktransaction.BankTransactionRepository;
+import com.nemo.bankstatement.BankStatementRepository;
 import com.nemo.documentation.WikiPage;
 import com.nemo.documentation.WikiPageRepository;
 import com.nemo.task.Task;
@@ -121,6 +124,8 @@ public class DataSeeder implements CommandLineRunner {
     private final PreSaleRepository preSaleRepository;
     private final ProjectPaymentRepository projectPaymentRepository;
     private final BankAccountRepository bankAccountRepository;
+    private final BankTransactionRepository bankTransactionRepository;
+    private final BankStatementRepository bankStatementRepository;
 
     public DataSeeder(UserRepository userRepository,
                       PasswordEncoder passwordEncoder,
@@ -152,7 +157,9 @@ public class DataSeeder implements CommandLineRunner {
                       ProjectExpenseRepository projectExpenseRepository,
                       PreSaleRepository preSaleRepository,
                       ProjectPaymentRepository projectPaymentRepository,
-                      BankAccountRepository bankAccountRepository) {
+                      BankAccountRepository bankAccountRepository,
+                      BankTransactionRepository bankTransactionRepository,
+                      BankStatementRepository bankStatementRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.companyRepository = companyRepository;
@@ -184,6 +191,8 @@ public class DataSeeder implements CommandLineRunner {
         this.preSaleRepository = preSaleRepository;
         this.projectPaymentRepository = projectPaymentRepository;
         this.bankAccountRepository = bankAccountRepository;
+        this.bankTransactionRepository = bankTransactionRepository;
+        this.bankStatementRepository = bankStatementRepository;
     }
 
     // --- Seeding profile records ---
@@ -1014,12 +1023,31 @@ public class DataSeeder implements CommandLineRunner {
         createExpense(footballTeam, ExpenseCategory.EXPERTISE, new BigDecimal("25000"), "Sports analytics consultancy", today.minusMonths(6), youssef);
 
         // Bank accounts
+        BankAccount mainOperating = null, savingsAcct = null, eurOperating = null, corporateAcct = null, primaryAcct = null;
         if (bankAccountRepository.count() == 0) {
-            bankAccountRepository.save(new BankAccount(company1, "Main Operating Account", "MA12345678901234567890123456", "MAD", new BigDecimal("500000")));
-            bankAccountRepository.save(new BankAccount(company1, "Savings Account", "MA98765432109876543210987654", "MAD", new BigDecimal("2000000")));
-            bankAccountRepository.save(new BankAccount(company2, "EUR Operating Account", "FR1420041010050500013M02606", "EUR", new BigDecimal("150000")));
-            bankAccountRepository.save(new BankAccount(company3, "Corporate Account", "NL91ABNA0417164300", "EUR", new BigDecimal("320000")));
-            bankAccountRepository.save(new BankAccount(company4, "Primary Account", "DE89370400440532013000", "EUR", new BigDecimal("80000")));
+            mainOperating = bankAccountRepository.save(new BankAccount(company1, "Main Operating Account", "MA12345678901234567890123456", "MAD", new BigDecimal("500000")));
+            savingsAcct = bankAccountRepository.save(new BankAccount(company1, "Savings Account", "MA98765432109876543210987654", "MAD", new BigDecimal("2000000")));
+            eurOperating = bankAccountRepository.save(new BankAccount(company2, "EUR Operating Account", "FR1420041010050500013M02606", "EUR", new BigDecimal("150000")));
+            corporateAcct = bankAccountRepository.save(new BankAccount(company3, "Corporate Account", "NL91ABNA0417164300", "EUR", new BigDecimal("320000")));
+            primaryAcct = bankAccountRepository.save(new BankAccount(company4, "Primary Account", "DE89370400440532013000", "EUR", new BigDecimal("80000")));
+        }
+
+        // Bank transactions
+        if (bankTransactionRepository.count() == 0 && mainOperating != null) {
+            createBankTransaction(mainOperating, today.minusMonths(3), "Client payment - FSE Phase 1", new BigDecimal("150000"), "MAD", "TRF-001");
+            createBankTransaction(mainOperating, today.minusMonths(2), "Office rent", new BigDecimal("-25000"), "MAD", "DD-001");
+            createBankTransaction(mainOperating, today.minusMonths(1), "API Gateway subscription", new BigDecimal("-15000"), "MAD", "DD-002");
+            createBankTransaction(mainOperating, today.minusDays(15), "Client payment - Mobile App MVP", new BigDecimal("40000"), "MAD", "TRF-002");
+            createBankTransaction(mainOperating, today.minusDays(5), "Payroll - January", new BigDecimal("-180000"), "MAD", "PAY-001");
+            createBankTransaction(savingsAcct, today.minusMonths(6), "Quarterly interest", new BigDecimal("12500"), "MAD", "INT-001");
+            createBankTransaction(savingsAcct, today.minusMonths(2), "Transfer from operating", new BigDecimal("500000"), "MAD", "TRF-003");
+            createBankTransaction(eurOperating, today.minusMonths(4), "Client payment - Data Warehouse", new BigDecimal("55000"), "EUR", "TRF-EUR-001");
+            createBankTransaction(eurOperating, today.minusMonths(2), "Cloud hosting - AWS", new BigDecimal("-8000"), "EUR", "DD-EUR-001");
+            createBankTransaction(eurOperating, today.minusWeeks(1), "Consulting fees", new BigDecimal("-12000"), "EUR", "DD-EUR-002");
+            createBankTransaction(corporateAcct, today.minusMonths(3), "License revenue", new BigDecimal("85000"), "EUR", "TRF-NL-001");
+            createBankTransaction(corporateAcct, today.minusMonths(1), "Vendor payment - Software", new BigDecimal("-35000"), "EUR", "DD-NL-001");
+            createBankTransaction(primaryAcct, today.minusMonths(2), "Project delivery payment", new BigDecimal("50000"), "EUR", "TRF-DE-001");
+            createBankTransaction(primaryAcct, today.minusWeeks(2), "Office expenses", new BigDecimal("-5000"), "EUR", "DD-DE-001");
         }
 
         // Project payments
@@ -1356,6 +1384,18 @@ public class DataSeeder implements CommandLineRunner {
         expense.setCreatedBy(createdBy);
         expense.setApprovalStatus(ProjectExpense.ApprovalStatus.APPROVED);
         return projectExpenseRepository.save(expense);
+    }
+
+    private BankTransaction createBankTransaction(BankAccount bankAccount, LocalDate date, String description,
+                                                    BigDecimal amount, String currency, String reference) {
+        BankTransaction tx = new BankTransaction();
+        tx.setBankAccount(bankAccount);
+        tx.setDate(date);
+        tx.setDescription(description);
+        tx.setAmount(amount);
+        tx.setCurrency(currency);
+        tx.setReference(reference);
+        return bankTransactionRepository.save(tx);
     }
 
     private ProjectPayment createPayment(Project project, String title, BigDecimal amount,

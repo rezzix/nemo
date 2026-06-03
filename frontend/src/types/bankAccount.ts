@@ -12,6 +12,7 @@ export interface BankAccountDto {
 }
 
 export interface CreateBankAccountRequest {
+  companyId?: number | null;
   name: string;
   iban: string;
   currency: string;

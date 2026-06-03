@@ -29,4 +29,10 @@ public interface ProjectPaymentRepository extends JpaRepository<ProjectPayment, 
 
     @Query("SELECT p FROM ProjectPayment p JOIN FETCH p.project WHERE p.receivedDate BETWEEN :start AND :end ORDER BY p.receivedDate ASC")
     List<ProjectPayment> findByReceivedDateBetweenOrderByReceivedDateAsc(@Param("start") LocalDate start, @Param("end") LocalDate end);
+
+    @Query("SELECT p FROM ProjectPayment p JOIN FETCH p.project prj " +
+            "WHERE p.reconciled = false AND p.status <> :cancelledStatus " +
+            "AND (:companyId IS NULL OR prj.company.id = :companyId) " +
+            "ORDER BY p.dueDate ASC")
+    List<ProjectPayment> findUnreconciledByCompany(@Param("companyId") Long companyId, @Param("cancelledStatus") ProjectPayment.PaymentStatus cancelledStatus);
 }

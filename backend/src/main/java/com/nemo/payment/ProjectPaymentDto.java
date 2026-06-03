@@ -9,6 +9,7 @@ public class ProjectPaymentDto {
             String title, BigDecimal amount, String currency,
             String dueDate, String receivedDate, String status,
             String invoiceRef, String notes,
+            boolean reconciled,
             Long createdById, String createdByName,
             String createdAt, String updatedAt
     ) {}

@@ -18,3 +18,6 @@ export type { ClientDto, ClientContactDto, CreateClientRequest, UpdateClientRequ
 export type { PreSaleDto, PreSaleStage, CreatePreSaleRequest, UpdatePreSaleRequest, ConvertPreSaleRequest, CostSummaryDto, UserCostEntry } from './presale';
 export type { ProjectExpenseDto, CreateProjectExpenseRequest, UpdateProjectExpenseRequest } from './expense';
 export type { BankAccountDto, CreateBankAccountRequest, UpdateBankAccountRequest } from './bankAccount';
+export type { BankTransactionDto, CreateBankTransactionRequest, UpdateBankTransactionRequest } from './bankTransaction';
+export type { BankStatementDto, ImportResult } from './bankStatement';
+export type { UnreconciledTransactionDto, UnmatchedPaymentDto, ReconcileRequest, UnreconciledCountDto, ReconciliationViewDto } from './reconciliation';
