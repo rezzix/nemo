@@ -22,4 +22,10 @@ public interface BankTransactionRepository extends JpaRepository<BankTransaction
             "WHERE t.status = :status AND (:companyId IS NULL OR t.bankAccount.company.id = :companyId) " +
             "ORDER BY t.date DESC")
     List<BankTransaction> findByStatusAndCompany(@Param("status") BankTransaction.Status status, @Param("companyId") Long companyId);
+
+    @Query("SELECT t FROM BankTransaction t LEFT JOIN FETCH t.projectPayment " +
+            "LEFT JOIN FETCH t.bankAccount " +
+            "WHERE (:companyId IS NULL OR t.bankAccount.company.id = :companyId) " +
+            "ORDER BY t.date DESC, t.id DESC")
+    List<BankTransaction> findRecentByCompany(@Param("companyId") Long companyId, Pageable pageable);
 }

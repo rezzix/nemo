@@ -32,6 +32,7 @@ import FinancePage from '@/pages/FinancePage';
 import BankAccountsPage from '@/pages/BankAccountsPage';
 import BankAccountDetailPage from '@/pages/BankAccountDetailPage';
 import ReconciliationPage from '@/pages/ReconciliationPage';
+import FinanceBankDashboardPage from '@/pages/FinanceBankDashboardPage';
 
 export default function App() {
   const checkSession = useAuthStore((s) => s.checkSession);
@@ -95,6 +96,7 @@ export default function App() {
           <Route path="/finance/bank-accounts" element={<RoleGuard roles={['FINANCE', 'EXECUTIVE']}><BankAccountsPage /></RoleGuard>} />
           <Route path="/finance/bank-accounts/:id" element={<RoleGuard roles={['FINANCE', 'EXECUTIVE']}><BankAccountDetailPage /></RoleGuard>} />
           <Route path="/finance/reconciliation" element={<RoleGuard roles={['FINANCE']}><ReconciliationPage /></RoleGuard>} />
+          <Route path="/finance/dashboard" element={<RoleGuard roles={['FINANCE', 'ADMIN', 'EXECUTIVE']}><FinanceBankDashboardPage /></RoleGuard>} />
           <Route path="/profile" element={<ProfilePage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -111,3 +111,42 @@ export function getFinanceChartData(year?: number): Promise<MonthlyFinanceData> 
   const params = year ? `?year=${year}` : '';
   return apiGet('/finance/chart-data' + params);
 }
+
+// --- Bank Dashboard ---
+
+export interface BankKpiDto {
+  totalCash: number;
+  unreconciledCount: number;
+  pendingPaymentsTotal: number;
+  lastImportDate: string | null;
+}
+
+export interface BankAccountWidgetDto {
+  id: number;
+  name: string;
+  currency: string;
+  balance: number;
+  lastImportDate: string | null;
+}
+
+export interface RecentTransactionDto {
+  id: number;
+  bankAccountId: number;
+  bankAccountName: string;
+  date: string | null;
+  description: string;
+  amount: number;
+  currency: string;
+  status: string;
+  matchedTo: string | null;
+}
+
+export interface BankDashboardResponse {
+  kpis: BankKpiDto;
+  bankAccounts: BankAccountWidgetDto[];
+  recentTransactions: RecentTransactionDto[];
+}
+
+export function getBankDashboard(): Promise<BankDashboardResponse> {
+  return apiGet('/finance/dashboard/bank');
+}

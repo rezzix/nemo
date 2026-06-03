@@ -59,7 +59,16 @@ public class FinanceController {
         return ResponseEntity.ok(ApiResponse.of(dashboard));
     }
 
-@GetMapping("/payments")
+    @GetMapping("/dashboard/bank")
+    @PreAuthorize("hasAnyRole('FINANCE', 'ADMIN', 'EXECUTIVE')")
+    public ResponseEntity<ApiResponse<FinanceDashboardDto.BankDashboardResponse>> getBankDashboard(
+            @AuthenticationPrincipal UserDetails currentUser) {
+        Long companyId = authHelper.getCurrentCompanyId(currentUser);
+        FinanceDashboardDto.BankDashboardResponse dashboard = financeService.getBankDashboard(companyId);
+        return ResponseEntity.ok(ApiResponse.of(dashboard));
+    }
+
+    @GetMapping("/payments")
     @PreAuthorize("hasRole('FINANCE')")
     public ResponseEntity<ApiResponse<FinanceDashboardDto.YearPaymentsResponse>> getPayments(
             @RequestParam(required = false) Integer year) {

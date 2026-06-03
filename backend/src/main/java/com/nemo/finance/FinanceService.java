@@ -1,5 +1,10 @@
 package com.nemo.finance;
 
+import com.nemo.bankaccount.BankAccount;
+import com.nemo.bankaccount.BankAccountRepository;
+import com.nemo.bankstatement.BankStatementRepository;
+import com.nemo.banktransaction.BankTransaction;
+import com.nemo.banktransaction.BankTransactionRepository;
 import com.nemo.expense.ProjectExpense;
 import com.nemo.expense.ProjectExpenseRepository;
 import com.nemo.payment.ProjectPayment;
@@ -8,12 +13,15 @@ import com.nemo.payment.ProjectPaymentService;
 import com.nemo.pmo.PmoService;
 import com.nemo.project.Project;
 import com.nemo.project.ProjectRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,17 +34,26 @@ public class FinanceService {
     private final ProjectPaymentRepository paymentRepository;
     private final ProjectPaymentService paymentService;
     private final PmoService pmoService;
+    private final BankAccountRepository bankAccountRepository;
+    private final BankTransactionRepository transactionRepository;
+    private final BankStatementRepository bankStatementRepository;
 
     public FinanceService(ProjectRepository projectRepository,
                          ProjectExpenseRepository expenseRepository,
                          ProjectPaymentRepository paymentRepository,
                          ProjectPaymentService paymentService,
-                         PmoService pmoService) {
+                         PmoService pmoService,
+                         BankAccountRepository bankAccountRepository,
+                         BankTransactionRepository transactionRepository,
+                         BankStatementRepository bankStatementRepository) {
         this.projectRepository = projectRepository;
         this.expenseRepository = expenseRepository;
         this.paymentRepository = paymentRepository;
         this.paymentService = paymentService;
         this.pmoService = pmoService;
+        this.bankAccountRepository = bankAccountRepository;
+        this.transactionRepository = transactionRepository;
+        this.bankStatementRepository = bankStatementRepository;
     }
 
     @Transactional(readOnly = true)
@@ -174,6 +191,61 @@ public class FinanceService {
                 p.getUpdatedAt() != null ? p.getUpdatedAt().toString() : null,
                 delayDays
         );
+    }
+
+    @Transactional(readOnly = true)
+    public FinanceDashboardDto.BankDashboardResponse getBankDashboard(Long companyId) {
+        // KPIs
+        BigDecimal totalCash = bankAccountRepository.sumActiveBalancesByCompany(companyId);
+        long unreconciledCount = transactionRepository.countByStatusAndCompany(BankTransaction.Status.NEW, companyId);
+        BigDecimal pendingPaymentsTotal = paymentRepository.sumAmountByStatus(ProjectPayment.PaymentStatus.PENDING);
+
+        String lastImportDate = bankStatementRepository.findMaxCreatedAtByCompany(companyId)
+                .map(instant -> DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.systemDefault()).format(instant))
+                .orElse(null);
+
+        FinanceDashboardDto.BankKpiDto kpis = new FinanceDashboardDto.BankKpiDto(
+                totalCash, unreconciledCount, pendingPaymentsTotal, lastImportDate
+        );
+
+        // Bank accounts with per-account last import date
+        List<BankAccount> accounts = bankAccountRepository.findAllActiveByCompany(companyId);
+        List<FinanceDashboardDto.BankAccountWidgetDto> bankAccounts = accounts.stream()
+                .map(a -> {
+                    String lastImport = bankStatementRepository.findMaxCreatedAtByBankAccountId(a.getId())
+                            .map(instant -> DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.systemDefault()).format(instant))
+                            .orElse(null);
+                    return new FinanceDashboardDto.BankAccountWidgetDto(
+                            a.getId(), a.getName(), a.getCurrency(), a.getCurrentBalance(), lastImport
+                    );
+                })
+                .toList();
+
+        // Recent transactions (last 10, across all accounts)
+        List<BankTransaction> recent = transactionRepository.findRecentByCompany(companyId, PageRequest.of(0, 10));
+        List<FinanceDashboardDto.RecentTransactionDto> recentTransactions = recent.stream()
+                .map(t -> {
+                    String matchedTo = null;
+                    if (t.getProjectPayment() != null) {
+                        matchedTo = t.getProjectPayment().getTitle();
+                    } else if (t.getExternalNote() != null) {
+                        matchedTo = "External: " + t.getExternalNote();
+                    }
+                    return new FinanceDashboardDto.RecentTransactionDto(
+                            t.getId(),
+                            t.getBankAccount().getId(),
+                            t.getBankAccount().getName(),
+                            t.getDate() != null ? t.getDate().toString() : null,
+                            t.getDescription(),
+                            t.getAmount(),
+                            t.getCurrency(),
+                            t.getStatus().name(),
+                            matchedTo
+                    );
+                })
+                .toList();
+
+        return new FinanceDashboardDto.BankDashboardResponse(kpis, bankAccounts, recentTransactions);
     }
 
     @Transactional(readOnly = true)
