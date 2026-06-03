@@ -114,14 +114,22 @@ export default function FinancePage() {
               <thead className="bg-gray-50">{['Project','Title','Amount','Due Date','Due in'].map(h => <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{h}</th>)}</thead>
               <tbody className="divide-y divide-gray-100">
                 {payments.pending.map(p => {
-                  const delay = p.dueDate ? Math.ceil((new Date(p.dueDate).getTime() - Date.now()) / 86400000) : null;
-                  const color = delay !== null ? (delay <= 0 ? 'text-red-600 font-bold' : delay <= 3 ? 'text-orange-600' : 'text-gray-800') : '';
+                  const dueDays = p.dueDate ? Math.ceil((Date.now() - new Date(p.dueDate).getTime()) / 86400000) : null;
+                  const overdue = dueDays !== null && dueDays > 0;
+                  const dueToday = dueDays !== null && dueDays === 0;
+                  const color = overdue ? 'text-red-600 font-bold' : dueToday ? 'text-orange-600 font-medium' : '';
                   return <tr key={p.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm font-medium text-gray-900">{p.projectName}</td>
                     <td className="px-4 py-3 text-sm text-gray-700">{p.title}</td>
                     <td className="px-4 py-3 text-sm font-medium text-right">{formatCurrency(p.amount)}</td>
                     <td className="px-4 py-3 text-sm text-gray-500">{p.dueDate ? formatDate(p.dueDate) : '—'}</td>
-                    <td className="px-4 py-3 text-sm text-right">{delay !== null ? <span className={`font-medium ${color}`}>{delay < 0 ? `${Math.abs(delay)}d late` : delay === 0 ? 'Due' : `${delay}d`}</span> : '—'}</td>
+                    <td className="px-4 py-3 text-sm text-right">
+                      {p.dueDate ? (
+                        <span className={`font-medium ${color}`}>
+                          {overdue ? `${dueDays}d overdue` : dueToday ? 'Due today' : '—'}
+                        </span>
+                      ) : '—'}
+                    </td>
                   </tr>;
                 })}
               </tbody>
