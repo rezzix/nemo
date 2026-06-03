@@ -10,6 +10,8 @@ public interface BankTransactionMapper {
 
     @Mapping(target = "bankAccountId", source = "bankAccount.id")
     @Mapping(target = "bankStatementId", source = "bankStatement.id")
+    @Mapping(target = "projectPaymentId", source = "projectPayment.id")
+    @Mapping(target = "projectPaymentTitle", source = "projectPayment.title")
     @Mapping(target = "date", source = "date", dateFormat = "yyyy-MM-dd")
     @Mapping(target = "status", source = "status", qualifiedByName = "statusToString")
     @Mapping(target = "createdAt", source = "createdAt", dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'")

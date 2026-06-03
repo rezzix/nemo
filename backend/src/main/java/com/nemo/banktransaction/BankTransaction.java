@@ -47,6 +47,13 @@ public class BankTransaction {
     @JoinColumn(name = "bank_statement_id")
     private BankStatement bankStatement;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_payment_id")
+    private com.nemo.payment.ProjectPayment projectPayment;
+
+    @Column(name = "external_note", columnDefinition = "TEXT")
+    private String externalNote;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -75,6 +82,10 @@ public class BankTransaction {
     public void setStatus(Status status) { this.status = status; }
     public BankStatement getBankStatement() { return bankStatement; }
     public void setBankStatement(BankStatement bankStatement) { this.bankStatement = bankStatement; }
+    public com.nemo.payment.ProjectPayment getProjectPayment() { return projectPayment; }
+    public void setProjectPayment(com.nemo.payment.ProjectPayment projectPayment) { this.projectPayment = projectPayment; }
+    public String getExternalNote() { return externalNote; }
+    public void setExternalNote(String externalNote) { this.externalNote = externalNote; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 }

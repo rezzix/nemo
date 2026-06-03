@@ -8,6 +8,9 @@ export interface BankTransactionDto {
   currency: string;
   reference: string | null;
   status: 'NEW' | 'RECONCILED' | 'IGNORED';
+  projectPaymentId?: number | null;
+  projectPaymentTitle?: string | null;
+  externalNote?: string | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -82,6 +82,7 @@ public class ProjectPaymentController {
                 p.getReceivedDate() != null ? p.getReceivedDate().toString() : null,
                 p.getStatus().name(),
                 p.getInvoiceRef(), p.getNotes(),
+                p.isReconciled(),
                 p.getCreatedBy() != null ? p.getCreatedBy().getId() : null,
                 p.getCreatedBy() != null ? p.getCreatedBy().getFirstName() + " " + p.getCreatedBy().getLastName() : null,
                 p.getCreatedAt() != null ? p.getCreatedAt().toString() : null,

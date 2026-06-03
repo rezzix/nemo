@@ -15,6 +15,9 @@ public record BankTransactionDto(
         String currency,
         String reference,
         String status,
+        Long projectPaymentId,
+        String projectPaymentTitle,
+        String externalNote,
         String createdAt,
         String updatedAt
 ) {

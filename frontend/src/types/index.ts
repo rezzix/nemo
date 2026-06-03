@@ -20,3 +20,4 @@ export type { ProjectExpenseDto, CreateProjectExpenseRequest, UpdateProjectExpen
 export type { BankAccountDto, CreateBankAccountRequest, UpdateBankAccountRequest } from './bankAccount';
 export type { BankTransactionDto, CreateBankTransactionRequest, UpdateBankTransactionRequest } from './bankTransaction';
 export type { BankStatementDto, ImportResult } from './bankStatement';
+export type { UnreconciledTransactionDto, UnmatchedPaymentDto, ReconcileRequest, UnreconciledCountDto, ReconciliationViewDto } from './reconciliation';

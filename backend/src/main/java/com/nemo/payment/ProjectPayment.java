@@ -47,6 +47,9 @@ public class ProjectPayment {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
+    @Column(name = "reconciled", nullable = false)
+    private boolean reconciled = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_id")
     private com.nemo.user.User createdBy;
@@ -79,6 +82,8 @@ public class ProjectPayment {
     public void setNotes(String notes) { this.notes = notes; }
     public com.nemo.user.User getCreatedBy() { return createdBy; }
     public void setCreatedBy(com.nemo.user.User createdBy) { this.createdBy = createdBy; }
+    public boolean isReconciled() { return reconciled; }
+    public void setReconciled(boolean reconciled) { this.reconciled = reconciled; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 }
