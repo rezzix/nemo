@@ -9,7 +9,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.text.PDFTextStripper;
+import org.apache.pdfbox.rendering.ImageType;
+import org.apache.pdfbox.rendering.PDFRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,9 +20,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +35,7 @@ public class StatementImportService {
 
     private static final Logger log = LoggerFactory.getLogger(StatementImportService.class);
     private static final BigDecimal MATCH_TOLERANCE = new BigDecimal("0.02");
+    private static final float RENDER_DPI = 150f;
 
     private final BankAccountRepository bankAccountRepository;
     private final BankStatementRepository bankStatementRepository;
@@ -45,8 +51,8 @@ public class StatementImportService {
                                    BankTransactionRepository bankTransactionRepository,
                                    ObjectMapper objectMapper,
                                    @Value("${nemo.openai.api-key:}") String apiKey,
-                                   @Value("${nemo.openai.base-url:https://ollama.com/v1}") String baseUrl,
-                                   @Value("${nemo.openai.model:qwen3.5}") String model) {
+                                   @Value("${nemo.openai.base-url:https://api.fireworks.ai/inference/v1}") String baseUrl,
+                                   @Value("${nemo.openai.model:accounts/fireworks/models/kimi-k2p6}") String model) {
         this.bankAccountRepository = bankAccountRepository;
         this.bankStatementRepository = bankStatementRepository;
         this.bankTransactionRepository = bankTransactionRepository;
@@ -72,38 +78,53 @@ public class StatementImportService {
         }
 
         try {
-            // 1. Extract text from PDF using PDFBox
-            String pdfText;
+            // 1. Render PDF pages as images
+            List<Map<String, Object>> pageImages = new ArrayList<>();
             try (PDDocument document = Loader.loadPDF(file.getBytes())) {
-                PDFTextStripper stripper = new PDFTextStripper();
-                pdfText = stripper.getText(document);
+                PDFRenderer renderer = new PDFRenderer(document);
+                for (int page = 0; page < document.getNumberOfPages(); page++) {
+                    BufferedImage image = renderer.renderImageWithDPI(page, RENDER_DPI, ImageType.RGB);
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    ImageIO.write(image, "png", baos);
+                    String base64Page = Base64.getEncoder().encodeToString(baos.toByteArray());
+                    pageImages.add(Map.of(
+                            "type", "image_url",
+                            "image_url", Map.of("url", "data:image/png;base64," + base64Page)
+                    ));
+                }
             }
 
-            if (pdfText == null || pdfText.isBlank()) {
-                throw new RuntimeException("Could not extract any text from the PDF. The file may be a scanned image.");
+            if (pageImages.isEmpty()) {
+                throw new RuntimeException("Could not render any pages from the PDF.");
             }
 
-            // 2. Build OpenAI-compatible request with extracted text
-            String systemPrompt = "You are a bank statement parser. Extract all transactions from the bank statement text. " +
+            // 2. Build multimodal OpenAI-compatible request
+            String systemPrompt = "You are a bank statement parser. Extract all transactions from the bank statement image(s). " +
                     "Return a JSON object with the exact schema specified. " +
                     "Amounts should be positive for credits (money in) and negative for debits (money out). " +
                     "Be thorough — extract every transaction. " +
+                    "Do NOT include the opening/closing balance rows or 'SOLDE' rows as transactions — only include actual transactions (credits and debits). " +
+                    "The openingBalance and closingBalance fields should contain the statement's opening and closing balance numbers. " +
                     "The statement period, totals, and balances should match what is shown in the document. " +
                     "IMPORTANT: Return ONLY valid JSON, no markdown fences, no explanation.";
 
-            String userPrompt = "Extract all transactions from this bank statement text. Return JSON with: " +
+            String userPrompt = "Extract all transactions from this bank statement. Return JSON with: " +
                     "\"statementPeriod\" (\"startDate\" as YYYY-MM-DD, \"endDate\" as YYYY-MM-DD), " +
                     "\"totalDebits\" (absolute sum of all negative amounts as positive number), " +
                     "\"totalCredits\" (sum of all positive amounts), " +
                     "\"openingBalance\", \"closingBalance\", " +
-                    "and \"operations\" array (each with \"date\" as YYYY-MM-DD, \"description\", \"amount\" where positive=credit/negative=debit, \"reference\" or null).\n\n" +
-                    "Bank statement text:\n" + pdfText;
+                    "and \"operations\" array (each with \"date\" as YYYY-MM-DD, \"description\", \"amount\" where positive=credit/negative=debit, \"reference\" or null).";
+
+            // Build content array: text prompt first, then page images
+            List<Map<String, Object>> content = new ArrayList<>();
+            content.add(Map.of("type", "text", "text", userPrompt));
+            content.addAll(pageImages);
 
             Map<String, Object> request = Map.of(
                     "model", model,
                     "messages", List.of(
                             Map.of("role", "system", "content", systemPrompt),
-                            Map.of("role", "user", "content", userPrompt)
+                            Map.of("role", "user", "content", content)
                     ),
                     "max_tokens", 16384,
                     "response_format", Map.of("type", "json_object")
@@ -121,32 +142,32 @@ public class StatementImportService {
             // 4. Parse response
             JsonNode responseJson = objectMapper.readTree(response.getBody());
             JsonNode messageNode = responseJson.path("choices").get(0).path("message");
-            String content = messageNode.path("content").asText();
+            String content1 = messageNode.path("content").asText();
 
             // If content is empty, check for reasoning field (some models like qwen3.5 put the answer there)
-            if (content == null || content.isBlank()) {
+            if (content1 == null || content1.isBlank()) {
                 String reasoning = messageNode.path("reasoning").asText(null);
                 if (reasoning != null && !reasoning.isBlank()) {
-                    content = reasoning;
+                    content1 = reasoning;
                 }
             }
 
             // Strip <think>...</think> tags if present (some models wrap reasoning in these)
-            content = content.replaceAll("(?s)<think>.*?</think>", "").trim();
+            content1 = content1.replaceAll("(?s)<think>.*?</think>", "").trim();
 
             // Strip markdown code fences if present
-            content = content.trim();
-            if (content.startsWith("```json")) {
-                content = content.substring(7);
-            } else if (content.startsWith("```")) {
-                content = content.substring(3);
+            content1 = content1.trim();
+            if (content1.startsWith("```json")) {
+                content1 = content1.substring(7);
+            } else if (content1.startsWith("```")) {
+                content1 = content1.substring(3);
             }
-            if (content.endsWith("```")) {
-                content = content.substring(0, content.length() - 3);
+            if (content1.endsWith("```")) {
+                content1 = content1.substring(0, content1.length() - 3);
             }
-            content = content.trim();
+            content1 = content1.trim();
 
-            JsonNode extracted = objectMapper.readTree(content);
+            JsonNode extracted = objectMapper.readTree(content1);
 
             // 5. Parse statement metadata
             LocalDate periodStart = parseDate(extracted.path("statementPeriod").path("startDate").asText(null));
