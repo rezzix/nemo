@@ -95,4 +95,39 @@ public class FinanceDashboardDto {
             List<BigDecimal> paymentsPending,
             List<BigDecimal> expenses
     ) {}
+
+    // --- Bank Dashboard DTOs ---
+
+    public record BankKpiDto(
+            BigDecimal totalCash,
+            long unreconciledCount,
+            BigDecimal pendingPaymentsTotal,
+            String lastImportDate
+    ) {}
+
+    public record BankAccountWidgetDto(
+            Long id,
+            String name,
+            String currency,
+            BigDecimal balance,
+            String lastImportDate
+    ) {}
+
+    public record RecentTransactionDto(
+            Long id,
+            Long bankAccountId,
+            String bankAccountName,
+            String date,
+            String description,
+            BigDecimal amount,
+            String currency,
+            String status,
+            String matchedTo
+    ) {}
+
+    public record BankDashboardResponse(
+            BankKpiDto kpis,
+            List<BankAccountWidgetDto> bankAccounts,
+            List<RecentTransactionDto> recentTransactions
+    ) {}
 }

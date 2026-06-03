@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface BankAccountRepository extends JpaRepository<BankAccount, Long> {
@@ -17,4 +18,13 @@ public interface BankAccountRepository extends JpaRepository<BankAccount, Long> 
             "(:search IS NULL OR LOWER(b.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
             "OR LOWER(b.iban) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<BankAccount> search(@Param("search") String search, @Param("companyId") Long companyId, Pageable pageable);
+
+    @Query("SELECT COALESCE(SUM(b.currentBalance), 0) FROM BankAccount b WHERE b.active = true " +
+            "AND (:companyId IS NULL OR b.company.id = :companyId)")
+    BigDecimal sumActiveBalancesByCompany(@Param("companyId") Long companyId);
+
+    @Query("SELECT b FROM BankAccount b WHERE b.active = true " +
+            "AND (:companyId IS NULL OR b.company.id = :companyId) " +
+            "ORDER BY b.name ASC")
+    List<BankAccount> findAllActiveByCompany(@Param("companyId") Long companyId);
 }
