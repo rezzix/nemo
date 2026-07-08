@@ -78,7 +78,7 @@ public class PmoService {
 
         long totalTasks = taskRepository.countByProjectId(projectId);
 
-        // Count completed issues (status category = DONE or CLOSED)
+        // Count completed tasks (status category = DONE or CLOSED)
         List<TaskStatus> completedStatuses = new java.util.ArrayList<>();
         completedStatuses.addAll(taskStatusRepository.findByCategory(TaskStatus.Category.DONE));
         completedStatuses.addAll(taskStatusRepository.findByCategory(TaskStatus.Category.CLOSED));

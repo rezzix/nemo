@@ -9,7 +9,7 @@ import MarkdownRenderer from '@/components/common/MarkdownRenderer';
 import Spinner from '@/components/common/Spinner';
 import Modal from '@/components/common/Modal';
 
-type Tab = 'summary' | 'issues' | 'board' | 'docs' | 'raid' | 'phases' | 'members' | 'settings';
+type Tab = 'summary' | 'tasks' | 'board' | 'docs' | 'raid' | 'phases' | 'members' | 'settings';
 
 function isInstructionVisible(inst: InstructionDto): boolean {
   const today = new Date().toISOString().slice(0, 10);

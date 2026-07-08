@@ -32,7 +32,7 @@ public class Task {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "issue_key", nullable = false, unique = true)
+    @Column(name = "task_key", nullable = false, unique = true)
     private String taskKey;
 
     @ManyToOne(fetch = FetchType.LAZY)

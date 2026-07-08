@@ -8,9 +8,9 @@ A project management system with PMO capabilities, time tracking, and built-in p
 - **Project Phases & Deliverables** — Track project phases, milestones, and deliverables
 - **EVM & Budget Tracking** — Earned Value Management with budget and cost tracking
 - **RAID Logs & Risk Management** — Risks, assumptions, issues, and dependencies per project
-- **Issue Tracking & Kanban Boards** — Create, assign, and manage issues with priorities, labels, types, and statuses
-- **Sprint Management** — Backlog view, sprint creation, issue assignment to sprints
-- **Time Tracking & Timesheets** — Log hours against issues, weekly timesheet view, time reports
+- **Task Tracking & Kanban Boards** — Create, assign, and manage tasks with priorities, labels, types, and statuses
+- **Sprint Management** — Backlog view, sprint creation, task assignment to sprints
+- **Time Tracking & Timesheets** — Log hours against tasks, weekly timesheet view, time reports
 - **Wiki Docs & Mermaid Diagrams** — Wiki-style pages with nested tree structure, search, and Mermaid diagram support
 - **Reports & Dashboards** — PMO dashboard, cross-project reports, and personal dashboard
 - **Multi-Company Support** — Projects and users belong to companies or are global; company-scoped visibility
@@ -33,9 +33,9 @@ nemo/
 │   └── src/main/java/com/nemo/
 │       ├── attachment/         # File attachments
 │       ├── common/             # Audit, DTOs, exceptions, storage
-│       ├── config/             # Issue types/statuses, org config, data seeder
+│       ├── config/             # Task types/statuses, org config, data seeder
 │       ├── documentation/      # Wiki pages
-│       ├── issue/              # Issues, comments
+│       ├── task/               # Tasks, comments
 │       ├── phase/              # Phases, deliverables
 │       ├── pmo/                # RAID items, PMO dashboard
 │       ├── program/            # Programs (portfolios)
@@ -53,7 +53,7 @@ nemo/
 │       ├── stores/             # Zustand stores
 │       ├── types/              # TypeScript type definitions
 │       └── utils/              # Formatting utilities
-├── docs/                      # Architecture and API documentation
+├── documentation/             # OKF knowledge base (charter + state)
 └── postman/                   # API test collection
 ```
 
@@ -93,8 +93,8 @@ The frontend starts at `http://localhost:5173` and proxies API calls to the back
 | Companies | `/api/companies` |
 | Programs | `/api/programs` |
 | Projects | `/api/projects` |
-| Issues | `/api/projects/{projectId}/issues` |
-| Comments | `/api/projects/{projectId}/issues/{issueId}/comments` |
+| Tasks | `/api/projects/{projectId}/tasks` |
+| Comments | `/api/projects/{projectId}/tasks/{taskId}/comments` |
 | Wiki Pages | `/api/projects/{projectId}/wiki/pages` |
 | Time Logs | `/api/time-logs` |
 | Timesheets | `/api/timesheets` |
@@ -102,4 +102,4 @@ The frontend starts at `http://localhost:5173` and proxies API calls to the back
 | Phases | `/api/projects/{projectId}/phases` |
 | Admin | `/api/admin/*` |
 
-Full API documentation is available in `docs/rest-api.md` and the Postman collection in `postman/`.
+Full API documentation is available in `documentation/charter/implementation/api/index.md` and the Postman collection in `postman/`.
