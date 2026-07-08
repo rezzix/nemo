@@ -165,10 +165,10 @@
       ]
     },
     {
-      "name": "Issue Types & Statuses",
+      "name": "Task Types & Statuses",
       "item": [
         {
-          "name": "List Issue Types",
+          "name": "List Task Types",
           "event": [
             {
               "listen": "test",
@@ -188,12 +188,12 @@
           "request": {
             "method": "GET",
             "header": [{ "key": "Cookie", "value": "{{sessionId}}" }],
-            "url": { "raw": "{{baseUrl}}/api/issue-types", "host": ["{{baseUrl}}"], "path": ["api", "issue-types"] }
+            "url": { "raw": "{{baseUrl}}/api/task-types", "host": ["{{baseUrl}}"], "path": ["api", "task-types"] }
           },
           "response": []
         },
         {
-          "name": "Create Issue Type",
+          "name": "Create Task Type",
           "event": [
             {
               "listen": "test",
@@ -204,7 +204,7 @@
                   "pm.test('Type created', () => {",
                   "    const json = pm.response.json();",
                   "    pm.expect(json.name).to.eql('DevOps');",
-                  "    pm.collectionVariables.set('issueTypeId', json.id);",
+                  "    pm.collectionVariables.set('taskTypeId', json.id);",
                   "});"
                 ]
               }
@@ -216,13 +216,13 @@
               { "key": "Content-Type", "value": "application/json" },
               { "key": "Cookie", "value": "{{sessionId}}" }
             ],
-            "url": { "raw": "{{baseUrl}}/api/issue-types", "host": ["{{baseUrl}}"], "path": ["api", "issue-types"] },
+            "url": { "raw": "{{baseUrl}}/api/task-types", "host": ["{{baseUrl}}"], "path": ["api", "task-types"] },
             "body": { "mode": "raw", "raw": "{\n    \"name\": \"DevOps\"\n}" }
           },
           "response": []
         },
         {
-          "name": "List Issue Statuses",
+          "name": "List Task Statuses",
           "event": [
             {
               "listen": "test",
@@ -242,7 +242,7 @@
           "request": {
             "method": "GET",
             "header": [{ "key": "Cookie", "value": "{{sessionId}}" }],
-            "url": { "raw": "{{baseUrl}}/api/issue-statuses", "host": ["{{baseUrl}}"], "path": ["api", "issue-statuses"] }
+            "url": { "raw": "{{baseUrl}}/api/task-statuses", "host": ["{{baseUrl}}"], "path": ["api", "task-statuses"] }
           },
           "response": []
         },
@@ -271,7 +271,7 @@
               { "key": "Content-Type", "value": "application/json" },
               { "key": "Cookie", "value": "{{sessionId}}" }
             ],
-            "url": { "raw": "{{baseUrl}}/api/issue-statuses", "host": ["{{baseUrl}}"], "path": ["api", "issue-statuses"] },
+            "url": { "raw": "{{baseUrl}}/api/task-statuses", "host": ["{{baseUrl}}"], "path": ["api", "task-statuses"] },
             "body": { "mode": "raw", "raw": "{\n    \"name\": \"In Review\",\n    \"category\": \"IN_PROGRESS\",\n    \"isDefault\": false\n}" }
           },
           "response": []
@@ -666,7 +666,7 @@
             "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/sprints", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "sprints"] },
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"name\": \"Sprint 1\",\n    \"goal\": \"Complete authentication and basic issue tracking\",\n    \"startDate\": \"2026-05-05\",\n    \"endDate\": \"2026-05-19\"\n}"
+              "raw": "{\n    \"name\": \"Sprint 1\",\n    \"goal\": \"Complete authentication and basic task tracking\",\n    \"startDate\": \"2026-05-05\",\n    \"endDate\": \"2026-05-19\"\n}"
             }
           },
           "response": []
@@ -722,10 +722,10 @@
       ]
     },
     {
-      "name": "Issues",
+      "name": "Tasks",
       "item": [
         {
-          "name": "Create Issue 1",
+          "name": "Create Task 1",
           "event": [
             {
               "listen": "test",
@@ -733,12 +733,12 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 201', () => pm.response.to.have.status(201));",
-                  "pm.test('Issue created with key', () => {",
+                  "pm.test('Task created with key', () => {",
                   "    const json = pm.response.json();",
-                  "    pm.expect(json.data.issueKey).to.eql('NEMO-1');",
+                  "    pm.expect(json.data.taskKey).to.eql('NEMO-1');",
                   "    pm.expect(json.data.priority).to.eql('HIGH');",
                   "    pm.expect(json.data.statusName).to.eql('To Do');",
-                  "    pm.collectionVariables.set('issueId1', json.data.id);",
+                  "    pm.collectionVariables.set('taskId1', json.data.id);",
                   "});"
                 ]
               }
@@ -750,7 +750,7 @@
               { "key": "Content-Type", "value": "application/json" },
               { "key": "Cookie", "value": "{{sessionId}}" }
             ],
-            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/issues", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "issues"] },
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/tasks", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "tasks"] },
             "body": {
               "mode": "raw",
               "raw": "{\n    \"title\": \"Fix login redirect\",\n    \"description\": \"## Steps to reproduce\\n1. Go to login page\\n2. Enter credentials\\n3. Redirect fails\",\n    \"priority\": \"HIGH\",\n    \"typeId\": 4,\n    \"assigneeId\": {{contributorId}},\n    \"labelIds\": [{{bugLabelId}}]\n}"
@@ -759,7 +759,7 @@
           "response": []
         },
         {
-          "name": "Create Issue 2",
+          "name": "Create Task 2",
           "event": [
             {
               "listen": "test",
@@ -767,10 +767,10 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 201', () => pm.response.to.have.status(201));",
-                  "pm.test('Issue created with key NEMO-2', () => {",
+                  "pm.test('Task created with key NEMO-2', () => {",
                   "    const json = pm.response.json();",
-                  "    pm.expect(json.data.issueKey).to.eql('NEMO-2');",
-                  "    pm.collectionVariables.set('issueId2', json.data.id);",
+                  "    pm.expect(json.data.taskKey).to.eql('NEMO-2');",
+                  "    pm.collectionVariables.set('taskId2', json.data.id);",
                   "});"
                 ]
               }
@@ -782,16 +782,16 @@
               { "key": "Content-Type", "value": "application/json" },
               { "key": "Cookie", "value": "{{sessionId}}" }
             ],
-            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/issues", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "issues"] },
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/tasks", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "tasks"] },
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"title\": \"Add search filters\",\n    \"description\": \"Implement filter dropdowns for issue list\",\n    \"priority\": \"MEDIUM\",\n    \"typeId\": 4,\n    \"assigneeId\": {{managerId}},\n    \"labelIds\": [{{featureLabelId}}]\n}"
+              "raw": "{\n    \"title\": \"Add search filters\",\n    \"description\": \"Implement filter dropdowns for task list\",\n    \"priority\": \"MEDIUM\",\n    \"typeId\": 4,\n    \"assigneeId\": {{managerId}},\n    \"labelIds\": [{{featureLabelId}}]\n}"
             }
           },
           "response": []
         },
         {
-          "name": "List Issues",
+          "name": "List Tasks",
           "event": [
             {
               "listen": "test",
@@ -799,7 +799,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Returns paginated issues', () => {",
+                  "pm.test('Returns paginated tasks', () => {",
                   "    const json = pm.response.json();",
                   "    pm.expect(json.data).to.be.an('array');",
                   "    pm.expect(json.data.length).to.be.at.least(2);",
@@ -811,12 +811,12 @@
           "request": {
             "method": "GET",
             "header": [{ "key": "Cookie", "value": "{{sessionId}}" }],
-            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/issues", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "issues"] }
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/tasks", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "tasks"] }
           },
           "response": []
         },
         {
-          "name": "Get Issue",
+          "name": "Get Task",
           "event": [
             {
               "listen": "test",
@@ -824,10 +824,10 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Issue has all fields', () => {",
+                  "pm.test('Task has all fields', () => {",
                   "    const json = pm.response.json();",
                   "    pm.expect(json.data.title).to.exist;",
-                  "    pm.expect(json.data.issueKey).to.exist;",
+                  "    pm.expect(json.data.taskKey).to.exist;",
                   "    pm.expect(json.data.priority).to.exist;",
                   "});"
                 ]
@@ -837,12 +837,12 @@
           "request": {
             "method": "GET",
             "header": [{ "key": "Cookie", "value": "{{sessionId}}" }],
-            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/issues/{{issueId1}}", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "issues", "{{issueId1}}"] }
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/tasks/{{taskId1}}", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "tasks", "{{taskId1}}"] }
           },
           "response": []
         },
         {
-          "name": "Update Issue (move to In Progress)",
+          "name": "Update Task (move to In Progress)",
           "event": [
             {
               "listen": "test",
@@ -850,7 +850,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Issue status updated', () => {",
+                  "pm.test('Task status updated', () => {",
                   "    const json = pm.response.json();",
                   "    pm.expect(json.data.statusId).to.eql(2);",
                   "});"
@@ -864,7 +864,7 @@
               { "key": "Content-Type", "value": "application/json" },
               { "key": "Cookie", "value": "{{sessionId}}" }
             ],
-            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/issues/{{issueId1}}", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "issues", "{{issueId1}}"] },
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/tasks/{{taskId1}}", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "tasks", "{{taskId1}}"] },
             "body": { "mode": "raw", "raw": "{\n    \"statusId\": 2,\n    \"sprintId\": {{sprintId}}\n}" }
           },
           "response": []
@@ -893,7 +893,7 @@
               { "key": "Content-Type", "value": "application/json" },
               { "key": "Cookie", "value": "{{sessionId}}" }
             ],
-            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/issues/{{issueId1}}/comments", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "issues", "{{issueId1}}", "comments"] },
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/tasks/{{taskId1}}/comments", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "tasks", "{{taskId1}}", "comments"] },
             "body": { "mode": "raw", "raw": "{\n    \"content\": \"This is also happening on the registration page.\"\n}" }
           },
           "response": []
@@ -918,12 +918,12 @@
           "request": {
             "method": "GET",
             "header": [{ "key": "Cookie", "value": "{{sessionId}}" }],
-            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/issues/{{issueId1}}/comments", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "issues", "{{issueId1}}", "comments"] }
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/tasks/{{taskId1}}/comments", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "tasks", "{{taskId1}}", "comments"] }
           },
           "response": []
         },
         {
-          "name": "Filter Issues by Priority",
+          "name": "Filter Tasks by Priority",
           "event": [
             {
               "listen": "test",
@@ -942,7 +942,7 @@
           "request": {
             "method": "GET",
             "header": [{ "key": "Cookie", "value": "{{sessionId}}" }],
-            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/issues?priority=HIGH", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "issues"], "query": [{ "key": "priority", "value": "HIGH" }] }
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/tasks?priority=HIGH", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "tasks"], "query": [{ "key": "priority", "value": "HIGH" }] }
           },
           "response": []
         }
@@ -952,7 +952,7 @@
       "name": "Time Tracking",
       "item": [
         {
-          "name": "Log Time on Issue 1",
+          "name": "Log Time on Task 1",
           "event": [
             {
               "listen": "test",
@@ -978,13 +978,13 @@
             "url": { "raw": "{{baseUrl}}/api/time-logs", "host": ["{{baseUrl}}"], "path": ["api", "time-logs"] },
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"issueId\": {{issueId1}},\n    \"hours\": 3.5,\n    \"logDate\": \"2026-04-24\",\n    \"description\": \"Fixed login redirect bug\"\n}"
+              "raw": "{\n    \"taskId\": {{taskId1}},\n    \"hours\": 3.5,\n    \"logDate\": \"2026-04-24\",\n    \"description\": \"Fixed login redirect bug\"\n}"
             }
           },
           "response": []
         },
         {
-          "name": "Log Time on Issue 2",
+          "name": "Log Time on Task 2",
           "event": [
             {
               "listen": "test",
@@ -1010,7 +1010,7 @@
             "url": { "raw": "{{baseUrl}}/api/time-logs", "host": ["{{baseUrl}}"], "path": ["api", "time-logs"] },
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"issueId\": {{issueId2}},\n    \"hours\": 2.0,\n    \"logDate\": \"2026-04-24\",\n    \"description\": \"Implemented filter dropdowns\"\n}"
+              "raw": "{\n    \"taskId\": {{taskId2}},\n    \"hours\": 2.0,\n    \"logDate\": \"2026-04-24\",\n    \"description\": \"Implemented filter dropdowns\"\n}"
             }
           },
           "response": []
@@ -1115,7 +1115,7 @@
             "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/wiki/pages", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "wiki", "pages"] },
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"title\": \"Getting Started\",\n    \"content\": \"# Getting Started\\n\\nWelcome to the Nemo project wiki.\",\n    \"parentId\": null,\n    \"linkedIssueIds\": [{{issueId1}}]\n}"
+              "raw": "{\n    \"title\": \"Getting Started\",\n    \"content\": \"# Getting Started\\n\\nWelcome to the Nemo project wiki.\",\n    \"parentId\": null,\n    \"linkedTaskIds\": [{{taskId1}}]\n}"
             }
           },
           "response": []
@@ -1278,7 +1278,7 @@
           "response": []
         },
         {
-          "name": "404 Not Found (nonexistent issue)",
+          "name": "404 Not Found (nonexistent task)",
           "event": [
             {
               "listen": "test",
@@ -1293,7 +1293,7 @@
           "request": {
             "method": "GET",
             "header": [{ "key": "Cookie", "value": "{{sessionId}}" }],
-            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/issues/99999", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "issues", "99999"] }
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/tasks/99999", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "tasks", "99999"] }
           },
           "response": []
         },
