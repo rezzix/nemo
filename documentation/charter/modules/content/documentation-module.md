@@ -9,11 +9,11 @@ resource: backend/src/main/java/com/nemo/documentation
 
 ## API
 
-Wiki endpoints live under `/api/projects/{projectId}/.../wiki` (see [project-task endpoints](/charter/implementation/api/project-task-endpoints.md)).
+Wiki endpoints live under `/api/projects/{projectId}/.../wiki` (see [project-task endpoints](/state/api/project-task-endpoints.md)).
 
 ## Cross-references
 
 - [Project module](/charter/modules/delivery/project-module.md) — wiki pages attach to a project.
 - [Attachment module](/charter/modules/content/attachment-module.md) — files can attach to wiki content.
-- [Frontend architecture](/charter/implementation/architecture/frontend-architecture.md) — Markdown rendering.
+- [Frontend architecture](/charter/overview/frontend-architecture.md) — Markdown rendering.
 - [Content module entities](/charter/modules/content/module-entities.md) — `WikiPage` entity.

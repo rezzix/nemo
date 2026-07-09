@@ -28,5 +28,5 @@ resource: backend/src/main/java/com/nemo/timetracking
 
 - [User module](/charter/modules/identity/user-module.md) — capacity and rates per user.
 - [Reports module](/charter/modules/finance/reports-module.md) — aggregate reporting.
-- [Audit logging](/charter/implementation/cross-cutting/audit-logging.md) — time logs are `@Audited`.
+- [Audit logging](/state/audit-logging.md) — time logs are `@Audited`.
 - [Time tracking module entities](/charter/modules/timetracking/module-entities.md) — `TimeLog`, `UserRate`, `Timesheet`.

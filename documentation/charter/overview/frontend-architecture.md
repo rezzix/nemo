@@ -77,7 +77,7 @@ Role gating aligns with the backend [RBAC model](/charter/security/authorization
 
 Each backend domain has a matching Axios client in `api/` (e.g. `auth.ts`, `projects.ts`, `tasks.ts`, `sprints.ts`, `bankAccounts.ts`, `pmo.ts`, `wiki.ts`) and a matching TypeScript interface in `types/`. The Axios instance carries the session cookie automatically (same-origin).
 
-The per-domain client list mirrors the backend module structure; see [REST conventions](/charter/implementation/api/rest-conventions.md) for the API patterns they call.
+The per-domain client list mirrors the backend module structure; see [REST conventions](/state/api/rest-conventions.md) for the API patterns they call.
 
 ## State management
 
@@ -109,7 +109,7 @@ The role-to-dashboard mapping follows the [features and access](/charter/securit
 
 ## Cross-references
 
-- [System architecture](/charter/implementation/architecture/system-architecture.md) — the overall system picture (backend, security, real-time, deployment).
-- [UML diagrams](/charter/implementation/architecture/uml-diagrams.md) — auth flow, Kanban real-time, and time-tracking sequences.
+- [System architecture](/charter/overview/system-architecture.md) — the overall system picture (backend, security, real-time, deployment).
+- [UML diagrams](/charter/overview/uml-diagrams.md) — auth flow, Kanban real-time, and time-tracking sequences.
 - [Tech stack](/charter/overview/tech-stack.md) — version numbers.
 - [Getting started](/state/quickstart.md) — running the frontend dev server.

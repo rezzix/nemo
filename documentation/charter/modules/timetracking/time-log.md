@@ -20,4 +20,4 @@ resource: backend/src/main/java/com/nemo/timetracking
 - [Time tracking module](/charter/modules/timetracking/index.md) — parent module.
 - [Timesheet](/charter/modules/timetracking/timesheet.md) — rolls time logs up.
 - [Task module](/charter/modules/delivery/task-module.md) — time logs attach to tasks.
-- [Audit logging](/charter/implementation/cross-cutting/audit-logging.md) — time logs are `@Audited`.
+- [Audit logging](/state/audit-logging.md) — time logs are `@Audited`.

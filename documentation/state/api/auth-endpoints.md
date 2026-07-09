@@ -1,5 +1,5 @@
 ---
-type: Charter/API Endpoint
+type: State/Implementation
 resource: backend/src/main/java/com/nemo/charter/security/AuthController.java
 ---
 

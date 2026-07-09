@@ -15,4 +15,4 @@ resource: backend/src/main/java/com/nemo/finance
 
 - [Bank account module](/charter/modules/finance/bankaccount-module.md), [Bank transaction module](/charter/modules/finance/banktransaction-module.md) — bank KPI sources.
 - [Expense module](/charter/modules/commercial/expense-module.md), [Payment module](/charter/modules/commercial/payment-module.md) — cost/revenue sources.
-- [Finance endpoints](/charter/implementation/api/finance-bank-endpoints.md) — endpoint detail.
+- [Finance endpoints](/state/api/finance-bank-endpoints.md) — endpoint detail.

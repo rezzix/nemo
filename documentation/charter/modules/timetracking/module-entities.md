@@ -11,7 +11,7 @@ Effort captured as time logs and valued via user rates; timesheets are a derived
 
 | Entity | Notes |
 |--------|-------|
-| `TimeLog` | logged effort against a task (audited — see [audit logging](/charter/implementation/cross-cutting/audit-logging.md)) |
+| `TimeLog` | logged effort against a task (audited — see [audit logging](/state/audit-logging.md)) |
 | `UserRate` | billable/cost rate per user, used to value time logs |
 | `Timesheet` | rolled-up weekly/per-user view, derived from `TimeLog` (not a typed FK relationship) |
 

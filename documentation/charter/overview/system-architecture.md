@@ -45,7 +45,7 @@ See [backend layering](/charter/overview/backend-layering.md) for the per-module
 
 ## Frontend architecture
 
-The SPA follows a layered architecture (Pages → Components → Stores → API Layer → WebSocket Hook) built with React 19, Zustand 5, Tailwind CSS v4, and React Router 7. The full structural view, tech stack, routing/guards, API client layer, state management, and dashboard details live in [frontend architecture](/charter/implementation/architecture/frontend-architecture.md).
+The SPA follows a layered architecture (Pages → Components → Stores → API Layer → WebSocket Hook) built with React 19, Zustand 5, Tailwind CSS v4, and React Router 7. The full structural view, tech stack, routing/guards, API client layer, state management, and dashboard details live in [frontend architecture](/charter/overview/frontend-architecture.md).
 
 ## Security architecture
 
@@ -69,7 +69,7 @@ The SPA follows a layered architecture (Pages → Components → Stores → API 
 - **CSRF** — enabled for browser clients, disabled for API-only clients.
 - **CORS** — not needed (same-origin; Spring Boot serves the SPA).
 
-The full role × action permissions matrix lives in [features and access](/charter/security/features-and-access.md); role meanings and `AuthHelper` checks are in [authorization (RBAC)](/charter/security/authorization-rbac.md). The login/session sequence diagram is in [UML diagrams](/charter/implementation/architecture/uml-diagrams.md).
+The full role × action permissions matrix lives in [features and access](/charter/security/features-and-access.md); role meanings and `AuthHelper` checks are in [authorization (RBAC)](/charter/security/authorization-rbac.md). The login/session sequence diagram is in [UML diagrams](/charter/overview/uml-diagrams.md).
 
 ## Real-time architecture (Kanban)
 
@@ -82,7 +82,7 @@ The full role × action permissions matrix lives in [features and access](/chart
 └──────────┘              └──────────────┘
 ```
 
-When a task moves (status change), the backend publishes to `/topic/kanban/{projectId}`; all subscribed clients update their local board. The board component uses a `useKanbanWebSocket` hook for the STOMP connection. See [WebSockets](/charter/implementation/cross-cutting/websockets.md) and the Kanban sequence in [UML diagrams](/charter/implementation/architecture/uml-diagrams.md).
+When a task moves (status change), the backend publishes to `/topic/kanban/{projectId}`; all subscribed clients update their local board. The board component uses a `useKanbanWebSocket` hook for the STOMP connection. See [WebSockets](/state/websockets.md) and the Kanban sequence in [UML diagrams](/charter/overview/uml-diagrams.md).
 
 ## File storage architecture
 
@@ -100,7 +100,7 @@ When a task moves (status change), the backend publishes to `/topic/kanban/{proj
       └─────────────────────┘     └──────────────────────────┘
 ```
 
-`StorageService` abstracts file operations; the default writes to a configurable local directory, swappable to S3 by implementing the same interface. Attachments link to tasks/wiki via the `Attachment` entity. See [file storage](/charter/implementation/cross-cutting/file-storage.md).
+`StorageService` abstracts file operations; the default writes to a configurable local directory, swappable to S3 by implementing the same interface. Attachments link to tasks/wiki via the `Attachment` entity. See [file storage](/state/file-storage.md).
 
 ## Data flow — typical request
 
@@ -163,7 +163,7 @@ See [Nemo system](/charter/overview/nemo-system.md) for the deployment model and
 - Nested under tasks: `/api/projects/{projectId}/tasks/{taskId}/comments`, `/api/projects/{projectId}/tasks/{taskId}/attachments`.
 - Pagination on list endpoints: `?page=0&size=20&sort=createdAt,desc`; consistent response wrapping for lists (total count for pagination).
 
-See [REST conventions](/charter/implementation/api/rest-conventions.md) and [error handling](/charter/implementation/api/error-handling.md).
+See [REST conventions](/state/api/rest-conventions.md) and [error handling](/state/api/error-handling.md).
 
 ### Naming conventions glossary
 
@@ -182,7 +182,7 @@ See [database schema](/charter/overview/database-schema.md) for the full naming 
 
 ## Cross-references
 
-- [UML diagrams](/charter/implementation/architecture/uml-diagrams.md) — the diagrammatic views (class, use-case, state, sequence, component).
+- [UML diagrams](/charter/overview/uml-diagrams.md) — the diagrammatic views (class, use-case, state, sequence, component).
 - [Overview](/charter/overview/index.md) — system shape, layering, request flow, tech stack.
 - [Modules index](/charter/modules/index.md) — the domain packages this architecture is built from.
 - [Security index](/charter/security/index.md) — authentication, RBAC, multi-tenancy, access matrix.

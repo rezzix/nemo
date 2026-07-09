@@ -50,5 +50,5 @@ EVM is computed on the fly in `PmoService` (nothing stored) from task status, `P
 
 - [Project module](/charter/modules/delivery/project-module.md) — RAID items attach to projects; EVM reads project budget fields.
 - [Delivery module entities](/charter/modules/delivery/module-entities.md) — `RaidItem` entity.
-- [UML diagrams](/charter/implementation/architecture/uml-diagrams.md) — domain class diagram including `RaidItem`/`UserRate`.
+- [UML diagrams](/charter/overview/uml-diagrams.md) — domain class diagram including `RaidItem`/`UserRate`.
 - [Delivery module test plan](/state/test-plans/delivery/module-testplan.md) — PMO/RAID endpoint and EVM service tests.

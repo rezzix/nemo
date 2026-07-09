@@ -1,5 +1,9 @@
 ---
 type: State
+title: Nemo — project state
+description: Live tracking of where the Nemo implementation stands — advancement summary, development status, API surface, cross-cutting implementations, test plans, quickstart
+tags: [state, status, tracking]
+timestamp: 2026-07-09
 ---
 
 # Nemo — project state
@@ -24,6 +28,12 @@ Live tracking of where the Nemo implementation stands. The stable description of
 ## State contents
 
 * [Development status](/state/development-status.md) — per-module implementation status with the live backend package map.
+* [API surface](/state/api/index.md) — the current REST API conventions, endpoint groups, and error handling.
+* [Cross-cutting implementations](#) — audit logging, activity tracking, file storage, WebSockets:
+  * [Audit logging](/state/audit-logging.md) — AOP `AuditAspect` + `@Audited`, writing `AuditLog`.
+  * [Activity tracking](/state/activity-tracking.md) — `ActivityInterceptor` writing `ActivityLog`.
+  * [File storage](/state/file-storage.md) — pluggable `StorageService` (filesystem default, S3-swappable).
+  * [WebSockets](/state/websockets.md) — STOMP broker for live Kanban updates.
 * [Test plans](/state/test-plans/index.md) — one `module-testplan.md` per module group (planned coverage; backend ships no tests yet).
 * [Quickstart](/state/quickstart.md) — how to run Nemo locally right now.
 * [Postman collection](/state/postman-collection.md) — the current executable API exercise collection.

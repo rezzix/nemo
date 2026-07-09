@@ -43,5 +43,5 @@ erDiagram
 ## Cross-references
 
 - [Config module](/charter/modules/cross-cutting/config-module.md), [Common module](/charter/modules/cross-cutting/common-module.md) — the owning modules.
-- [Audit logging](/charter/implementation/cross-cutting/audit-logging.md), [Activity tracking](/charter/implementation/cross-cutting/activity-tracking.md) — the mechanisms.
+- [Audit logging](/state/audit-logging.md), [Activity tracking](/state/activity-tracking.md) — the mechanisms.
 - [Delivery module entities](/charter/modules/delivery/module-entities.md) — `Task` consumes `TaskType`/`TaskStatus`.

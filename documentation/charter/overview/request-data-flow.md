@@ -35,11 +35,11 @@ A global `@RestControllerAdvice` (`GlobalExceptionHandler` in `common/exception`
 }
 ```
 
-Business exceptions (`EntityNotFoundException`, `AccessDeniedException`, …) map to the appropriate HTTP status codes. Validation errors come from Spring Validator annotations on DTOs. See [error handling](/charter/implementation/api/error-handling.md).
+Business exceptions (`EntityNotFoundException`, `AccessDeniedException`, …) map to the appropriate HTTP status codes. Validation errors come from Spring Validator annotations on DTOs. See [error handling](/state/api/error-handling.md).
 
 ## Cross-references
 
 - [Backend layering](/charter/overview/backend-layering.md) — the layers the request crosses.
 - [Security: authentication](/charter/security/authentication.md) — the session model.
-- [Error handling](/charter/implementation/api/error-handling.md) — the exception-to-status mapping.
-- [Cross-cutting: audit logging](/charter/implementation/cross-cutting/audit-logging.md) — the `@Audited` capture step.
+- [Error handling](/state/api/error-handling.md) — the exception-to-status mapping.
+- [Cross-cutting: audit logging](/state/audit-logging.md) — the `@Audited` capture step.
