@@ -87,7 +87,7 @@ npm install
 npm run dev
 ```
 
-The frontend starts on **http://localhost:5173** and proxies API requests to the backend on port 8080. See [frontend architecture](/charter/implementation/architecture/frontend-architecture.md).
+The frontend starts on **http://localhost:5173** and proxies API requests to the backend on port 8080. See [frontend architecture](/charter/overview/frontend-architecture.md).
 
 ## Production profile (PostgreSQL)
 
@@ -104,6 +104,6 @@ The prod profile disables the H2 console, enforces strict authentication, skips 
 
 - [Nemo system](/charter/overview/nemo-system.md) — deployment model and run modes.
 - [Monorepo structure](/charter/overview/monorepo-structure.md) — repository layout.
-- [API index](/charter/implementation/api/index.md) — endpoint groups and REST conventions.
+- [API index](/state/api/index.md) — endpoint groups and REST conventions.
 - [Testing index](/state/index.md) — Postman/Newman collection.
 - [Database schema](/charter/overview/database-schema.md) — schema, profiles, naming, portability.

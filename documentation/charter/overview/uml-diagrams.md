@@ -506,7 +506,7 @@ sequenceDiagram
     UserA->>UserA: Board updates instantly
 ```
 
-See [WebSockets](/charter/implementation/cross-cutting/websockets.md).
+See [WebSockets](/state/websockets.md).
 
 ## 6. Backend package structure (component diagram)
 
@@ -720,7 +720,7 @@ See [features and access](/charter/security/features-and-access.md) for the deta
 
 ## Cross-references
 
-- [System architecture](/charter/implementation/architecture/system-architecture.md) — the integrated structural view these diagrams illustrate.
+- [System architecture](/charter/overview/system-architecture.md) — the integrated structural view these diagrams illustrate.
 - [Database schema](/charter/overview/database-schema.md) — schema overview and naming conventions.
 - [Security index](/charter/security/index.md) — authentication, RBAC, multi-tenancy.
 - [Modules index](/charter/modules/index.md) — the domain packages in the component diagram.

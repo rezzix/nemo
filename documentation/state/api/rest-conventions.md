@@ -1,5 +1,5 @@
 ---
-type: Charter/Pattern
+type: State/Implementation
 resource: backend/src/main/java/com/nemo
 ---
 
@@ -27,4 +27,4 @@ List endpoints use `?page=0&size=20&sort=createdAt,desc` and a consistent wrappe
 
 ## Cross-references
 - [Backend layering](/charter/overview/backend-layering.md) — controllers return DTOs only.
-- [Frontend architecture](/charter/implementation/architecture/frontend-architecture.md) — API client layer that calls these paths.
+- [Frontend architecture](/charter/overview/frontend-architecture.md) — API client layer that calls these paths.

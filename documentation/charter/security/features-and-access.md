@@ -22,4 +22,4 @@ Indicative permissions (the authoritative matrix lives in the legacy `docs/featu
 
 ## Cross-references
 - [Authorization (RBAC)](/charter/security/authorization-rbac.md) — enforcement.
-- [Frontend architecture](/charter/implementation/architecture/frontend-architecture.md) — routing guards and `RoleGuard`.
+- [Frontend architecture](/charter/overview/frontend-architecture.md) — routing guards and `RoleGuard`.

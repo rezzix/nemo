@@ -22,7 +22,7 @@ resource: backend/src/main/java/com/nemo/config
 
 ## Cross-references
 
-- [WebSockets](/charter/implementation/cross-cutting/websockets.md) — real-time board updates.
+- [WebSockets](/state/websockets.md) — real-time board updates.
 - [Task module](/charter/modules/delivery/task-module.md) — uses `TaskType`/`TaskStatus`.
 - [Multi-tenancy](/charter/security/multi-tenancy.md) — null `company_id` = global.
 - [Cross-cutting module entities](/charter/modules/cross-cutting/module-entities.md) — `OrganizationConfig`, `TaskType`, `TaskStatus`, `PublicHoliday`.

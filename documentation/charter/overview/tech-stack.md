@@ -40,5 +40,5 @@ DDL is entity-driven (`ddl-auto: update` dev / `validate` prod) with idempotent 
 
 ## Cross-references
 
-- [Frontend architecture](/charter/implementation/architecture/frontend-architecture.md) — how these are arranged.
+- [Frontend architecture](/charter/overview/frontend-architecture.md) — how these are arranged.
 - [Monorepo structure](/charter/overview/monorepo-structure.md) — repo layout.

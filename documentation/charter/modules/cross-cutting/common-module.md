@@ -21,7 +21,7 @@ This is where the standard [error response envelope](/charter/overview/request-d
 
 ## Cross-references
 
-- [Error handling](/charter/implementation/api/error-handling.md) — the exception-to-status mapping.
-- [Audit logging](/charter/implementation/cross-cutting/audit-logging.md) and [activity tracking](/charter/implementation/cross-cutting/activity-tracking.md).
-- [File storage](/charter/implementation/cross-cutting/file-storage.md) — the storage abstraction.
+- [Error handling](/state/api/error-handling.md) — the exception-to-status mapping.
+- [Audit logging](/state/audit-logging.md) and [activity tracking](/state/activity-tracking.md).
+- [File storage](/state/file-storage.md) — the storage abstraction.
 - [Cross-cutting module entities](/charter/modules/cross-cutting/module-entities.md) — `AuditLog`, `ActivityLog`.

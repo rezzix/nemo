@@ -1,5 +1,5 @@
 ---
-type: Charter/Pattern
+type: State/Implementation
 resource: backend/src/main/java/com/nemo/common/audit
 ---
 
@@ -14,4 +14,4 @@ resource: backend/src/main/java/com/nemo/common/audit
 ## Cross-references
 - [Common module](/charter/modules/cross-cutting/common-module.md) — owns the audit package.
 - [Request data flow](/charter/overview/request-data-flow.md) — the audit step.
-- [Activity tracking](/charter/implementation/cross-cutting/activity-tracking.md) — the sibling activity system.
+- [Activity tracking](/state/activity-tracking.md) — the sibling activity system.

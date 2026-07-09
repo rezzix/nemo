@@ -15,4 +15,4 @@ resource: backend/src/main/java/com/nemo/reconciliation
 
 - [Bank transaction module](/charter/modules/finance/banktransaction-module.md) — one side.
 - [Payment module](/charter/modules/commercial/payment-module.md) — the other side.
-- [Finance endpoints](/charter/implementation/api/finance-bank-endpoints.md) — endpoint detail.
+- [Finance endpoints](/state/api/finance-bank-endpoints.md) — endpoint detail.

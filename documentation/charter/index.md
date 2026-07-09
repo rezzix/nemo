@@ -21,9 +21,8 @@ The system is multi-tenant by company scoping (`companyId`, with `null` = global
 
 ## Contents
 
-* [Overview](/charter/overview/index.md) — system shape, monorepo layout, backend layering, tech stack, request flow, database schema.
+* [Overview](/charter/overview/index.md) — system shape, architecture, monorepo layout, backend layering, tech stack, request flow, database schema, UML diagrams.
 * [Backend modules](/charter/modules/index.md) — one concept per backend domain package, grouped by domain, each with a `module-entities.md` schema.
 * [Security](/charter/security/index.md) — authentication, RBAC, multi-tenancy, and the role × feature access matrix.
-* [Implementation](/charter/implementation/index.md) — system & frontend architecture, UML diagrams, REST API contracts, and cross-cutting concerns (audit, activity, file storage, WebSockets).
 * [Testing strategy](/charter/testing-strategy.md) — the shared four-level strategy, infrastructure, and test-data conventions referenced by the per-module test plans in State.
 * [References](/charter/references/index.md) — external material mirrored as OKF `Reference` concepts (incl. the OKF spec).
