@@ -70,8 +70,7 @@ export default function AdminDashboard() {
   }
 
   const stats = [
-    { label: 'Total Users', value: users.length, color: 'bg-primary-50 text-primary-700' },
-    { label: 'Active Users', value: activeUsers, color: 'bg-green-50 text-green-700' },
+    { label: 'Active Users', value: `${activeUsers}/${users.length}`, color: 'bg-green-50 text-green-700' },
     { label: 'Companies', value: companies.length, color: 'bg-blue-50 text-blue-700' },
     { label: 'Projects', value: projects.length, color: 'bg-amber-50 text-amber-700' },
   ];
@@ -92,7 +91,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {stats.map((s) => (
           <div key={s.label} className="bg-white rounded-xl border border-gray-200 p-5">
             <p className="text-sm text-gray-500">{s.label}</p>
