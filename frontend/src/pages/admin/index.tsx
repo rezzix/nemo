@@ -1,9 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { TaskTypeDto, TaskStatusDto, TaskStatusCategory } from '@/types';
+import type { TaskTypeDto } from '@/types';
 import Spinner from '@/components/common/Spinner';
 import {
   listTaskTypes, createTaskType, updateTaskType, deleteTaskType,
-  listTaskStatuses, createTaskStatus, updateTaskStatus, deleteTaskStatus,
 } from '@/api/admin';
 import UsersTab from './UsersTab';
 import CompaniesTab from './CompaniesTab';

@@ -113,7 +113,7 @@ export default function UserDetailPage() {
             const projectLogs = logs.filter((l: TimeLogDto) => tasks.some((i: TaskDto) => i.id === l.taskId));
             const projectHours = projectLogs.reduce((sum: number, l: TimeLogDto) => sum + l.hours, 0);
             for (const l of projectLogs) {
-              taskHoursMap[l.taskId] = (taskHoursMap[l.taskId] || 0) + l.hours;
+              if (l.taskId != null) taskHoursMap[l.taskId] = (taskHoursMap[l.taskId] || 0) + l.hours;
             }
 
             if (tasks.length > 0 || member.score != null) {

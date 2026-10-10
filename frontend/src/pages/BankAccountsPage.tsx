@@ -35,7 +35,7 @@ export default function BankAccountsPage() {
   const fetchAccounts = async () => {
     setLoading(true);
     try {
-      const res = await listBankAccounts({ search: search || undefined, page, size: 20 });
+      const res = await listBankAccounts({ ...(search ? { search } : {}), page, size: 20 });
       setAccounts(res.data);
       setTotalPages(res.pagination.totalPages);
     } catch { /* ignore */ }

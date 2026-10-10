@@ -122,7 +122,7 @@ export default function PlanningTab({ projectId, canEdit }: PlanningTabProps) {
     }
   };
 
-  const getSprintTarget = (sprint: SprintDto): number => {
+  const getSprintTarget = (_sprint: SprintDto): number => {
     // Use completed-sprint average if available, otherwise default to 0
     return avgVelocity || 0;
   };

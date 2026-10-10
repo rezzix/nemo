@@ -4,7 +4,6 @@ import { listCompanies } from '@/api/companies';
 import type { HolidayDto, CompanyDto, CreateHolidayRequest } from '@/types';
 import Spinner from '@/components/common/Spinner';
 import Modal from '@/components/common/Modal';
-import Field from '@/components/common/Field';
 
 export default function HolidaysPage() {
   const [year, setYear] = useState(new Date().getFullYear());

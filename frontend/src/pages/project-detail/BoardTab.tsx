@@ -7,7 +7,7 @@ import { priorityColor, statusColor, formatDate, deadlineBadge, deadlineLabel } 
 import { useAuthStore } from '@/stores/authStore';
 import Spinner from '@/components/common/Spinner';
 
-export default function BoardTab({ projectId, projectKey, isExternal }: { projectId: number; projectKey: string; isExternal?: boolean }) {
+export default function BoardTab({ projectId, isExternal }: { projectId: number; projectKey: string; isExternal?: boolean }) {
   const navigate = useNavigate();
   const currentUser = useAuthStore((s) => s.user);
   const [tasks, setTasks] = useState<TaskDto[]>([]);
@@ -26,7 +26,7 @@ export default function BoardTab({ projectId, projectKey, isExternal }: { projec
         listTaskStatuses(),
       ]);
       setTasks(taskData);
-      setStatuses(statusData.sort((a, b) => a.position - b.position));
+      setStatuses(statusData);
     } finally {
       setLoading(false);
     }

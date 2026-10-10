@@ -157,7 +157,7 @@ export function availableColor(available: number): string {
   return 'text-green-600';
 }
 
-export function availableBgColor(available: number, capacity: number): string {
+export function availableBgColor(available: number, _capacity: number): string {
   if (available < 0) return 'bg-red-100';
   if (available === 0) return 'bg-yellow-50';
   return 'bg-green-50';

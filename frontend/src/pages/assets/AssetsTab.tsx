@@ -6,7 +6,6 @@ import { listAllUsers } from '@/api/users';
 import Spinner from '@/components/common/Spinner';
 import Modal from '@/components/common/Modal';
 import Field from '@/components/common/Field';
-import { formatDate } from '@/utils/format';
 
 const ASSET_TYPES: { value: AssetType; label: string }[] = [
   { value: 'COMPUTER', label: 'Computer' },
@@ -63,7 +62,7 @@ export default function AssetsTab({ isAdmin }: { isAdmin: boolean }) {
   useEffect(() => { fetchAssets(); }, [fetchAssets]);
 
   const handleCreate = async (data: Record<string, unknown>) => {
-    await createAsset(data as Parameters<typeof createAsset>[0]);
+    await createAsset(data as unknown as Parameters<typeof createAsset>[0]);
     setShowCreate(false);
     fetchAssets();
   };
@@ -215,7 +214,7 @@ function AssetFormModal({ title, initial, onSubmit, onClose }: {
 
   useEffect(() => {
     listLocations().then(setLocations).catch(() => {});
-    listCompanies().then(setCompanies).catch(() => {});
+    listCompanies().then((res) => setCompanies(res.data)).catch(() => {});
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {

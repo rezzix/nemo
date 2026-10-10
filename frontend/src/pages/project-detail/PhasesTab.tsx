@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import type { PhaseDto, ClientPaymentDto, DeliverableDto } from '@/types';
 import { listPhases, createPhase, updatePhase, deletePhase, listDeliverables, createDeliverable, updateDeliverable, deleteDeliverable, uploadDeliverableAttachment, deleteDeliverableAttachment, getDeliverableAttachmentDownloadUrl, listClientPayments, createClientPayment, updateClientPayment, deleteClientPayment } from '@/api/phases';
 import axios from 'axios';
-import { formatDate, formatCurrency, formatCurrencyUnit, deliverableStateBadge, deliverableStateLabel, deadlineBadge, deadlineLabel } from '@/utils/format';
+import { formatDate, formatCurrencyUnit, deliverableStateBadge, deliverableStateLabel, deadlineBadge, deadlineLabel } from '@/utils/format';
 import Spinner from '@/components/common/Spinner';
 import Modal from '@/components/common/Modal';
 
@@ -174,7 +174,7 @@ export default function PhasesTab({ projectId, canEdit, canManagePayments = fals
   };
 
   // Payment CRUD
-  const openPaymentForm = (phaseId: number, payment?: PhasePaymentDto) => {
+  const openPaymentForm = (phaseId: number, payment?: ClientPaymentDto) => {
     if (payment) {
       setEditingPayment(payment);
       setPaymentForm({ amount: payment.amount, paymentDate: payment.paymentDate || '', reference: payment.reference || '', notes: payment.notes || '' });

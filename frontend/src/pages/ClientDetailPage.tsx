@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import type { ClientDto, ClientContactDto, CompanyDto } from '@/types';
-import { getClient, updateClient, deleteClient, getClientContacts, addClientContact, updateClientContact, deleteClientContact } from '@/api/clients';
+import { getClient, updateClient, deleteClient, addClientContact, updateClientContact, deleteClientContact } from '@/api/clients';
 import { listCompanies } from '@/api/companies';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDate } from '@/utils/format';

@@ -10,7 +10,7 @@ export default function TrendsReport() {
   const [data, setData] = useState<{ week: string; hours: number }[]>([]);
   const [byUser, setByUser] = useState<{ userName: string; weekHours: Record<string, number> }[]>([]);
   const [loading, setLoading] = useState(false);
-  const [users, setUsers] = useState<UserDto[]>([]);
+  const [, setUsers] = useState<UserDto[]>([]);
 
   const fetch = useCallback(async () => {
     setLoading(true);

@@ -178,7 +178,7 @@ export default function PreSaleDetailPage() {
             <tbody className="divide-y divide-gray-50">
               {timeLogs.map(log => (
                 <tr key={log.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-2 text-gray-600">{formatDate(log.date)}</td>
+                  <td className="px-4 py-2 text-gray-600">{formatDate(log.logDate)}</td>
                   <td className="px-4 py-2 text-gray-900">{log.userName}</td>
                   <td className="px-4 py-2 text-right text-gray-600">{log.hours.toFixed(1)}</td>
                   <td className="px-4 py-2 text-gray-600 max-w-xs truncate">{log.description || '—'}</td>

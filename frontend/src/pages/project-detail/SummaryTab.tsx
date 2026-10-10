@@ -415,7 +415,7 @@ export default function SummaryTab({ project, projectId, managerId, onNavigate }
                         {phaseDels.length > 0 && (
                           <span>{completedDels}/{phaseDels.length} deliverables</span>
                         )}
-                        {phase.stage && <span className={`px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700`}>{stageLabel(phase.stage)}</span>}
+                        {phase.status && <span className={`px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700`}>{stageLabel(phase.status)}</span>}
                       </div>
                     </div>
                     {hasPayment && (

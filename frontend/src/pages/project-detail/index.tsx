@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { ProjectDto, WikiTreeItem, WikiPageDto, WikiSearchHit, EvmMetrics } from '@/types';
 import { getProject } from '@/api/projects';
-import { getEvmMetrics } from '@/api/pmo';
 import { getWikiPageTree, getWikiPage, createWikiPage, updateWikiPage, deleteWikiPage, searchWikiPages } from '@/api/wiki';
 import { useAuth } from '@/hooks/useAuth';
 import { stageBadge, stageLabel, formatDate, formatCurrency } from '@/utils/format';
@@ -27,7 +26,7 @@ export default function ProjectDetailPage() {
   const { id, tab: tabParam } = useParams<{ id: string; tab?: string }>();
   const navigate = useNavigate();
   const [project, setProject] = useState<ProjectDto | null>(null);
-  const [evm, setEvm] = useState<EvmMetrics | null>(null);
+  const [evm] = useState<EvmMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const role = user?.role;
