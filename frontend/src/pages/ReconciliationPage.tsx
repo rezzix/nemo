@@ -1,9 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import type { UnreconciledTransactionDto, UnmatchedPaymentDto } from '@/types';
-import { getReconciliationView, suggestMatches, reconcile, unreconcile, getUnreconciledCount } from '@/api/reconciliation';
+import { getReconciliationView, suggestMatches, reconcile, unreconcile, getUnreconciledCount, getReconciledTransactions } from '@/api/reconciliation';
 import { formatCurrency, formatDate } from '@/utils/format';
-import Spinner from '@/components/common/Spinner';
 
 const statusBadge: Record<string, string> = {
   NEW: 'bg-yellow-100 text-yellow-800',

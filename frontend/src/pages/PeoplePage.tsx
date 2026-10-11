@@ -11,7 +11,7 @@ import Spinner from '@/components/common/Spinner';
 export default function PeoplePage() {
   const [users, setUsers] = useState<UserDto[]>([]);
   const [companies, setCompanies] = useState<CompanyDto[]>([]);
-  const [projects, setProjects] = useState<ProjectDto[]>([]);
+  const [, setProjects] = useState<ProjectDto[]>([]);
   const [memberMap, setMemberMap] = useState<Record<number, string[]>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');

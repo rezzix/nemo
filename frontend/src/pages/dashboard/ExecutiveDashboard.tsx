@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { getPortfolioSummary, getEvmMetrics, listPortfolioRaidItems, getPortfolioByCompany, getPortfolioTimeline } from '@/api/pmo';
 import { listProjects } from '@/api/projects';
 import { listCompanies } from '@/api/companies';
-import { formatCurrency, stageBadge, stageLabel, riskColor, riskLabel } from '@/utils/format';
+import { formatCurrency, stageBadge, stageLabel, riskColor } from '@/utils/format';
 import type { PortfolioSummary, EvmMetrics, RaidItemDto, ProjectDto, CompanyPortfolioSummary, ProjectTimelineEntry, CompanyDto } from '@/types';
 import BarChart from '@/pages/reports/BarChart';
 import Spinner from '@/components/common/Spinner';
@@ -75,11 +75,11 @@ function computeAlerts(
   return Object.values(alertMap).sort((a, b) => (a.worstSeverity === 'red' ? 0 : 1) - (b.worstSeverity === 'red' ? 0 : 1));
 }
 
-const alertIcons: Record<Alert['type'], string> = {
+const alertIcons: Record<AlertItem['type'], string> = {
   cpi: '💰', spi: '📅', budget: '💳', risk: '⚠️',
 };
 
-const alertSeverityStyles: Record<Alert['severity'], string> = {
+const alertSeverityStyles: Record<AlertItem['severity'], string> = {
   red: 'border-red-300 bg-red-50',
   yellow: 'border-amber-300 bg-amber-50',
 };

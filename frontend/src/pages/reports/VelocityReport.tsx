@@ -48,7 +48,7 @@ export default function VelocityReport({ projectId }: { projectId: number | null
             <div className="text-center text-gray-400 py-8">No sprints found for this project</div>
           ) : (
             <div className="space-y-3">
-              {sprintStats.map(({ sprint, total, completed, remaining, totalSP, completedSP, remainingSP }) => (
+              {sprintStats.map(({ sprint, total, completed, remaining, totalSP, completedSP }) => (
                 <div key={sprint.id} className="bg-white rounded-xl border border-gray-200 p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div>

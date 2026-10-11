@@ -32,7 +32,7 @@ export default function ClientsPage() {
   const fetchClients = async () => {
     setLoading(true);
     try {
-      const res = await listClients({ search: search || undefined, page, size: 20 });
+      const res = await listClients({ ...(search ? { search } : {}), page, size: 20 });
       setClients(res.data);
       setTotalPages(res.pagination.totalPages);
     } catch { /* ignore */ }

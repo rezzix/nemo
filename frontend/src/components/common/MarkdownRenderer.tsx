@@ -45,7 +45,7 @@ export default function MarkdownRenderer({ content }: { content: string }) {
   }, []);
 
   const handlePreBlock = useCallback(({ children, ...rest }: React.ComponentPropsWithoutRef<'pre'> & { node?: unknown }) => {
-    const isMermaid = typeof children === 'object' && children !== null && 'type' in children && String((children as React.ReactElement).props?.className).includes('language-mermaid');
+    const isMermaid = typeof children === 'object' && children !== null && 'type' in children && String((children as React.ReactElement<{ className?: string }>).props?.className).includes('language-mermaid');
     if (isMermaid) {
       return <pre className="bg-transparent p-0 not-prose" {...rest}>{children}</pre>;
     }

@@ -1,4 +1,5 @@
-import { Component, ReactNode } from 'react';
+import { Component } from 'react';
+import type { ReactNode } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import AdminDashboard from '@/pages/dashboard/AdminDashboard';
 import ManagerDashboard from '@/pages/dashboard/ManagerDashboard';

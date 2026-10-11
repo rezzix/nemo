@@ -272,7 +272,7 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
 
 // ─── Time Logs Section ──────────────────────────────────────────────────────────
 
-function TimeLogsSection({ projectId, taskId }: { projectId: number; taskId: number }) {
+function TimeLogsSection({ taskId }: { projectId: number; taskId: number }) {
   const [logs, setLogs] = useState<TimeLogDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);

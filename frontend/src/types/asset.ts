@@ -43,14 +43,14 @@ export interface CreateLocationRequest {
   description?: string;
   parentId?: number | null;
   companyId?: number | null;
-  order?: number;
+  order?: number | null;
 }
 
 export interface UpdateLocationRequest {
   name?: string;
   description?: string;
   parentId?: number | null;
-  order?: number;
+  order?: number | null;
   active?: boolean;
 }
 

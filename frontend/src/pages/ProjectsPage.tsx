@@ -188,7 +188,6 @@ function CreateProjectModal({ onClose }: { onClose: () => void }) {
   const [companies, setCompanies] = useState<CompanyDto[]>([]);
   const [clients, setClients] = useState<ClientDto[]>([]);
   const [clientId, setClientId] = useState('');
-  const isGlobalUser = !user?.companyId;
   const [companyId, setCompanyId] = useState<string>(user?.companyId ? String(user.companyId) : '');
   const [showCompany, setShowCompany] = useState(true);
   const [showGlobal, setShowGlobal] = useState(false);
@@ -243,6 +242,9 @@ function CreateProjectModal({ onClose }: { onClose: () => void }) {
     if (key.length < 2) {
       errors.key = 'Key must be at least 2 characters';
     }
+    if (!programId) {
+      errors.programId = 'Program is required';
+    }
     if (strategicScore && (Number(strategicScore) < 1 || Number(strategicScore) > 10)) {
       errors.strategicScore = 'Strategic score must be between 1 and 10';
     }
@@ -266,7 +268,7 @@ function CreateProjectModal({ onClose }: { onClose: () => void }) {
         name,
         key: key.toUpperCase(),
         description: description || undefined,
-        programId: programId ? Number(programId) : undefined,
+        programId: Number(programId),
         managerId: Number(managerId),
         companyId: companyId ? Number(companyId) : null,
         clientId: clientId ? Number(clientId) : null,
@@ -307,6 +309,7 @@ function CreateProjectModal({ onClose }: { onClose: () => void }) {
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Program</label>
+            {fieldErrors.programId && <p className="mt-1 text-sm text-red-600">{fieldErrors.programId}</p>}
             <select value={programId} onChange={(e) => setProgramId(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
               <option value="">— None —</option>
               {programs.map((p) => <option key={p.id} value={p.id}>{p.name} ({p.key})</option>)}

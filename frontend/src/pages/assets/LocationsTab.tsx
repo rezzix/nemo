@@ -36,7 +36,7 @@ export default function LocationsTab({ isAdmin }: { isAdmin: boolean }) {
     fetchFlatLocations();
   };
 
-  const handleUpdate = async (id: number, data: { name?: string; description?: string; parentId?: number | null; order?: number; active?: boolean }) => {
+  const handleUpdate = async (id: number, data: { name?: string; description?: string; parentId?: number | null; companyId?: number | null; order?: number | null; active?: boolean }) => {
     await updateLocation(id, data);
     setEditingLocation(null);
     fetchTree();
@@ -184,7 +184,7 @@ function LocationFormModal({ title, flatLocations, initial, onSubmit, onClose }:
   const [companies, setCompanies] = useState<{ id: number; name: string }[]>([]);
 
   useEffect(() => {
-    listCompanies().then(setCompanies).catch(() => {});
+    listCompanies().then((res) => setCompanies(res.data)).catch(() => {});
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
